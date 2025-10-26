@@ -294,7 +294,9 @@ export default function FlashcardCreationPage() {
           console.log("🌐 Sending request to webhook...");
           
           // Create the fetch promise
-          const fetchPromise = fetch('https://auto.zephyrastyle.com/webhook/save-flashcards', {
+          const webhookUrl = process.env.NEXT_PUBLIC_SAVE_FLASHCARDS_WEBHOOK_URL || 'https://auto.zephyrastyle.com/webhook/save-flashcards';
+          
+          const fetchPromise = fetch(webhookUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

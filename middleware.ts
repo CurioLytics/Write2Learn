@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   }
   
   // Public paths that don't require authentication
-  if (path.startsWith('/auth') || path === '/') {
+  if (path.startsWith('/auth') || path === '/' || path.startsWith('/onboarding') || path.startsWith('/journal/new')) {
     return res;
   }
 

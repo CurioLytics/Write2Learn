@@ -28,8 +28,9 @@ describe('Template Service', () => {
     ]);
 
     // Verify fetch was called with correct parameters
+    const webhookUrl = process.env.GET_PINNED_TEMPLATE_WEBHOOK_URL || 'https://n8n.elyandas.com/webhook/get-pinned-template';
     expect(fetch).toHaveBeenCalledWith(
-      'https://auto.zephyrastyle.com/webhook/get-pinned-template',
+      webhookUrl,
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ profileId: 'user123' })

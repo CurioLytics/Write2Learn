@@ -1,4 +1,7 @@
-const WEBHOOK_URL = 'https://auto.zephyrastyle.com/webhook/7b4775eb-8a92-4669-8c42-56e5fcb1017b';
+// Get webhook URL from environment variable or use fallback
+const WEBHOOK_URL = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_UPDATE_FLASHCARDS_WEBHOOK_URL
+  ? process.env.NEXT_PUBLIC_UPDATE_FLASHCARDS_WEBHOOK_URL
+  : 'https://auto.zephyrastyle.com/webhook/7b4775eb-8a92-4669-8c42-56e5fcb1017b';
 const MAX_RETRIES = 1; // Reduced from 3 to 1 to avoid multiple identical requests
 const RETRY_DELAY = 1000; // 1 second
 const WEBHOOK_CACHE = new Map<string, { result: any, timestamp: number }>();

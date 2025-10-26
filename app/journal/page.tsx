@@ -62,7 +62,7 @@ export default function JournalPage() {
     setSelectedDate(date);
     // Filter journals by the selected date
     const journalsForDate = journals.filter(journal => {
-      const journalDate = new Date(journal.created_at);
+      const journalDate = new Date(journal.journal_date);
       return (
         journalDate.getDate() === date.getDate() &&
         journalDate.getMonth() === date.getMonth() &&

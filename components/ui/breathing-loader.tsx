@@ -9,7 +9,7 @@ interface BreathingLoaderProps {
   bubbleColor?: string;    // Optional bubble color override
   textColor?: string;      // Optional text color override
 }
-
+                                         
 /**
  * A calming breathing animation loader component
  * Shows alternating "breathe in" and "breathe out" text with a bubble that expands and contracts

@@ -92,15 +92,7 @@ describe('OAuthButtons Component', () => {
 
   it('handles error from URL parameters', () => {
     // Override mock for this specific test
-    vi.mock('next/navigation', () => ({
-      useSearchParams: () => ({
-        get: (param: string) => {
-          if (param === 'error') return 'Authentication%20failed';
-          return null;
-        }
-      }),
-    }), { virtual: true });
-    
+    vi.mock('next/navigation', () =>    
     render(<OAuthButtons />);
     
     // Check for error message

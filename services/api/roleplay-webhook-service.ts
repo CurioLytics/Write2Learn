@@ -3,6 +3,7 @@
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 
 // Use our Next.js API route as a proxy to avoid CORS issues
+// Accede a la ruta desde las variables de entorno
 const ROLEPLAY_WEBHOOK_PROXY = "/api/roleplay/webhook";
 
 // Interface for the webhook request payload - updated to match required format with query wrapper

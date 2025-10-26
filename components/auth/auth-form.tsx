@@ -1,6 +1,5 @@
 'use client';
-
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { signInWithEmail, signUpWithEmail } from '@/services/api/auth-service';

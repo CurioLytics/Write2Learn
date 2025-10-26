@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { JournalTemplate, JournalTemplateCategory } from '@/types/journal';
+import type { JournalTemplate } from '@/types/journal';
 
 interface TemplateCardProps {
   template: JournalTemplate;
@@ -13,49 +13,22 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-        selected
+      className={`w-full text-left p-5 rounded-xl border transition-all duration-200 
+        ${selected
           ? 'border-emerald-500 bg-emerald-50'
-          : 'border-gray-200 hover:border-emerald-200'
-      }`}
+          : 'border-gray-200 hover:border-emerald-200 hover:bg-gray-50'
+        }`}
     >
-      <div className="flex items-start gap-3">
-        <img src={template.icon} alt="" className="w-5 h-5 mt-1" />
-        <div>
-          <h3 className="font-medium text-gray-900">{template.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-        </div>
+      <div className="flex flex-col">
+        <h3 className="text-base font-semibold text-gray-900 tracking-tight">
+          {template.name}
+        </h3>
+        <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+          {template.content?.substring(0, 100)}
+          {template.content && template.content.length > 100 ? '…' : ''}
+        </p>
       </div>
     </button>
-  );
-}
-
-interface TemplateGroupProps {
-  category: JournalTemplateCategory;
-  templates: JournalTemplate[];
-  selectedTemplates: string[];
-  onToggleTemplate: (templateId: string) => void;
-}
-
-function TemplateGroup({ category, templates, selectedTemplates, onToggleTemplate }: TemplateGroupProps) {
-  const categoryTemplates = templates.filter(t => t.category === category);
-
-  if (categoryTemplates.length === 0) return null;
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-medium text-gray-900">{category}</h2>
-      <div className="grid gap-4">
-        {categoryTemplates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            selected={selectedTemplates.includes(template.id)}
-            onSelect={() => onToggleTemplate(template.id)}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -64,7 +37,10 @@ interface TemplateSelectionStepProps {
   onToggleTemplate: (templateId: string) => void;
 }
 
-export function TemplateSelectionStep({ selectedTemplates, onToggleTemplate }: TemplateSelectionStepProps) {
+export function TemplateSelectionStep({
+  selectedTemplates,
+  onToggleTemplate,
+}: TemplateSelectionStepProps) {
   const [templates, setTemplates] = React.useState<JournalTemplate[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,14 +49,13 @@ export function TemplateSelectionStep({ selectedTemplates, onToggleTemplate }: T
     async function fetchTemplates() {
       try {
         const response = await fetch('/api/journal-templates');
-        if (!response.ok) {
-          throw new Error('Failed to fetch templates');
-        }
+        if (!response.ok) throw new Error('Không thể tải mẫu nhật ký.');
+
         const data = await response.json();
-        setTemplates(data.templates);
+        setTemplates(data.templates || []);
       } catch (err) {
-        setError('Failed to load templates. Please try again.');
-        console.error('Error loading templates:', err);
+        console.error('Lỗi khi tải mẫu nhật ký:', err);
+        setError('Không thể tải danh sách mẫu. Vui lòng thử lại.');
       } finally {
         setLoading(false);
       }
@@ -91,45 +66,54 @@ export function TemplateSelectionStep({ selectedTemplates, onToggleTemplate }: T
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading templates...</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mb-3"></div>
+        <p className="text-sm text-gray-600">Đang tải các mẫu...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <div className="text-red-600 mb-4">{error}</div>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-red-600 mb-3 text-sm">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="text-emerald-600 hover:underline"
+          className="text-sm text-emerald-600 font-medium hover:underline"
         >
-          Try again
+          Thử lại
         </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-3xl mx-auto space-y-8">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold">Choose a Template</h2>
-        <p className="text-gray-600 mt-2">Choose how you'd like to start writing today</p>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          Chọn Mẫu Nhật Ký
+        </h2>
+        <p className="text-gray-600 mt-2 text-sm">
+          Hãy chọn một mẫu gợi ý hoặc bắt đầu viết nhật ký của riêng bạn.
+        </p>
       </div>
 
-      <div className="space-y-8">
-        {['Daily Journals', 'Wellness & Growth', 'Decision & Problem-Solving'].map((category) => (
-          <TemplateGroup
-            key={category}
-            category={category as JournalTemplateCategory}
-            templates={templates}
-            selectedTemplates={selectedTemplates}
-            onToggleTemplate={onToggleTemplate}
-          />
-        ))}
-      </div>
+      {templates.length === 0 ? (
+        <div className="text-center py-8 text-gray-500 text-sm">
+          Hiện chưa có mẫu nào khả dụng. Vui lòng quay lại sau.
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {templates.map((template) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              selected={selectedTemplates.includes(template.id)}
+              onSelect={() => onToggleTemplate(template.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

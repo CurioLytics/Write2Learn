@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
 // The actual webhook URL - kept on server side to prevent exposure
-const WEBHOOK_URL = "https://auto2.elyandas.com/webhook/roleplay";
+// Using environment variable for webhook URL
+const WEBHOOK_URL = process.env.GET_ROLEPLAY_WEBHOOK_URL || "https://auto2.elyandas.com/webhook/roleplay";
 
 /**
  * API proxy for the roleplay webhook to avoid CORS issues

@@ -19,14 +19,14 @@ export interface JournalTemplate {
 }
 
 /**
- * Interface for journal feedback response from the feedback API
+ * Interface for the core feedback content returned by the feedback API
  */
 export interface JournalFeedbackContent {
   title: string;
   summary: string;
   improvedVersion: string;
-  originalVersion: string; // Original journal content before improvement
-  vocabSuggestions: Array<{
+  originalVersion?: string; // Optional: Original journal content before improvement
+  vocabSuggestions?: Array<{
     word: string;
     meaning?: string;
     example?: string;
@@ -35,10 +35,17 @@ export interface JournalFeedbackContent {
 }
 
 /**
- * Interface for the raw webhook response structure
+ * Interface for the raw webhook output structure
+ * Based on the actual webhook response, these fields are required
  */
+export interface WebhookOutput {
+  title: string;
+  summary: string;
+  improvedVersion: string;
+}
+
 export interface WebhookResponseItem {
-  output: JournalFeedbackContent;
+  output: WebhookOutput;
 }
 
 /**
@@ -80,7 +87,7 @@ export interface Journal {
   id: string;
   title: string;
   content: string;
-  created_at: string;
+  journal_date: string; // ISO date string
 }
 
 /**

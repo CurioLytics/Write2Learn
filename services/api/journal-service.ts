@@ -41,11 +41,11 @@ class JournalService {
       
       console.log('getJournals - Processed data to return:', data?.length, 'entries');
       
-      return data.map(journal => ({
-        id: journal.id,
+      return data.map((journal: any) => ({
+        id: String(journal.id),
         title: journal.title,
         content: journal.content,
-        created_at: journal.created_at
+        journal_date: journal.journal_date ?? journal.created_at ?? new Date().toISOString()
       }));
     } catch (error) {
       console.error('Error in getJournals:', error);
@@ -100,6 +100,49 @@ class JournalService {
       return processedData;
     } catch (error) {
       console.error('Error in getJournalStats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new journal entry
+   * 
+   * @param userId The ID of the user creating the journal entry
+   * @param data The journal entry data
+   * @returns Promise with the created journal entry
+   */
+  async createJournal(userId: string, data: {
+    title: string | null;
+    content: string;
+    journal_date?: string | null;
+  }): Promise<{ id: string }> {
+    try {
+      console.log('createJournal - Creating new journal entry for user:', userId);
+      
+      const supabase = createSupabaseClient();
+      
+      // Insert the journal entry
+      const { data: result, error } = await supabase
+        .from('journals')
+        .insert({
+          user_id: userId,
+          title: data.title,
+          content: data.content,
+          journal_date: data.journal_date || new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+      
+      if (error) {
+        console.error('Error creating journal entry:', error);
+        throw error;
+      }
+      
+      console.log('createJournal - Successfully created journal entry:', result);
+      
+      return { id: result.id };
+    } catch (error) {
+      console.error('Error in createJournal:', error);
       throw error;
     }
   }

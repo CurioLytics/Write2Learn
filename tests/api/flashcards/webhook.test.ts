@@ -47,7 +47,9 @@ describe('Flashcard Webhook Integration', () => {
     };
 
     // Call the webhook
-    const response = await fetch('https://auto.zephyrastyle.com/webhook/save-flashcards', {
+    const webhookUrl = process.env.SAVE_FLASHCARDS_WEBHOOK_URL || 'https://auto.zephyrastyle.com/webhook/save-flashcards';
+    
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -57,7 +59,7 @@ describe('Flashcard Webhook Integration', () => {
 
     // Verify the request was made correctly
     expect(fetch).toHaveBeenCalledWith(
-      'https://auto.zephyrastyle.com/webhook/save-flashcards',
+      webhookUrl,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +93,9 @@ describe('Flashcard Webhook Integration', () => {
     };
 
     // Call the webhook (will fail)
-    const response = await fetch('https://auto.zephyrastyle.com/webhook/save-flashcards', {
+    const webhookUrl = process.env.SAVE_FLASHCARDS_WEBHOOK_URL || 'https://auto.zephyrastyle.com/webhook/save-flashcards';
+    
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

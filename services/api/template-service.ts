@@ -10,35 +10,26 @@ export interface PinnedTemplate {
   content?: string;
 }
 
-// API response structure
 interface ApiTemplateResponse {
   data?: {
     id: string;
     name: string;
     content: string;
-    category?: string;  // Category might not be in the response
+    category?: string;
   }[];
 }
 
-/**
- * Fetches pinned templates from the webhook API
- * @param profileId The user profile ID
- * @returns Promise with the pinned templates
- */
 export async function fetchPinnedTemplates(profileId: string): Promise<PinnedTemplate[]> {
   try {
-    // Generate a request ID for idempotency
-    const requestId = `${profileId}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    
-    const response = await fetch('https://auto.zephyrastyle.com/webhook/get-pinned-template', {
+    // Use webhook URL from env or fallback to hardcoded URL
+    const webhookUrl = typeof process !== 'undefined' && process.env.GET_PINNED_TEMPLATE_WEBHOOK_URL 
+      ? process.env.GET_PINNED_TEMPLATE_WEBHOOK_URL
+      : 'https://n8n.elyandas.com/webhook/get-pinned-template';
+      
+    const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'X-Request-ID': requestId,
-        'X-Profile-ID': profileId
-      },
-      body: JSON.stringify({ profileId })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profileId }),
     });
 
     if (!response.ok) {
@@ -46,23 +37,29 @@ export async function fetchPinnedTemplates(profileId: string): Promise<PinnedTem
     }
 
     const responseData = await response.json();
-    
-    // Handle the nested response structure
+
     if (Array.isArray(responseData) && responseData.length > 0 && responseData[0].data) {
-      // Map the API response to our PinnedTemplate format
-      return responseData[0].data.map((template: any) => ({
-        id: template.id,
-        title: template.name, // 'name' in API maps to 'title' in our app
-        category: template.category || determineCategory(template.name), // Use the category if available or infer from name
-        content: template.content
+      return responseData[0].data.map((t: any) => ({
+        id: t.id,
+        title: t.name,
+        category: t.category || determineCategory(t.name),
+        content: t.content,
       }));
     }
-    
-    // Default case for the original expected response format
+
+    if (responseData.data && Array.isArray(responseData.data)) {
+      return responseData.data.map((t: any) => ({
+        id: t.id,
+        title: t.name,
+        category: t.category || determineCategory(t.name),
+        content: t.content,
+      }));
+    }
+
     if (responseData.templates && Array.isArray(responseData.templates)) {
       return responseData.templates;
     }
-    
+
     return [];
   } catch (error) {
     console.error('Error fetching pinned templates:', error);
@@ -70,80 +67,29 @@ export async function fetchPinnedTemplates(profileId: string): Promise<PinnedTem
   }
 }
 
-/**
- * Helper function to determine a category based on template name
- * This helps when the API doesn't provide a category
- */
 function determineCategory(name: string): string {
-  const lowerName = name.toLowerCase();
-  
-  if (lowerName.includes('reflection') || lowerName.includes('journal') || lowerName.includes('diary')) {
-    return 'Journaling';
-  } else if (lowerName.includes('problem') || lowerName.includes('solution')) {
-    return 'Problem Solving';
-  } else if (lowerName.includes('goal') || lowerName.includes('task') || lowerName.includes('plan')) {
-    return 'Productivity';
-  } else if (lowerName.includes('wellness') || lowerName.includes('health') || lowerName.includes('mindful')) {
-    return 'Wellness';
-  } else if (lowerName.includes('decision') || lowerName.includes('choice')) {
-    return 'Decision Making';
-  } else if (lowerName.includes('business') || lowerName.includes('work')) {
-    return 'Business';
-  } else if (lowerName.includes('personal') || lowerName.includes('life')) {
-    return 'Personal';
-  } else if (lowerName.includes('learn') || lowerName.includes('study')) {
-    return 'Learning';
-  }
-  
-  // Default category if no matches
-  return 'Journaling';
+  const lower = name.toLowerCase();
+  if (lower.includes('reflection') || lower.includes('journal')) return 'Journaling';
+  if (lower.includes('goal') || lower.includes('task')) return 'Productivity';
+  if (lower.includes('learn') || lower.includes('study')) return 'Learning';
+  return 'General';
 }
 
-/**
- * Custom hook for accessing pinned templates with built-in caching
- */
 export function usePinnedTemplates() {
   const { user } = useAuth();
 
-  // Default fallback templates
-  const fallbackTemplates: PinnedTemplate[] = [
-    {
-      id: '1',
-      title: 'Morning Check-in',
-      category: 'Journaling'
-    },
-    {
-      id: '2',
-      title: 'Minimalism Prompt',
-      category: 'Productivity'
-    }
+  const fallback: PinnedTemplate[] = [
+    { id: '1', title: 'Morning Check-in', category: 'Journaling' },
+    { id: '2', title: 'Minimalism Prompt', category: 'Productivity' },
   ];
-  
-  // Use the cached fetch hook
-  const { 
-    data: templates,
-    loading, 
-    error,
-    refresh,
-    clearCache
-  } = useCachedFetch<PinnedTemplate[]>({
+
+  const { data, loading, error, refresh, clearCache } = useCachedFetch<PinnedTemplate[]>({
     key: `pinned-templates-${user?.id || 'anonymous'}`,
-    duration: 5 * 60 * 1000, // 5 minutes
+    duration: 5 * 60 * 1000,
     dependencyArray: [user?.id],
-    fetcher: async () => {
-      if (!user?.id) {
-        return fallbackTemplates;
-      }
-      return await fetchPinnedTemplates(user.id);
-    },
-    fallback: fallbackTemplates
+    fetcher: async () => (!user?.id ? fallback : fetchPinnedTemplates(user.id)),
+    fallback,
   });
-  
-  return { 
-    templates: templates || fallbackTemplates,
-    loading,
-    error,
-    refresh,
-    clearCache
-  };
+
+  return { templates: data || fallback, loading, error, refresh, clearCache };
 }
