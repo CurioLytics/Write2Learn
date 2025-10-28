@@ -329,49 +329,47 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
   const saveButton = (
     <div
       ref={buttonRef}
-      className={styles['highlight-button']}
+      className={`
+        absolute transition-all duration-150
+        ${isButtonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
+      `}
       style={{
         top: `${buttonPosition.top}px`,
         left: `${buttonPosition.left}px`,
-        display: isButtonVisible ? 'block' : 'none',
-        zIndex: zIndex.highlightButton
+        zIndex: zIndex.highlightButton,
       }}
     >
       <button
         onClick={() => {
-          console.log('Save button clicked for:', selectedText);
-          
-          // Just save to parent state - don't manually apply highlight
-          // The useEffect will add the highlight when the highlights array updates
+          console.log('✅ Saved highlight:', selectedText);
+
           onHighlightSaved(selectedText);
-          
-          // Hide button and clear selection
           setIsButtonVisible(false);
           window.getSelection()?.removeAllRanges();
         }}
+        className="
+          bg-gray-900 text-white text-sm font-medium
+          px-3 py-1.5 rounded-full shadow-lg
+          flex items-center gap-1.5
+          hover:bg-gray-800 active:scale-95
+          focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-700
+        "
       >
-        <span className="flex items-center justify-center">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="mr-2"
-          >
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          Save
-        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+        Save
       </button>
     </div>
   );
+
   
   return (
     <>

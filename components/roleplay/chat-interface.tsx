@@ -17,6 +17,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,43 +54,46 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          id: `err-${Date.now()}`,
-          content: "Xin lỗi, phản hồi bị lỗi. Hãy thử lại.",
-          sender: 'bot',
-          timestamp: Date.now(),
-        },
+        { id: `err-${Date.now()}`, content: 'Xin lỗi, phản hồi bị lỗi.', sender: 'bot', timestamp: Date.now() },
       ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFinish = () => {
-    router.push('/roleplay');
+  const handleFinish = async () => {
+    setFinishing(true);
+    try {
+      const res = await fetch('/api/roleplay/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages }),
+      });
+
+      const text = await res.text();
+      setSummary(text);
+    } catch {
+      setSummary('Lỗi khi gọi webhook.');
+    } finally {
+      setFinishing(false);
+    }
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <button onClick={() => router.push('/roleplay')} className="text-gray-600 hover:text-gray-900">
-            ←
-          </button>
-          <h2 className="font-medium text-gray-800">{scenario.name}</h2>
-        </div>
+        <h2 className="font-medium text-gray-800">{scenario.name}</h2>
         <Button
-          onClick={handleFinish}
-          className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-4 py-1 text-sm"
+          onClick={() => {
+            sessionStorage.setItem('roleplayMessages', JSON.stringify(messages));
+            router.push('/roleplay/summary');
+          }}
+          variant="outline"
+          className="text-sm"
         >
           Finish
         </Button>
-      </div>
-
-      {/* Context */}
-      <div className="px-4 py-2 bg-gray-50 text-sm text-gray-600">
-        <strong>Context:</strong> {scenario.context}
       </div>
 
       {/* Chat messages */}
@@ -100,7 +105,6 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
             roleName={m.sender === 'bot' ? scenario.role1 : 'You'}
           />
         ))}
-
         {isLoading && (
           <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-medium">
@@ -115,6 +119,13 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Webhook result */}
+      {summary && (
+        <div className="p-3 bg-gray-100 text-sm text-center text-gray-700 border-t">
+          {summary}
+        </div>
+      )}
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
