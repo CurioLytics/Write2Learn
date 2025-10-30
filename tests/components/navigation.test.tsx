@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { Navigation } from '@/components/layout/navigation';
+import { Navigation } from '@/components/layout/sidebar';
 import { useResponsive } from '@/hooks/common/use-responsive';
 
 // Mock the next/navigation

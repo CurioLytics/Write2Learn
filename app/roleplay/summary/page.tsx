@@ -15,13 +15,15 @@ export default function RoleplaySummaryPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [highlights, setHighlights] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
+  // 🟢 Load conversation
   useEffect(() => {
     const saved = sessionStorage.getItem('roleplayMessages');
     if (saved) setMessages(JSON.parse(saved));
   }, []);
 
+  // 🟢 Fetch AI feedback summary
   useEffect(() => {
     if (messages.length === 0) return;
 
@@ -35,16 +37,12 @@ export default function RoleplaySummaryPage() {
         });
 
         const text = await res.text();
-        let parsed = text;
-
         try {
           const json = JSON.parse(text);
-          parsed = json.output || JSON.stringify(json, null, 2);
+          setFeedback((json.output || JSON.stringify(json, null, 2)).trim());
         } catch {
-          // keep as plain text
+          setFeedback(text.trim());
         }
-
-        setFeedback(parsed.trim());
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setFeedback('⚠️ Không thể lấy phản hồi. Vui lòng thử lại sau.');
@@ -65,82 +63,84 @@ export default function RoleplaySummaryPage() {
     (index: number) => {
       const text = highlights[index];
       setHighlights((prev) => prev.filter((_, i) => i !== index));
-
       const container = document.getElementById('feedback-content');
       if (!container) return;
-
-      const highlightEls = container.querySelectorAll(`.${styles['highlighted-text']}`);
-      highlightEls.forEach((el) => {
-        if (el.textContent === text) el.replaceWith(document.createTextNode(text));
-      });
+      container
+        .querySelectorAll(`.${styles['highlighted-text']}`)
+        .forEach((el) => {
+          if (el.textContent === text) el.replaceWith(document.createTextNode(text));
+        });
     },
     [highlights]
   );
 
-  const handleSaveFeedback = async () => {
-    if (!feedback || highlights.length === 0) return;
-    setSaving(true);
+  // 🟢 Save and navigate to flashcard creation
+  const handleSaveHighlights = async () => {
+    if (!feedback) return;
+    setProcessing(true);
 
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_SAVE_ROLEPLAY_FEEDBACK_WEBHOOK_URL ||
-          'https://auto.zephyrastyle.com/webhook/save-process-highlight',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            feedback,
-            highlights,
-            createdAt: new Date().toISOString(),
-          }),
-        }
-      );
+      const payload = {
+        type: 'roleplay',
+        feedback,
+        highlights,
+        createdAt: new Date().toISOString(),
+      };
 
-      if (!res.ok) throw new Error('Save failed');
-      alert('✅ Feedback saved successfully!');
-      router.push('/roleplay');
+      const webhookUrl =
+        process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL ||
+        'https://n8n.elyandas.com/webhook/role-play-flashcard';
+
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Webhook failed');
+
+      const data = await res.json();
+
+      // ✅ Store processed flashcards
+      localStorage.setItem('flashcardData', JSON.stringify(data));
+
+      // ✅ Redirect to flashcard creation
+      router.push('/flashcards/create');
     } catch (err) {
-      console.error('Error saving feedback:', err);
-      alert('❌ Không thể lưu phản hồi.');
+      console.error('Error processing highlights:', err);
+      alert('❌ Không thể xử lý từ vựng.');
     } finally {
-      setSaving(false);
+      setProcessing(false);
     }
   };
 
+
   return (
-    <div
-      className="min-h-screen flex flex-col bg-white text-foreground"
-      style={{ fontFamily: 'var(--font-sans)' }}
-    >
+    <div className="min-h-screen flex flex-col bg-white text-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-card">
         <h1 className="text-lg font-semibold">Tổng kết hội thoại</h1>
       </header>
 
-      {/* Main content */}
+      {/* Main */}
       <main className="flex-1 grid grid-rows-2 divide-y divide-border">
-        {/* 🗨️ Conversation */}
+        {/* Conversation */}
         <section className="overflow-y-auto p-6 bg-gray-50">
           <h2 className="text-base font-medium mb-4">Cuộc hội thoại</h2>
-          <div className="space-y-3">
-            {messages.length > 0 ? (
-              messages.map((m) => (
-                <MessageBubble
-                  key={m.id}
-                  message={m}
-                  roleName={m.sender === 'bot' ? 'AI Partner' : 'You'}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-gray-500 italic">Không có dữ liệu hội thoại.</p>
-            )}
-          </div>
+          {messages.length > 0 ? (
+            <div className="space-y-3">
+              {messages.map((m) => (
+                <MessageBubble key={m.id} message={m} roleName={m.sender === 'bot' ? 'AI Partner' : 'You'} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 italic">Không có dữ liệu hội thoại.</p>
+          )}
         </section>
 
-        {/* 💬 Feedback + Highlight */}
+        {/* Feedback + Highlights */}
         <section className="overflow-y-auto p-6 bg-white">
           <h2 className="text-base font-medium mb-4">Phản hồi & Gợi ý</h2>
-
           {loading ? (
             <p className="text-sm text-gray-500">Đang phân tích...</p>
           ) : feedback ? (
@@ -162,7 +162,7 @@ export default function RoleplaySummaryPage() {
 
               {highlights.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-semibold mb-2">Đoạn văn được đánh dấu</h3>
+                  <h3 className="text-sm font-semibold mb-2">Từ hoặc cụm được đánh dấu</h3>
                   <HighlightList highlights={highlights} onRemove={removeHighlight} />
                 </div>
               )}
@@ -173,22 +173,34 @@ export default function RoleplaySummaryPage() {
         </section>
       </main>
 
-      {/* Footer Actions */}
-      <footer className="flex items-center justify-end gap-6 px-6 py-4 border-t bg-gray-50">
-        <button
-          onClick={() => router.push('/roleplay')}
-          className="text-gray-500 hover:text-gray-800 text-sm font-medium"
-        >
-          Hủy
-        </button>
-        <Button
-          onClick={handleSaveFeedback}
-          disabled={!feedback || highlights.length === 0 || saving}
-          className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6"
-        >
-          {saving ? 'Đang lưu...' : 'Lưu phản hồi'}
-        </Button>
-      </footer>
+      {/* Footer */}
+<footer className="flex items-center justify-end gap-6 px-6 py-4 border-t bg-gray-50">
+  <button
+    onClick={() => router.push('/journal')}
+    className="text-gray-500 hover:text-gray-800 text-sm font-medium"
+  >
+    Hủy
+  </button>
+
+  <Button
+    onClick={() => {
+      if (highlights.length > 0) {
+        handleSaveHighlights(); // 🧠 chỉ gọi khi có highlight
+      } else {
+        router.push('/journal'); // 🔙 nếu không có highlight thì quay về journal
+      }
+    }}
+    disabled={processing}
+    className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6"
+  >
+    {processing
+      ? 'Đang lưu...'
+      : highlights.length > 0
+      ? 'Lưu từ vựng'
+      : 'Kết thúc'}
+  </Button>
+</footer>
+
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Navigation } from './navigation';
+import { Sidebar } from './sidebar';
 import { useResponsive } from '@/hooks/common/use-responsive';
 import { useTransitionStyles } from '@/hooks/common/use-transition-styles';
 import { SidebarProvider, useSidebar } from '@/hooks/common/use-sidebar';
@@ -27,7 +27,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Side Navigation - Only rendered on tablet/desktop if not a processing page */}
-      {!useBottomNav && !isProcessingPage && <Navigation isDesktopSidebar={true} />}
+      {!useBottomNav && !isProcessingPage && <Sidebar isDesktopSidebar={true} />}
       
       {/* Main Content */}
       <div 
@@ -56,7 +56,7 @@ function AppLayoutInner({ children }: AppLayoutProps) {
       </div>
       
       {/* Bottom Navigation for mobile - hide on processing pages */}
-      {useBottomNav && !isProcessingPage && <Navigation isDesktopSidebar={false} />}
+      {useBottomNav && !isProcessingPage && <Sidebar isDesktopSidebar={false} />}
     </div>
   );
 }
