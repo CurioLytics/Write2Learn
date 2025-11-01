@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useResponsive } from '@/hooks/common/use-responsive';
-import { zIndex } from '@/utils/z-index';
 import { FlashcardSetList } from '@/components/vocab/flashcard-set-list';
 import { FlashcardSet } from '@/types/vocab';
 import { flashcardService } from '@/services/api/flashcard-service';
