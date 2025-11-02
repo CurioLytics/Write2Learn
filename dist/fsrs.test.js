@@ -1,7 +1,7 @@
-import { getNextReview, WordCard } from "./fsrsHelper";
-import { Grade } from "ts-fsrs";
-
-let wordCard: WordCard = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var fsrsHelper_1 = require("./fsrsHelper");
+var wordCard = {
     word: "apple",
     meaning: "a fruit",
     due: new Date(),
@@ -15,9 +15,7 @@ let wordCard: WordCard = {
     state: 0,
     last_review: undefined
 };
-
 // User selects "Good"
-wordCard = getNextReview(wordCard, 2);
-
+wordCard = (0, fsrsHelper_1.getNextReview)(wordCard, 2);
 console.log("Next review due at:", wordCard.due);
 console.log("Word:", wordCard.word);
