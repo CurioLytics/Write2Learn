@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useResponsive } from '@/hooks/common/use-responsive';
-import { FlashcardSetList } from '@/components/vocab/flashcard-set-list';
+import { FlashcardSetList } from '@/app/vocab/components/vocab_list/flashcard-set-list';
 import { FlashcardSet } from '@/types/vocab';
 import { flashcardService } from '@/services/api/flashcard-service';
 import { Button } from '@/components/ui/button';

@@ -1,13 +1,15 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import React from 'react';
-import { FlashcardSet } from '@/types/vocab';
+import { FlashcardSetStats } from '@/types/flashcardSetStats';
 import { FlashcardSetCard } from './flashcard-set-card';
 
 interface FlashcardSetListProps {
-  flashcardSets: FlashcardSet[];
+  flashcardSets: FlashcardSetStats[];
   isLoading?: boolean;
   error?: string | null;
+  onSelectSet?: (setId: string) => void;  // ← ADD THIS
 }
 
 export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
@@ -21,8 +23,8 @@ export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
         <h2 className="text-lg font-medium text-gray-800 mb-4">Flashcard Sets</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div 
-              key={`skeleton-${index}`} 
+            <div
+              key={`skeleton-${index}`}
               className="bg-white rounded-lg shadow-sm p-4 animate-pulse"
             >
               <div className="h-5 bg-gray-200 rounded w-3/4 mb-4"></div>
@@ -60,12 +62,14 @@ export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
         <div className="bg-gray-50 border border-gray-200 border-dashed rounded-md p-6 text-center">
           <div className="text-4xl mb-2">🃏</div>
           <h3 className="text-base font-medium text-gray-700 mb-1">No flashcard sets yet</h3>
-          <p className="text-sm text-gray-500">Create your first flashcard set to start learning vocabulary.</p>
+          <p className="text-sm text-gray-500">
+            Create your first flashcard set to start learning vocabulary.
+          </p>
         </div>
       </div>
     );
   }
-
+const router = useRouter();
   return (
     <div>
       <h2 className="text-lg font-medium text-gray-800 mb-4">Flashcard Sets</h2>
@@ -74,7 +78,7 @@ export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
           <FlashcardSetCard
             key={set.set_id}
             flashcardSet={set}
-            onClick={() => console.log(`Navigate to flashcard set ${set.set_id}`)}
+            onClick={() => router.push(`/vocab/${set.set_id}`)}
           />
         ))}
       </div>

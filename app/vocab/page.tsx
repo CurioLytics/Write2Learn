@@ -1,95 +1,90 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useResponsive } from '@/hooks/common/use-responsive';
-import { FlashcardSetList } from '@/components/vocab/flashcard-set-list';
-import { FlashcardSet } from '@/types/vocab';
-import { flashcardService } from '@/services/api/flashcard-service';
+import { Button } from '@/components/ui/button';
+import { FlashcardSetList } from '@/app/vocab/components/vocab_list/flashcard-set-list';
+import type { FlashcardSetStats } from '@/types/flashcardSetStats';
+import { supabase } from '@/services/supabase/client';
 
 export default function VocabPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { isMobile } = useResponsive();
-  const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
-  const [isLoadingFlashcards, setIsLoadingFlashcards] = useState<boolean>(true);
+
+  const [flashcardSets, setFlashcardSets] = useState<FlashcardSetStats[]>([]);
+  const [isLoadingFlashcards, setIsLoadingFlashcards] = useState(true);
   const [flashcardError, setFlashcardError] = useState<string | null>(null);
-  
-  // Load flashcard sets on component mount
+
   useEffect(() => {
-    async function loadFlashcardSets() {
-      if (!user?.id) return;
-      
+    if (!user?.id) return;
+    const loadFlashcardSetStats = async () => {
       setIsLoadingFlashcards(true);
       setFlashcardError(null);
-      
       try {
-        const sets = await flashcardService.getFlashcardSets(user.id);
-        setFlashcardSets(sets);
-      } catch (error) {
-        console.error('Error loading flashcard sets:', error);
-        setFlashcardError('Failed to load flashcard sets. Please try again.');
+        const { data, error } = await (supabase.rpc as any)(
+          'get_flashcard_set_stats',
+          { user_uuid: user.id }
+        );
+        if (error) throw error;
+        setFlashcardSets(data || []);
+      } catch (err: any) {
+        console.error('Error loading flashcard set stats:', err);
+        setFlashcardError('Không thể tải danh sách flashcard. Vui lòng thử lại.');
       } finally {
         setIsLoadingFlashcards(false);
       }
-    }
-    
-    loadFlashcardSets();
+    };
+    loadFlashcardSetStats();
   }, [user?.id]);
-  
-  // Handler functions for action buttons
-  
-  const handleReviewVocab = () => {
-    // Placeholder function for reviewing vocabulary
-    console.log('Review vocabulary');
-    // In a real implementation, this would navigate to the vocabulary review page
-  };
-  
-  const handleStoryTranslation = () => {
-    // Placeholder function for story translation
-    console.log('Story translation');
-    // In a real implementation, this would navigate to the story translation page
+
+  const handleSelectSet = (setId: string) => {
+    if (!setId) return;
+    router.push(`/vocab/${setId}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-semibold text-gray-900">Your Vocab Hub</h1>
-          <button
-            onClick={() => {}}
-            className="text-gray-600 hover:text-gray-800"
-            aria-label="Export vocabulary"
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 py-4">
+        <h1 className="text-base font-medium tracking-tight">Từ vựng của bạn</h1>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-sm opacity-70 hover:opacity-100"
+          onClick={() => console.log('Export vocab')}
+        >
+          ↗ Xuất từ vựng
+        </Button>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 px-5 py-6 space-y-8">
+        <FlashcardSetList
+          flashcardSets={flashcardSets}
+          isLoading={isLoadingFlashcards}
+          error={flashcardError}
+          onSelectSet={handleSelectSet}
+        />
+
+        <div className="flex justify-center gap-3">
+          <Button
+            className="px-5 py-2 text-sm rounded-full"
+            onClick={() => router.push('/flashcards/review')}
           >
-            ↗ Export
-          </button>
-        </div>
-        
-        {/* Flashcard Sets Section */}
-        <div className="mb-8">
-          <FlashcardSetList
-            flashcardSets={flashcardSets}
-            isLoading={isLoadingFlashcards}
-            error={flashcardError}
-          />
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-4 mb-6">
-          <button
-            onClick={handleReviewVocab}
-            className="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-md shadow-sm transition"
+            Ôn tập từ vựng
+          </Button>
+          <Button
+            variant="outline"
+            className="px-5 py-2 text-sm rounded-full"
+            onClick={() => router.push('/stories/translate')}
           >
-            Review Vocabulary
-          </button>
-          <button
-            onClick={handleStoryTranslation}
-            className="px-6 py-3 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-md shadow-sm transition"
-          >
-            Story Translation
-          </button>
+            Dịch truyện
+          </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

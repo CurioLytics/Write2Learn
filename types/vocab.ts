@@ -27,14 +27,14 @@ export interface VocabCollection {
 /**
  * Represents a flashcard set as returned by the Supabase function
  */
-export interface FlashcardSet {
-  set_id: string;
-  set_title: string;
-  total_flashcards: number;
-  flashcards_due: number;
-}
+export type FlashcardSet = {
+  id: string;                // required for navigation
+  title: string;             // name or title of the set
+  description: string | null;
+  created_at: string;
+};
 
-/**
+/**s
  * Statistics for a vocabulary collection
  */
 export interface VocabStats {
