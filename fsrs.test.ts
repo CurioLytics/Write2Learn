@@ -1,23 +1,22 @@
-import { getNextReview, WordCard } from "./fsrsHelper";
-import { Grade } from "ts-fsrs";
+import { createEmptyCard, formatDate, fsrs, Rating } from "ts-fsrs";
 
-let wordCard: WordCard = {
-    word: "apple",
-    meaning: "a fruit",
-    due: new Date(),
-    stability: 0,
-    difficulty: 0.3,
-    elapsed_days: 0,
-    scheduled_days: 0,
-    learning_steps: 0,
-    reps: 0,
-    lapses: 0,
-    state: 0,
-    last_review: undefined
-};
+// 1️⃣ Initialize FSRS engine
+const f = fsrs(); // default parameters
 
-// User selects "Good"
-wordCard = getNextReview(wordCard, 2);
+// 2️⃣ Create a new card
+const card = createEmptyCard(new Date("2022-02-01T10:00:00Z"));
 
-console.log("Next review due at:", wordCard.due);
-console.log("Word:", wordCard.word);
+// 3️⃣ Set the current review time
+const now = new Date("2022-02-10T10:00:00Z");
+
+// 4️⃣ User reviews the card and selects a rating
+const userRating = Rating.Easy;
+
+// 5️⃣ Calculate next state for that rating
+const nextCardResult = f.next(card, now, userRating);
+const updatedCard = nextCardResult.card;
+
+// 6️⃣ Display result
+console.log(`⭐ User selected: ${Rating[userRating]}`);
+console.log("Next review is due at:", formatDate(updatedCard.due));
+console.log("Updated FSRS card:", updatedCard);
