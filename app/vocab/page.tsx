@@ -50,14 +50,6 @@ export default function VocabPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4">
         <h1 className="text-base font-medium tracking-tight">Từ vựng của bạn</h1>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-sm opacity-70 hover:opacity-100"
-          onClick={() => console.log('Export vocab')}
-        >
-          ↗ Xuất từ vựng
-        </Button>
       </header>
 
       {/* Main */}

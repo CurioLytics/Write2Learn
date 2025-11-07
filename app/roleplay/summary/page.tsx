@@ -114,23 +114,26 @@ export default function RoleplaySummaryPage() {
     }
   };
 
-
   return (
-    <div className="min-h-screen flex flex-col bg-white text-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
+    <div className="max-w-2xl mx-auto py-6 px-4 sm:px-6"> 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-card">
-        <h1 className="text-lg font-semibold">Tổng kết hội thoại</h1>
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold">Tổng kết hội thoại</h1>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 grid grid-rows-2 divide-y divide-border">
+      {/* Card Container */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         {/* Conversation */}
-        <section className="overflow-y-auto p-6 bg-gray-50">
+        <section className="p-6 border-b bg-gray-50">
           <h2 className="text-base font-medium mb-4">Cuộc hội thoại</h2>
           {messages.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
               {messages.map((m) => (
-                <MessageBubble key={m.id} message={m} roleName={m.sender === 'bot' ? 'AI Partner' : 'You'} />
+                <MessageBubble
+                  key={m.id}
+                  message={m}
+                  roleName={m.sender === 'bot' ? 'AI Partner' : 'You'}
+                />
               ))}
             </div>
           ) : (
@@ -138,8 +141,8 @@ export default function RoleplaySummaryPage() {
           )}
         </section>
 
-        {/* Feedback + Highlights */}
-        <section className="overflow-y-auto p-6 bg-white">
+        {/* Feedback */}
+        <section className="p-6">
           <h2 className="text-base font-medium mb-4">Phản hồi & Gợi ý</h2>
           {loading ? (
             <p className="text-sm text-gray-500">Đang phân tích...</p>
@@ -171,36 +174,37 @@ export default function RoleplaySummaryPage() {
             <p className="text-sm text-gray-500">Không có phản hồi.</p>
           )}
         </section>
-      </main>
+      </div>
 
       {/* Footer */}
-<footer className="flex items-center justify-end gap-6 px-6 py-4 border-t bg-gray-50">
-  <button
-    onClick={() => router.push('/journal')}
-    className="text-gray-500 hover:text-gray-800 text-sm font-medium"
-  >
-    Hủy
-  </button>
+      <div className="flex items-center justify-end gap-4 mt-6">
+        <Button
+          variant="ghost"
+          onClick={() => router.push('/journal')}
+          className="text-gray-500 hover:text-gray-800 text-sm font-medium"
+        >
+          Hủy
+        </Button>
 
-  <Button
-    onClick={() => {
-      if (highlights.length > 0) {
-        handleSaveHighlights(); // 🧠 chỉ gọi khi có highlight
-      } else {
-        router.push('/journal'); // 🔙 nếu không có highlight thì quay về journal
-      }
-    }}
-    disabled={processing}
-    className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6"
-  >
-    {processing
-      ? 'Đang lưu...'
-      : highlights.length > 0
-      ? 'Lưu từ vựng'
-      : 'Kết thúc'}
-  </Button>
-</footer>
-
+        <Button
+          onClick={() => {
+            if (highlights.length > 0) {
+              handleSaveHighlights();
+            } else {
+              // 🎯 ĐÃ CHỈNH SỬA: Chuyển hướng đến /roleplay thay vì /journal khi nhấn "Kết thúc"
+              router.push('/roleplay'); 
+            }
+          }}
+          disabled={processing}
+          className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6"
+        >
+          {processing
+            ? 'Đang lưu...'
+            : highlights.length > 0
+            ? 'Lưu từ vựng'
+            : 'Kết thúc'}
+        </Button>
+      </div>
     </div>
   );
 }

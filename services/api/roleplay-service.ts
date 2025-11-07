@@ -40,7 +40,8 @@ class RoleplayService {
         guide: scenario.guide || '',
         level: scenario.level || 'Beginner',
         topic: scenario.topic || 'General',
-        role1: scenario.role1 || 'Conversation Partner'
+        role1: scenario.role1 || 'Conversation Partner',
+        image: scenario.image || null 
       }));
       
       return scenarios;
@@ -81,7 +82,8 @@ class RoleplayService {
         guide: data.guide || '',
         level: data.level || 'Beginner',
         topic: data.topic || 'General',
-        role1: data.role1 || 'Conversation Partner'
+        role1: data.role1 || 'Conversation Partner',
+        image: data.image || null 
       };
       
       return scenario;

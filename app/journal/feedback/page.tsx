@@ -195,7 +195,7 @@ export default function JournalFeedbackPage() {
                 router.push('/journal/new?edit=true');
               }}
             >
-              Edit Journal
+              Sửa
             </Button>
 
             <Button
@@ -205,8 +205,8 @@ export default function JournalFeedbackPage() {
               {processing
                 ? 'Processing...'
                 : highlights.length > 0
-                ? 'Save & Process Highlights'
-                : 'Save Journal'}
+                ? 'Lưu nhật ký và Tạo Flashcards'
+                : 'Lưu'}
             </Button>
           </div>
         </div>

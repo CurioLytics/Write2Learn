@@ -1,147 +1,152 @@
 'use client';
 
-import { useAuth } from '@/hooks/auth/use-auth';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { PinnedTemplates } from '@/components/journal/pinned-templates';
 import { Quote } from '@/components/ui/quote';
 import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { QuickReview } from '@/components/flashcards/quick-review';
+// Giả sử đường dẫn này đúng, nếu không bạn cần điều chỉnh
+import { supabase } from '@/services/supabase/client'; 
+
+// Định nghĩa kiểu dữ liệu cho kịch bản nhập vai dựa trên cột Supabase
+interface RoleplayScenario {
+    id: string; 
+    name: string;      // Tên cột mới: 'name'
+    context: string;   // Tên cột mới: 'context'
+    image: string | null; // Tên cột mới: 'image'
+}
 
 const quotes = [
-  {
-    text: "The soul becomes dyed with the color of its thoughts.",
-    author: "Marcus Aurelius"
-  },
-  {
-    text: "Your mind will take the shape of what you frequently hold in thought.",
-    author: "Marcus Aurelius"
-  },
-  {
-    text: "The more you write, the more you know what you think.",
-    author: "Marty Rubin"
-  },
-  {
-    text: "If you want to be a writer, you must do two things above all others: read a lot and write a lot.",
-    author: "Stephen King"
-  }
-];
-
-const roleplayScenarios = [
-  {
-    id: 'vietnam-day',
-    title: 'Independence Day in Vietnam',
-    description: 'Practice cultural explanations and conversational fluency',
-    imageUrl: '' // Placeholder, would be replaced with actual image path
-  },
-  {
-    id: 'job-interview',
-    title: 'Job Interview',
-    description: 'Practice professional English and interview skills',
-    imageUrl: '' // Placeholder, would be replaced with actual image path
-  },
-  {
-    id: 'restaurant',
-    title: 'At a Restaurant',
-    description: 'Order food and engage in casual conversation',
-    imageUrl: '' // Placeholder, would be replaced with actual image path
-  }
+    { text: 'Tâm hồn ta được nhuộm bởi màu sắc của những suy nghĩ chính mình.', author: 'Marcus Aurelius' },
+    { text: 'Tâm trí sẽ trở thành hình dạng của những gì nó thường xuyên nghĩ đến.', author: 'Marcus Aurelius' },
+    { text: 'Càng viết nhiều, bạn càng hiểu rõ điều mình nghĩ.', author: 'Marty Rubin' },
+    { text: 'Muốn trở thành người viết, hãy đọc thật nhiều và viết thật nhiều.', author: 'Stephen King' },
 ];
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  
-  // Select a quote with a stable index based on the day of month
-  // This ensures server and client render the same quote, avoiding hydration errors
-  const today = new Date();
-  const dayOfMonth = today.getDate();
-  const stableIndex = dayOfMonth % quotes.length;
-  const selectedQuote = quotes[stableIndex];
+    const { user } = useAuth();
+    const today = new Date();
+    const quote = quotes[today.getDate() % quotes.length];
+    
+    // Sử dụng kiểu dữ liệu đã định nghĩa
+    const [scenarios, setScenarios] = useState<RoleplayScenario[]>([]); 
+    const [loading, setLoading] = useState(true);
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Welcome Section with User Info */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.email?.split('@')[0] || 'Writer'}</h1>
-        <p className="text-gray-600 mt-2">Continue your English language journey today</p>
-      </div>
+    // 🧠 Fetch roleplay từ Supabase
+    useEffect(() => {
+        async function fetchScenarios() {
+            const { data, error } = await supabase
+                .from('roleplay_scenario') // Tên bảng
+                // ❗ Đã điều chỉnh tên cột theo schema bạn cung cấp
+                .select('id, name, context, image') 
+                .order('created_at', { ascending: false })
+                .limit(3);
 
-      {/* Pinned Templates Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <PinnedTemplates />
-      </section>
-      
-      {/* Quote Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <Quote text={selectedQuote.text} author={selectedQuote.author} />
-        
-        {/* Scroll down arrow */}
-        <div className="flex justify-center mt-8 mb-4" id="scroll-arrow-container">
-          <button
-            id="scroll-down-btn"
-            aria-label="Scroll down to next section"
-            className="flex items-center justify-center p-2 rounded-full bg-white/80 shadow-md hover:bg-white hover:shadow-lg transition-all duration-300 mobile-btn tap-highlight-none animate-pulse"
-            onClick={() => {
-              // Find the roleplay section element
-              const nextSection = document.getElementById('roleplay-section');
-              // Smoothly scroll to it if it exists
-              if (nextSection) {
-                nextSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-blue-600"
-            >
-              <path d="M12 5v14" />
-              <path d="m19 12-7 7-7-7" />
-            </svg>
-          </button>
+            if (error) {
+                console.error('❌ Lỗi khi tải roleplay:', error.message);
+                setScenarios([]); // Đặt về mảng rỗng khi có lỗi
+            } else {
+                // Ép kiểu dữ liệu nếu cần
+                setScenarios(data as RoleplayScenario[]);
+            }
+            setLoading(false);
+        }
+
+        fetchScenarios();
+    }, []);
+
+    const scrollTo = (id: string) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    return (
+        <div className="scroll-smooth">
+            {/* SECTION 1 – VIẾT (Giữ nguyên) */}
+            <section id="viet" className="h-screen flex flex-col justify-center bg-gradient-to-b from-gray-50 to-blue-50/40">
+                <div className="text-center space-y-6 px-4">
+                    <h1 className="text-3xl font-semibold text-gray-800">
+                        Chào bạn, {user?.email?.split('@')[0] || 'người học tiếng Anh'} 🌿
+                    </h1>
+                    <p className="text-gray-600 text-lg">Dành chút thời gian để viết và lắng nghe chính mình hôm nay.</p>
+
+                    <div className="max-w-3xl mx-auto">
+                        <PinnedTemplates />
+                    </div>
+
+                    <Quote text={quote.text} author={quote.author} />
+
+                    <button
+                        aria-label="Cuộn xuống phần học"
+                        onClick={() => scrollTo('hoc')}
+                        className="mt-8 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                            <path d="M12 5v14" />
+                            <path d="m19 12-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            {/* SECTION 2 – HỌC */}
+            <section id="hoc" className="h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-white">
+                <div className="max-w-6xl mx-auto px-4 space-y-8">
+                    {/* Roleplay Section */}
+                    <div className="bg-white shadow rounded-2xl p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900">🎭 Luyện hội thoại hôm nay</h2>
+                            <Link href="/roleplay" className="text-blue-600 text-sm hover:underline">
+                                Xem tất cả
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {loading ? (
+                                <p className="text-gray-500 text-center col-span-3">Đang tải dữ liệu hội thoại...</p>
+                            ) : scenarios.length > 0 ? (
+                                scenarios.map((s) => (
+                                    <RoleplayCard
+                                        key={s.id}
+                                        id={s.id}
+                                        // ❗ Đã điều chỉnh tên props để phù hợp với component RoleplayCard
+                                        title={s.name}       // Map từ 'name'
+                                        description={s.context} // Map từ 'context'
+                                        imageUrl={s.image || ''} // Map từ 'image' và đảm bảo là string
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-gray-500 text-center col-span-3">Chưa có hội thoại nào được thêm.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Quick Review */}
+                    <div className="bg-white shadow rounded-2xl p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900">📘 Ôn từ vựng nhanh</h2>
+                            <Link href="/vocab" className="text-blue-600 text-sm hover:underline">
+                                Tới Vocab Hub
+                            </Link>
+                        </div>
+                        <QuickReview count={5} />
+                    </div>
+
+                    <div className="flex justify-center">
+                        <button
+                            aria-label="Cuộn lên phần viết"
+                            onClick={() => scrollTo('viet')}
+                            className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600 rotate-180">
+                                <path d="M12 5v14" />
+                                <path d="m19 12-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
-      </section>
-      
-      {/* Roleplay Gallery */}
-      <section id="roleplay-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">🎭 Try today's role-play</h2>
-            <Link href="/roleplay" className="text-blue-600 text-sm hover:underline">View all</Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {roleplayScenarios.map((scenario) => (
-              <RoleplayCard
-                key={scenario.id}
-                id={scenario.id}
-                title={scenario.title}
-                description={scenario.description}
-                imageUrl={scenario.imageUrl}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Quick Review Vocab Hub */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">📝 Vocab Review</h2>
-            <Link href="/vocab" className="text-blue-600 text-sm hover:underline">Vocab Hub</Link>
-          </div>
-          
-          <QuickReview count={5} />
-        </div>
-      </section>
-    </div>
-  );
+    );
 }

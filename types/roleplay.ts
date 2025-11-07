@@ -7,6 +7,7 @@ export interface RoleplayScenario {
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   topic: string;
   role1: string;
+  image?: string | null; 
 }
 
 export interface RoleplayMessage {

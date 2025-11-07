@@ -1,103 +1,131 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/auth/use-auth';
 import { useResponsive } from '@/hooks/common/use-responsive';
-import { FlashcardSetList } from '@/app/vocab/components/vocab_list/flashcard-set-list';
-import { FlashcardSet } from '@/types/vocab';
-import { flashcardService } from '@/services/api/flashcard-service';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Header } from '@/components/landing/header';
+import { Hero } from '@/components/landing/hero';
+import { Section } from '@/components/landing/section';
+import { FeatureCard } from '@/components/landing/feature-card';
+import { StepItem } from '@/components/landing/step-item';
+import { Footer } from '@/components/landing/footer';
 
-export default function VocabPage() {
-  const { user } = useAuth();
+export default function LandingPage() {
   const { isMobile } = useResponsive();
-  const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadSets() {
-      if (!user?.id) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const sets = await flashcardService.getFlashcardSets(user.id);
-        setFlashcardSets(sets);
-      } catch (err) {
-        console.error('Error loading flashcard sets:', err);
-        setError('Không thể tải bộ từ vựng. Vui lòng thử lại.');
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadSets();
-  }, [user?.id]);
-
-  const handleReviewVocab = () => {
-    console.log('Review vocabulary');
-  };
-
-  const handleStoryTranslation = () => {
-    console.log('Story translation');
-  };
-
+  
+  // Features data
+  const features = [
+    {
+      title: "Nhật ký cá nhân",
+      description: "Viết suy nghĩ, nhận phản hồi tức thì và lưu lại những từ vựng mang ý nghĩa với riêng bạn.",
+      iconSrc: "/icons/bookmark.svg",
+    },
+    {
+      title: "Luyện tập đóng vai",
+      description: "Hóa thân vào tình huống thực tế để luyện nói và phản xạ tự nhiên.",
+      iconSrc: "/icons/language.svg",
+    },
+    {
+      title: "Ôn tập từ vựng",
+      description: "Ghi nhớ sâu hơn qua flashcard và chế độ dịch chuyện.",
+      iconSrc: "/icons/cap.svg",
+    },
+  ];
+  
+  // Steps data
+  const steps = [
+    {
+      number: 1,
+      title: "Viết",
+      description: "Chọn mẫu có sẵn hoặc viết tự do để bắt đầu hành trình học ngôn ngữ của bạn.",
+      iconSrc: "/icons/plus.svg",
+    },
+    {
+      number: 2,
+      title: "Nhận phản hồi",
+      description: "AI giúp chỉnh ngữ pháp, gợi ý từ mới và cải thiện phong cách viết.",
+      iconSrc: "/icons/check.svg",
+    },
+    {
+      number: 3,
+      title: "Lưu & học từ",
+      description: "Chọn những từ quan trọng để thêm vào bộ thẻ ghi nhớ cá nhân.",
+      iconSrc: "/icons/bookmark.svg",
+    },
+    {
+      number: 4,
+      title: "Ôn & thực hành",
+      description: "Học lại qua flashcard hoặc thử thách bản thân với chế độ dịch chuyện.",
+      iconSrc: "/icons/cap.svg",
+    },
+  ];
+  
+  // Footer links
+  const footerLinks = [
+    { text: "Đăng nhập", href: "/auth" },
+    { text: "Đăng ký", href: "/auth" },
+    { text: "Quyền riêng tư", href: "#" },
+    { text: "Điều khoản", href: "#" },
+  ];
+  
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-card">
-        <h1 className="text-lg font-semibold">Vocab Hub</h1>
-        <Button variant="outline" size="sm" className="rounded-full text-sm">
-          ↗ Xuất dữ liệu
-        </Button>
-      </header>
+      <Header 
+        logoSrc="/images/logo.svg"
+        logoText="W2L"
+        buttonText="Đăng ký"
+        buttonLink="/auth"
+      />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Section header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-base font-medium text-foreground">
-              Bộ từ vựng của bạn
-            </h2>
-            {loading && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Loader2 className="animate-spin w-4 h-4 mr-2" /> Đang tải...
-              </div>
-            )}
-          </div>
+      {/* Hero Section */}
+      <Hero 
+        title="W2L – Viết để Học"
+        subtitle="Biến từng dòng chữ thành bước tiến trong hành trình ngôn ngữ của bạn."
+        description="Viết suy nghĩ, nhận phản hồi tức thì và lưu lại những từ vựng mang ý nghĩa với riêng bạn."
+        buttonText="Bắt đầu hành trình của bạn"
+        buttonLink="/onboarding"
+      />
 
-          {/* Flashcard sets */}
-          <div className="mb-10">
-            <FlashcardSetList
-              flashcardSets={flashcardSets}
-              isLoading={loading}
-              error={error}
+      {/* Features Section */}
+      <Section 
+        title="Bạn có thể làm gì với W2L?" 
+        bgColor="bg-blue-50"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <FeatureCard 
+              key={index}
+              title={feature.title}
+              description={feature.description}
+              iconSrc={feature.iconSrc}
             />
-          </div>
-
-          {/* CTA buttons */}
-          <div
-            className={`flex ${
-              isMobile ? 'flex-col gap-3' : 'justify-center gap-6'
-            }`}
-          >
-            <Button
-              onClick={handleReviewVocab}
-              className="rounded-full px-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Ôn tập từ vựng
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleStoryTranslation}
-              className="rounded-full px-6"
-            >
-              Luyện dịch đoạn hội thoại
-            </Button>
-          </div>
+          ))}
         </div>
-      </main>
+      </Section>
+
+      {/* How It Works Section */}
+      <Section 
+        title="Cách W2L đồng hành cùng bạn"
+        bgColor="bg-white"
+      >
+        <div className="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-8">
+          {steps.map((step, index) => (
+            <StepItem 
+              key={index}
+              number={step.number}
+              title={step.title}
+              description={step.description}
+              iconSrc={step.iconSrc}
+            />
+          ))}
+        </div>
+      </Section>
+
+      {/* Footer */}
+      <Footer 
+        logoSrc="/images/logo.svg"
+        logoText="Viết để Học"
+        links={footerLinks}
+      />
     </div>
   );
 }

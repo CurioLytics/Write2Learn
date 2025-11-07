@@ -6,6 +6,7 @@ import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { Flashcard } from '@/types/flashcard';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function FlashcardCreationPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function FlashcardCreationPage() {
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Load flashcards from localStorage (created earlier in the flow)
+  // Load flashcards from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem('flashcardData');
@@ -28,10 +29,6 @@ export default function FlashcardCreationPage() {
       }
 
       const parsed = JSON.parse(raw);
-      // Accept the common structures seen previously:
-      // - [{ output: [ ... ] }]
-      // - { output: [ ... ] }
-      // - direct array of flashcards
       let list: any[] = [];
 
       if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0].output)) {
@@ -42,7 +39,6 @@ export default function FlashcardCreationPage() {
         list = parsed;
       }
 
-      // Keep only items that look like valid flashcards (minimal checks)
       const valid = list.filter(
         (c: any) =>
           c &&
@@ -86,57 +82,71 @@ export default function FlashcardCreationPage() {
     return true;
   };
 
-  // Save to webhook
+  // --------------------------
+  // ✅ Save flashcards via Supabase RPC
+  // --------------------------
   const handleSaveFlashcards = async () => {
     setError(null);
     if (!validate(flashcards)) return;
+    if (!user?.id) {
+      setError('Bạn cần đăng nhập để lưu flashcards.');
+      return;
+    }
 
     setIsSaving(true);
 
     try {
-      const webhookUrl =
-        process.env.NEXT_PUBLIC_SAVE_FLASHCARDS_WEBHOOK_URL ||
-        'https://auto.zephyrastyle.com/webhook/save-flashcards';
+  const supabase = createClientComponentClient();
 
-      const payload: any = {
-        flashcards: flashcards.map((card) => ({
-          front: card.word,
-          back: {
-            definition: card.back.definition,
-            example: card.back.example,
-            synonyms: card.back.synonyms || [],
-          },
-        })),
-      };
+  const flashcardsPayload = flashcards.map((card) => ({
+    word: card.word,
+    meaning: card.back.definition,
+    example: card.back.example,
+  }));
 
-      if (user?.id) payload.user_id = user.id;
+  const { data, error } = await supabase.rpc('insert_flashcards_into_journal_vocab', {
+    p_user_id: user.id,
+    p_flashcards: flashcardsPayload,
+  });
 
-      const res = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+  if (error) {
+    console.error('Supabase RPC Error:', error);
+    // Hiển thị toàn bộ thông tin lỗi ra giao diện
+    setError(
+      `RPC Error:
+Code: ${error.code ?? 'N/A'}
+Message: ${error.message ?? 'No message'}
+Details: ${error.details ?? 'No details'}
+Hint: ${error.hint ?? 'No hint'}`
+    );
+    return; // Dừng ở đây, không tiếp tục
+  }
 
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        throw new Error(txt || `Server returned ${res.status}`);
-      }
+  console.log('RPC Success:', data);
 
-      // success: clean up local cache and redirect to vocab hub
-      localStorage.removeItem('flashcardData');
-      setSaveSuccess(true);
+  localStorage.removeItem('flashcardData');
+  setSaveSuccess(true);
 
-      // give a small moment for user to see success (no assumption about routing)
-      setTimeout(() => {
-        router.push('/vocab');
-      }, 800);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi khi lưu flashcards.');
-    } finally {
-      setIsSaving(false);
-    }
+  setTimeout(() => {
+    router.push('/vocab');
+  }, 800);
+} catch (err: any) {
+  console.error('Unexpected Error:', err);
+  // Hiển thị rõ ràng cả object err nếu không phải lỗi chuẩn của Supabase
+  setError(
+    `Unexpected Error:
+Name: ${err.name ?? 'N/A'}
+Message: ${err.message ?? 'No message'}
+Stack: ${err.stack ?? 'No stack'}`
+  );
+} finally {
+  setIsSaving(false);
+}
   };
 
+  // --------------------------
+  // ✅ Render
+  // --------------------------
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -150,7 +160,7 @@ export default function FlashcardCreationPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-2xl w-full bg-white rounded-lg shadow p-8 text-center">
           <h2 className="text-xl font-semibold mb-2">Lưu thành công</h2>
-          <p className="text-sm text-gray-600 mb-6">Flashcards đã được lưu vào Vocab Hub.</p>
+          <p className="text-sm text-gray-600 mb-6">Lưu thành công.</p>
           <div className="flex justify-center gap-3">
             <Button onClick={() => router.push('/vocab')}>Đến Vocab Hub</Button>
             <Button variant="outline" onClick={() => router.push('/flashcards/create')}>
@@ -198,7 +208,6 @@ export default function FlashcardCreationPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-gray-600 mb-1 block">Front (Word/Phrase)</label>
                     <textarea
                       value={card.word}
                       onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
@@ -209,20 +218,22 @@ export default function FlashcardCreationPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs text-gray-600 mb-1 block">Definition</label>
                     <textarea
                       value={card.back.definition}
-                      onChange={(e) => updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })}
+                      onChange={(e) =>
+                        updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })
+                      }
                       rows={2}
                       className="w-full p-3 border border-gray-200 rounded focus:outline-none"
                       placeholder="Định nghĩa"
                     />
-                    <label className="text-xs text-gray-600 mt-3 mb-1 block">Example (use ___ for blank)</label>
                     <textarea
                       value={card.back.example}
-                      onChange={(e) => updateFlashcard(idx, { back: { ...card.back, example: e.target.value } })}
+                      onChange={(e) =>
+                        updateFlashcard(idx, { back: { ...card.back, example: e.target.value } })
+                      }
                       rows={2}
-                      className="w-full p-3 border border-gray-200 rounded focus:outline-none"
+                      className="w-full p-3 border border-gray-200 rounded focus:outline-none mt-2"
                       placeholder="Ví dụ với ___ cho chỗ trống"
                     />
                   </div>
@@ -241,7 +252,7 @@ export default function FlashcardCreationPage() {
               disabled={isSaving || flashcards.length === 0}
               className="bg-gray-900 hover:bg-gray-800 text-white"
             >
-              {isSaving ? 'Đang lưu...' : 'Lưu vào Vocab Hub'}
+              {isSaving ? 'Đang lưu...' : 'Lưu từ vựng'}
             </Button>
           </div>
         </div>
