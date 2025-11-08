@@ -1,0 +1,394 @@
+.
+├── LICENSE
+├── PLANNING.md
+├── Phân tích thiết kế
+│   └── flashcard_review.md
+├── README.md
+├── SRS.md
+├── TASK.md
+├── app
+│   ├── _old_middleware.ts
+│   ├── api
+│   │   ├── auth
+│   │   │   └── callback
+│   │   │       └── route.ts
+│   │   ├── check-onboarding
+│   │   │   └── route.ts
+│   │   ├── flashcards
+│   │   │   └── route.ts
+│   │   ├── journal-entry
+│   │   │   └── route.ts
+│   │   ├── journal-feedback
+│   │   │   └── route.ts
+│   │   ├── journal-templates
+│   │   │   ├── [id]
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── profile
+│   │   │   └── route.ts
+│   │   ├── review_flashcard
+│   │   │   └── route.ts
+│   │   ├── roleplay
+│   │   │   ├── finish
+│   │   │   │   └── route.ts
+│   │   │   └── webhook
+│   │   │       ├── roleplay-webhook-service.ts
+│   │   │       └── route.ts
+│   │   └── sets
+│   ├── auth
+│   │   ├── callback
+│   │   │   └── route.ts
+│   │   └── page.tsx
+│   ├── dashboard
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── flashcards
+│   │   ├── create
+│   │   │   ├── page.tsx
+│   │   │   └── page.tsx.new
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── journal
+│   │   ├── feedback
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── new
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── templates
+│   │       └── page.tsx
+│   ├── layout.tsx
+│   ├── onboarding
+│   │   ├── components
+│   │   │   ├── congratulation-step.tsx
+│   │   │   ├── english-level-step.tsx
+│   │   │   ├── goals-step.tsx
+│   │   │   ├── name-step.tsx
+│   │   │   ├── notification-message.tsx
+│   │   │   ├── onboarding-header.tsx
+│   │   │   ├── step-indicator.tsx
+│   │   │   ├── template-selection-step.tsx
+│   │   │   └── writing-types-step.tsx
+│   │   ├── hooks
+│   │   │   └── use-onboarding-flow.ts
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── services
+│   │       └── onboarding-storage.ts
+│   ├── page.tsx
+│   ├── review_flashcard
+│   │   └── page.tsx
+│   ├── roleplay
+│   │   ├── [id]
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── session
+│   │   │   └── [id]
+│   │   │       └── page.tsx
+│   │   └── summary
+│   │       └── page.tsx
+│   ├── sets
+│   └── vocab
+│       ├── [setId]
+│       │   └── page.tsx
+│       ├── components
+│       │   ├── Flashcard.tsx
+│       │   ├── FlashcardsPage.tsx
+│       │   ├── ProgressBar.tsx
+│       │   ├── ReviewControls.tsx
+│       │   └── vocab_list
+│       │       ├── flashcard-set-card.tsx
+│       │       └── flashcard-set-list.tsx
+│       ├── layout.tsx
+│       ├── lib
+│       │   └── vocabApi.ts
+│       ├── page.tsx
+│       └── types.ts
+├── components
+│   ├── auth
+│   │   ├── auth-form.tsx
+│   │   ├── logo-image.tsx
+│   │   ├── oauth-buttons.tsx
+│   │   └── verification-step.tsx
+│   ├── features
+│   │   └── journal
+│   │       ├── editor
+│   │       │   ├── extensions
+│   │       │   ├── format-dropdown.tsx
+│   │       │   ├── format-toolbar.tsx
+│   │       │   ├── highlight-list.tsx
+│   │       │   ├── highlight-selector.module.css
+│   │       │   ├── highlight-selector.tsx
+│   │       │   ├── index.ts
+│   │       │   ├── live-markdown-editor.module.css
+│   │       │   ├── live-markdown-editor.tsx
+│   │       │   ├── markdown-editor.module.css
+│   │       │   └── markdown-editor.tsx
+│   │       ├── entries
+│   │       │   ├── calendar-view.tsx
+│   │       │   ├── index.ts
+│   │       │   └── journal-list.tsx
+│   │       ├── index.ts
+│   │       ├── motivation
+│   │       │   ├── index.ts
+│   │       │   └── wake-up-call.tsx
+│   │       ├── stats
+│   │       │   ├── index.ts
+│   │       │   └── journal-stats.tsx
+│   │       └── templates
+│   │           ├── category-section.tsx
+│   │           ├── index.ts
+│   │           ├── minimal-template-card.tsx
+│   │           ├── pinned-templates.tsx
+│   │           ├── template-card.tsx
+│   │           ├── template-collection.module.css
+│   │           ├── template-collection.tsx
+│   │           ├── template-preview.tsx
+│   │           └── template-selection.tsx
+│   ├── flashcards
+│   │   └── quick-review.tsx
+│   ├── journal
+│   │   ├── calendar-view.tsx
+│   │   ├── category-section.tsx
+│   │   ├── extensions
+│   │   │   └── markdown-shortcuts.tsx
+│   │   ├── format-dropdown.tsx
+│   │   ├── format-toolbar.tsx
+│   │   ├── highlight-list.tsx
+│   │   ├── highlight-selector-new.tsx
+│   │   ├── highlight-selector.module.css
+│   │   ├── highlight-selector.tsx
+│   │   ├── journal-list.tsx
+│   │   ├── journal-stats.tsx
+│   │   ├── live-markdown-editor.module.css
+│   │   ├── live-markdown-editor.tsx
+│   │   ├── markdown-editor-styles.tsx
+│   │   ├── markdown-editor.module.css
+│   │   ├── markdown-editor.tsx
+│   │   ├── markdown-preview.tsx
+│   │   ├── minimal-template-card.tsx
+│   │   ├── pinned-templates.tsx
+│   │   ├── state-components.tsx
+│   │   ├── template-card.tsx
+│   │   ├── template-collection.module.css
+│   │   ├── template-collection.tsx
+│   │   ├── template-preview.tsx
+│   │   ├── template-selection.tsx
+│   │   └── wake-up-call.tsx
+│   ├── landing
+│   │   ├── feature-card.tsx
+│   │   ├── footer.tsx
+│   │   ├── header.tsx
+│   │   ├── hero.tsx
+│   │   ├── section.tsx
+│   │   └── step-item.tsx
+│   ├── layout
+│   │   ├── app-layout.tsx
+│   │   ├── sidebar.module.css
+│   │   ├── sidebar.tsx
+│   │   └── user-profile-display.tsx
+│   ├── providers
+│   │   └── user-provider.tsx
+│   ├── roleplay
+│   │   ├── chat-interface.tsx
+│   │   ├── message-bubble.tsx
+│   │   ├── roleplay-card.tsx
+│   │   ├── roleplay.module.css
+│   │   ├── scenario-card.tsx
+│   │   ├── scenario-detail.tsx
+│   │   └── scenario-filter.tsx
+│   ├── ui
+│   │   ├── breathing-loader.tsx
+│   │   ├── button.tsx
+│   │   ├── common
+│   │   │   └── state-components.tsx
+│   │   └── quote.tsx
+│   └── vocab
+│       └── vocab-card.tsx
+├── components.json
+├── config
+│   └── supabase.ts
+├── eslint.config.mjs
+├── fsrs.test.ts
+├── fsrsHelper.ts
+├── fsrs_run.ts
+├── fsrs_test.ts
+├── global-rules.md
+├── handleReview.ts
+├── hooks
+│   ├── auth
+│   │   └── use-auth.ts
+│   └── common
+│       ├── use-cached-fetch.ts
+│       ├── use-responsive.ts
+│       ├── use-sidebar.tsx
+│       └── use-transition-styles.ts
+├── lib
+│   └── db.ts
+├── middleware.ts
+├── nav.md
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── project-structure.txt
+├── public
+│   ├── icons
+│   │   ├── book.svg
+│   │   ├── bookmark.svg
+│   │   ├── cap.svg
+│   │   ├── check.svg
+│   │   ├── flascard.svg
+│   │   ├── google.svg
+│   │   ├── house.svg
+│   │   ├── language.svg
+│   │   ├── log-in.svg
+│   │   ├── log-out.svg
+│   │   ├── message-circle.svg
+│   │   ├── plus.svg
+│   │   └── search.svg
+│   └── images
+│       ├── cta.svg
+│       ├── limit.svg
+│       └── logo.svg
+├── services
+│   ├── client
+│   │   ├── auth-service.ts
+│   │   ├── flashcard-service.ts
+│   │   ├── journal-feedback-service.ts
+│   │   ├── journal-service.ts
+│   │   ├── journal-template-service.ts
+│   │   ├── roleplay-service.ts
+│   │   ├── roleplay-webhook-service.ts
+│   │   ├── template-service.ts
+│   │   └── vocab-service.ts
+│   └── supabase
+│       ├── auth-helpers.ts
+│       └── client.ts
+├── stores
+│   ├── auth-store.tsx
+│   └── user-profile-store.ts
+├── supabase
+├── supabase_linux_amd64.tar.gz
+├── test-editor.html
+├── tests
+│   ├── api
+│   │   └── flashcards
+│   │       └── webhook.test.ts
+│   ├── components
+│   │   ├── app-layout.test.tsx
+│   │   ├── auth-callback.test.tsx
+│   │   ├── journal
+│   │   │   ├── format-toolbar.test.tsx
+│   │   │   ├── live-markdown-editor.test.tsx
+│   │   │   ├── markdown-editor.test.tsx
+│   │   │   └── pinned-templates.test.tsx
+│   │   ├── landing
+│   │   │   ├── landing-components.test.tsx
+│   │   │   └── landing-page.test.tsx
+│   │   └── navigation.test.tsx
+│   ├── navigation-test.js
+│   ├── services
+│   │   └── api
+│   │       ├── journal-feedback-service.test.ts
+│   │       ├── journal-template-service.test.ts
+│   │       └── template-service.test.ts
+│   └── setup.ts
+├── ts-fsrs
+│   ├── LICENSE
+│   ├── README.md
+│   ├── README_CN.md
+│   ├── README_JA.md
+│   ├── __tests__
+│   │   ├── FSRS-5.test.ts
+│   │   ├── FSRS-6.test.ts
+│   │   ├── alea.test.ts
+│   │   ├── algorithm.test.ts
+│   │   ├── constant.test.ts
+│   │   ├── default.test.ts
+│   │   ├── elapsed_days.test.ts
+│   │   ├── fixed
+│   │   │   ├── calc-elapsed-days.test.ts
+│   │   │   └── same-seed.test.ts
+│   │   ├── forget.test.ts
+│   │   ├── handler.test.ts
+│   │   ├── help.test.ts
+│   │   ├── impl
+│   │   │   ├── abstract_scheduler.test.ts
+│   │   │   ├── basic_scheduler.test.ts
+│   │   │   └── long-term_scheduler.test.ts
+│   │   ├── models.test.ts
+│   │   ├── reschedule.test.ts
+│   │   ├── rollback.test.ts
+│   │   ├── show_diff_message.test.ts
+│   │   ├── strategies
+│   │   │   ├── learning-steps.test.ts
+│   │   │   └── seed.test.ts
+│   │   └── version.test.ts
+│   ├── biome.json
+│   ├── debug
+│   │   ├── index.ts
+│   │   ├── long-term.ts
+│   │   └── short-term.ts
+│   ├── example
+│   │   ├── example.html
+│   │   ├── example.jsx
+│   │   └── exampleComponent.jsx
+│   ├── jest.config.ts
+│   ├── jsr.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── rollup.config.ts
+│   ├── src
+│   │   └── fsrs
+│   │       ├── abstract_scheduler.ts
+│   │       ├── alea.ts
+│   │       ├── algorithm.ts
+│   │       ├── constant.ts
+│   │       ├── convert.ts
+│   │       ├── default.ts
+│   │       ├── fsrs.ts
+│   │       ├── help.ts
+│   │       ├── impl
+│   │       │   ├── basic_scheduler.ts
+│   │       │   └── long_term_scheduler.ts
+│   │       ├── index.ts
+│   │       ├── models.ts
+│   │       ├── reschedule.ts
+│   │       ├── strategies
+│   │       │   ├── index.ts
+│   │       │   ├── learning_steps.ts
+│   │       │   ├── seed.ts
+│   │       │   └── types.ts
+│   │       └── types.ts
+│   ├── ts-fsrs-workflow.drawio
+│   ├── tsconfig.json
+│   └── typedoc.ts
+├── tsconfig.json
+├── types
+│   ├── auth.ts
+│   ├── database.types.ts
+│   ├── flashcard.ts
+│   ├── flashcardSetStats.ts
+│   ├── index.ts
+│   ├── journal.ts
+│   ├── onboarding.ts
+│   ├── roleplay.ts
+│   └── vocab.ts
+├── types.d.ts
+└── utils
+    ├── date-utils.ts
+    ├── editor-utils.ts
+    ├── journal-utils.ts
+    ├── markdown-utils.ts
+    ├── mock-flashcard-data.ts
+    ├── mock-vocab-data.ts
+    ├── ui.ts
+    ├── validation.ts
+    ├── webhook.ts
+    └── z-index.ts
+
+97 directories, 295 files
