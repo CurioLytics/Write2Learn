@@ -16,27 +16,31 @@ export default function RoleplayPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-semibold text-gray-800 flex items-center">
-            <span className="text-3xl mr-2">🎭</span> Luyện hội thoại nhập vai
-          </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Role-play</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Luyện hội thoại nhập vai trong các tình huống thực tế
+            </p>
+          </div>
           <Link href="/" className="text-blue-600 text-sm hover:underline">
             ⬅ Quay lại Dashboard
           </Link>
         </div>
-        <p className="text-gray-600 text-base">
-          Chọn một bối cảnh hội thoại để luyện tập kỹ năng giao tiếp tiếng Anh của bạn.
-        </p>
       </div>
 
       {/* Bộ lọc chủ đề */}
-      <ScenarioFilter onFilterChange={handleFilterChange} currentTopic={selectedTopic} />
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Chọn chủ đề</h2>
+        <ScenarioFilter onFilterChange={handleFilterChange} currentTopic={selectedTopic} />
+      </div>
 
       {/* Danh sách roleplay scenario */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Tình huống luyện tập</h2>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Array(6)

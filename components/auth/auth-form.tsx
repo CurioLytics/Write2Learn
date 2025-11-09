@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from '@/components/ui/button';
 import { signInWithEmail, signUpWithEmail } from '@/services/api/auth-service';
 import { OAuthButtons } from './oauth-buttons';
@@ -45,31 +46,27 @@ export function AuthForm() {
         if (error) {
           setError(error.message);
         } else if (data?.user) {
-          // Check if user has completed onboarding
+          setUser(data.user);
+          
+          // Check onboarding status directly using Supabase client
           try {
-            const response = await fetch('/api/check-onboarding', {
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
+            const supabase = createClientComponentClient();
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', data.user.id)
+              .single();
             
-            if (!response.ok) {
-              throw new Error(`Error checking onboarding status: ${response.status}`);
+            if (profileError) {
+              console.error('Error checking onboarding status:', profileError);
+              // If we can't check onboarding, redirect to onboarding to be safe
+              router.push('/onboarding');
+            } else {
+              // Redirect based on onboarding status
+              router.push(profile?.onboarding_completed ? '/homepage' : '/onboarding');
             }
-            
-            // Check content type to avoid parsing non-JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              throw new Error('Expected JSON response from API');
-            }
-            
-            const { onboardingCompleted } = await response.json();
-            
-            setUser(data.user);
-            // Redirect based on onboarding status
-            router.push(onboardingCompleted ? '/dashboard' : '/onboarding');
-          } catch (apiError) {
-            console.error('API error:', apiError);
+          } catch (dbError) {
+            console.error('Database error:', dbError);
             setError('Unable to check onboarding status. Please try again.');
             setLoading(false);
           }

@@ -64,13 +64,13 @@ export default function ReviewPage() {
   }
 
   if (!cards.length)
-    return <div className="p-8 text-gray-500">No cards to review 🎉</div>;
+    return <div className="p-8 text-gray-500">No cards to review</div>;
 
   if (completed)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 text-center">
         <div className="bg-white p-8 rounded-xl shadow-md">
-          <h2 className="text-2xl font-bold mb-4">🎉 Hoàn thành ôn tập!</h2>
+          <h2 className="text-2xl font-bold mb-4">Hoàn thành ôn tập!</h2>
           <button
             className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl"
             onClick={() => router.push("/vocab")}

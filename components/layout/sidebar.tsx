@@ -12,6 +12,7 @@ import { useSidebar } from '@/hooks/common/use-sidebar';
 
 import {
   Home,
+  LayoutDashboard,
   BookOpen,
   MessageCircle,
   BookOpenCheck,
@@ -22,7 +23,8 @@ import {
 import styles from './sidebar.module.css';
 
 const navigationItems = [
-  { name: 'Home', href: '/dashboard', iconComponent: Home },
+  { name: 'Home', href: '/homepage', iconComponent: Home },
+  { name: 'Dashboard', href: '/dashboard', iconComponent: LayoutDashboard },
   { name: 'Journal', href: '/journal', iconComponent: BookOpen },
   { name: 'Role-play', href: '/roleplay', iconComponent: MessageCircle },
   { name: 'Vocab Hub', href: '/vocab', iconComponent: BookOpenCheck },

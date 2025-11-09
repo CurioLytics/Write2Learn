@@ -89,7 +89,7 @@ export default function JournalPage() {
 
   const renderEmptyState = () => (
     <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-      <div className="text-5xl mb-4">📝</div>
+      <div className="mb-4"></div>
       <h2 className="text-xl font-medium text-gray-800 mb-3">Start Your Journal Journey</h2>
       <p className="text-gray-600 mb-8 max-w-md mx-auto">
         Keep track of your language learning progress by writing daily journal entries.
@@ -105,11 +105,14 @@ export default function JournalPage() {
   );
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-          <span className="text-3xl mr-2">📝</span> Your Journal
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Your Journal</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Ghi lại hành trình học tiếng Anh của bạn
+          </p>
+        </div>
         
         <Button 
           onClick={() => router.push('/journal/new')}

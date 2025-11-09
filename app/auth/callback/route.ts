@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
         
         // Redirect based on onboarding status
         if (profile?.onboarding_completed) {
-          return NextResponse.redirect(new URL('/dashboard', req.url));
+          return NextResponse.redirect(new URL('/homepage', req.url));
         } else {
           return NextResponse.redirect(new URL('/onboarding', req.url));
         }

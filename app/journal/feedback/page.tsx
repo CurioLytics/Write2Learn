@@ -82,7 +82,7 @@ async function saveJournalAndHighlights({
 
   const webhookUrl =
     process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL ||
-    'https://auto.zephyrastyle.com/webhook/save-process-highlight';
+    'https://n8n.elyandas.com/webhook/save-process-highlight';
 
   const res = await fetch(webhookUrl, {
     method: 'POST',
@@ -162,7 +162,7 @@ export default function JournalFeedbackPage() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-            <span className="text-3xl mr-2">💬</span> Journal Feedback
+            <span className="text-3xl mr-2"></span> Journal Feedback
           </h1>
 
           <Section title="Title Suggestion">{feedback.title}</Section>
