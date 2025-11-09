@@ -1,0 +1,117 @@
+'use client';
+
+import React from 'react';
+import { Journal } from '@/types/journal';
+import { formatDistanceToNow } from '@/utils/date-utils';
+import { cn } from '@/utils/ui';
+
+interface JournalListProps {
+  journals: Journal[];
+  onSelect: (journal: Journal) => void;
+  selectedJournalId?: string;
+  className?: string;
+  emptyState?: {
+    icon?: string;
+    title?: string;
+    description?: string;
+  };
+}
+
+/**
+ * Shared JournalList component that displays a list of journal entries
+ * with consistent styling and selection state
+ */
+export function JournalList({ 
+  journals, 
+  onSelect, 
+  selectedJournalId,
+  className = '',
+  emptyState = {
+    icon: '📝',
+    title: 'No Journal Entries Yet',
+    description: 'Start your writing journey with a new journal entry.'
+  }
+}: JournalListProps) {
+  
+  if (journals.length === 0) {
+    return (
+      <div className={cn(
+        "text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300",
+        className
+      )}>
+        <div className="text-4xl mb-3">{emptyState.icon}</div>
+        <h3 className="text-lg font-medium text-gray-800 mb-2">{emptyState.title}</h3>
+        <p className="text-sm text-gray-600">{emptyState.description}</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className={cn("space-y-4", className)}>
+      {journals.map(journal => (
+        <JournalListItem
+          key={journal.id}
+          journal={journal}
+          onSelect={onSelect}
+          isSelected={selectedJournalId === journal.id}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface JournalListItemProps {
+  journal: Journal;
+  onSelect: (journal: Journal) => void;
+  isSelected: boolean;
+}
+
+/**
+ * Individual journal list item component
+ */
+function JournalListItem({ journal, onSelect, isSelected }: JournalListItemProps) {
+  return (
+    <div
+      onClick={() => onSelect(journal)}
+      className={cn(
+        "p-4 rounded-lg border transition-all duration-200 cursor-pointer",
+        isSelected
+          ? "bg-blue-50 border-blue-300 shadow-sm"
+          : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+      )}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h4 className="font-medium text-gray-900 truncate max-w-xs">
+          {journal.title || 'Untitled Entry'}
+        </h4>
+        <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+          {formatDistanceToNow(new Date(journal.created_at))} ago
+        </span>
+      </div>
+      
+      <p className="text-sm text-gray-600 line-clamp-2">
+        {journal.content?.substring(0, 150)}
+        {journal.content && journal.content.length > 150 ? '...' : ''}
+      </p>
+      
+      {journal.tag && journal.tag.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-3">
+          {journal.tag.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full 
+                        bg-gray-100 text-gray-600"
+            >
+              {tag}
+            </span>
+          ))}
+          {journal.tag.length > 3 && (
+            <span className="text-xs text-gray-400">
+              +{journal.tag.length - 3} more
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
