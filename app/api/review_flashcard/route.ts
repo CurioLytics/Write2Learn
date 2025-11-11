@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { handleReview } from "@/fsrsHandler";
+import { NextRequest, NextResponse } from "next/server";
+import { handleReview } from "@/lib/fsrs/handler";
 
 export async function POST(req: Request) {
   try {

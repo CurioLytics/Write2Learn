@@ -31,7 +31,7 @@ export default function ReviewTestPage() {
 
   return (
     <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
-      <h1>🧠 FSRS Review Test</h1>
+      <h1 className="text-3xl font-bold text-gray-900">FSRS Review Test</h1>
 
       <label>Flashcard ID:</label>
       <input

@@ -48,11 +48,14 @@ export class DashboardService {
         throw new Error(`Lỗi khi truy vấn profiles: ${error.message}`);
       }
 
+      // Type assertion for the profile data
+      const profileData = profile as any;
+
       return {
-        id: profile.id,
-        email: profile.email || '',
-        fullName: profile.full_name || '',
-        level: profile.level || 'Beginner',
+        id: profileData.id,
+        email: '', // Email comes from auth.users, not profiles
+        fullName: profileData.name || '',
+        level: profileData.english_level || 'Beginner',
       };
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -73,13 +76,13 @@ export class DashboardService {
           type,
           details,
           detected_at,
-          grammar_topic_id,
-          vocab_topic_id,
-          grammar_topics:grammar_topic_id(
+          grammar_id,
+          vocab_id,
+          grammar_topics:grammar_id(
             id,
             topic_name
           ),
-          vocab_topics:vocab_topic_id(
+          vocab_topics:vocab_id(
             id,
             topic_name
           )

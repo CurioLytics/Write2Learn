@@ -26,8 +26,8 @@ export default function RoleplayPage() {
               Luyện hội thoại nhập vai trong các tình huống thực tế
             </p>
           </div>
-          <Link href="/" className="text-blue-600 text-sm hover:underline">
-            ⬅ Quay lại Dashboard
+          <Link href="/dashboard" className="text-blue-600 text-sm hover:underline">
+            ⬅ Quay lại Home
           </Link>
         </div>
       </div>

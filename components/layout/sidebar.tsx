@@ -16,6 +16,7 @@ import {
   BookOpen,
   MessageCircle,
   BookOpenCheck,
+  BarChart3,
   LogIn,
   LogOut,
 } from 'lucide-react';
@@ -23,11 +24,11 @@ import {
 import styles from './sidebar.module.css';
 
 const navigationItems = [
-  { name: 'Home', href: '/homepage', iconComponent: Home },
-  { name: 'Dashboard', href: '/dashboard', iconComponent: LayoutDashboard },
+  { name: 'Home', href: '/home', iconComponent: Home },
   { name: 'Journal', href: '/journal', iconComponent: BookOpen },
   { name: 'Role-play', href: '/roleplay', iconComponent: MessageCircle },
-  { name: 'Vocab Hub', href: '/vocab', iconComponent: BookOpenCheck },
+  { name: 'Vocabulary', href: '/vocab', iconComponent: BookOpenCheck },
+  { name: 'Report', href: '/report', iconComponent: BarChart3 },
 ];
 
 interface SidebarProps {

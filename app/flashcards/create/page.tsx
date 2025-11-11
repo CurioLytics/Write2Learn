@@ -178,8 +178,8 @@ Stack: ${err.stack ?? 'No stack'}`
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold">Tạo Flashcards</h1>
-              <p className="text-sm text-gray-500">Kiểm tra và chỉnh sửa trước khi lưu.</p>
+              <h1 className="text-3xl font-bold text-gray-900">Tạo Flashcards</h1>
+              <p className="text-sm text-gray-600 mt-2">Kiểm tra và chỉnh sửa trước khi lưu.</p>
             </div>
             <div className="text-sm text-gray-600">{flashcards.length} mục</div>
           </div>

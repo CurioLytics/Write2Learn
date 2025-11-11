@@ -118,7 +118,7 @@ export default function RoleplaySummaryPage() {
     <div className="max-w-2xl mx-auto py-6 px-4 sm:px-6"> 
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Tổng kết hội thoại</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Tổng kết hội thoại</h1>
       </header>
 
       {/* Card Container */}
