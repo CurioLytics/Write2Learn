@@ -1,40 +1,74 @@
-import { JournalFeedback } from '@/types/journal';
+import { 
+  JournalFeedbackResponse, 
+  FeedbackServiceResult,
+  ServiceError 
+} from '@/types/journal-feedback';
 
 class JournalFeedbackService {
-  async getFeedback(content: string, title?: string): Promise<JournalFeedback> {
-    if (!content.trim()) throw new Error('Journal content cannot be empty');
+  /**
+   * Get feedback for journal content with proper error handling
+   */
+  async getFeedback(content: string, title?: string): Promise<FeedbackServiceResult> {
+    try {
+      // Validation
+      if (!content.trim()) {
+        return {
+          success: false,
+          error: {
+            type: 'VALIDATION_ERROR',
+            message: 'Journal content cannot be empty'
+          }
+        };
+      }
 
-    const response = await fetch('/api/journal-feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, title: title || '' }),
-    });
+      const response = await fetch('/api/journal-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, title: title || '' }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Request failed: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: {
+            type: 'NETWORK_ERROR',
+            message: errorData.error || `Request failed with status: ${response.status}`
+          }
+        };
+      }
+
+      const data: JournalFeedbackResponse = await response.json();
+      
+      return {
+        success: true,
+        data
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          originalError: error instanceof Error ? error : undefined
+        }
+      };
     }
+  }
 
-    const data = await response.json();
-    console.log('Raw feedback response:', JSON.stringify(data, null, 2));
-
-
-    // Handle array-based webhook response
-    const feedback = Array.isArray(data) && data[0]?.output ? data[0].output : data;
-
-    return {
-      title: feedback.title || title || 'Journal Entry',
-      summary: feedback.summary || 'No summary available',
-      improvedVersion: feedback.improvedVersion || content,
-      originalVersion: feedback.originalVersion || content,
-      vocabSuggestions: Array.isArray(feedback.vocabSuggestions)
-        ? feedback.vocabSuggestions.map((item: any) => ({
-            word: item?.word || item?.term || 'Unknown word',
-            meaning: item?.meaning || item?.definition || 'No meaning provided',
-            example: item?.example || '',
-          }))
-        : [],
-    };
+  /**
+   * Legacy method for backward compatibility
+   * @deprecated Use getFeedback instead which returns FeedbackServiceResult
+   */
+  async getLegacyFeedback(content: string, title?: string): Promise<JournalFeedbackResponse> {
+    const result = await this.getFeedback(content, title);
+    
+    if (!result.success || !result.data) {
+      throw new Error(result.error?.message || 'Failed to get feedback');
+    }
+    
+    return result.data;
   }
 }
 

@@ -17,21 +17,25 @@ import styles from '@/components/features/journal/editor/highlight-selector.modu
 function useJournalFeedback() {
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const [feedback, setFeedback] = useState<JournalFeedback | null>(null);
+  const [feedback, setFeedback] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editableTitle, setEditableTitle] = useState<string>('');
 
   useEffect(() => {
     try {
       const param = searchParams?.get('feedback');
       if (!param) throw new Error('No feedback data found.');
       const parsed = JSON.parse(decodeURIComponent(param));
-      setFeedback(parsed);
+      // Handle both old and new webhook response formats
+      const feedbackData = Array.isArray(parsed) ? parsed[0] : parsed;
+      setFeedback(feedbackData);
+      setEditableTitle(feedbackData.title || '');
     } catch (err) {
       setError('Failed to load feedback data.');
     }
   }, [searchParams]);
 
-  return { feedback, error, user, loading };
+  return { feedback, error, user, loading, editableTitle, setEditableTitle };
 }
 
 function useHighlights() {
@@ -67,22 +71,24 @@ async function saveJournalAndHighlights({
   userId,
   feedback,
   highlights,
+  title,
 }: {
   userId: string;
-  feedback: JournalFeedback;
+  feedback: any;
   highlights: string[];
+  title: string;
 }) {
   const payload = {
     userId,
-    title: feedback.title || '',
-    content: feedback.improvedVersion || feedback.originalVersion || '',
+    title,
+    content: feedback.enhanced_version || feedback.improvedVersion || feedback.fixed_typo || feedback.originalVersion || '',
     journalDate: new Date().toISOString().split('T')[0],
     highlights,
   };
 
   const webhookUrl =
     process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL ||
-    'https://n8n.elyandas.com/webhook/save-process-highlight';
+    'https://automain.elyandas.com/webhook/save-process-highlight-v1';
 
   const res = await fetch(webhookUrl, {
     method: 'POST',
@@ -100,7 +106,7 @@ async function saveJournalAndHighlights({
 
 export default function JournalFeedbackPage() {
   const router = useRouter();
-  const { feedback, error, user, loading } = useJournalFeedback();
+  const { feedback, error, user, loading, editableTitle, setEditableTitle } = useJournalFeedback();
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -118,6 +124,7 @@ export default function JournalFeedbackPage() {
         userId: user.id,
         feedback,
         highlights,
+        title: editableTitle,
       });
 
       if (redirectToFlashcards && highlights.length) {
@@ -159,26 +166,109 @@ export default function JournalFeedbackPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Journal Feedback
           </h1>
 
-          <Section title="Title Suggestion">{feedback.title}</Section>
-          <Section title="Summary">{feedback.summary}</Section>
-          <Section title="Original Version">{feedback.originalVersion}</Section>
-
-          <Section title="Improved Version">
-            <div id="improved-version-content" className="whitespace-pre-wrap">
-              {feedback.improvedVersion}
-            </div>
-            <HighlightSelector
-              containerId="improved-version-content"
-              onHighlightSaved={addHighlight}
-              highlights={highlights}
+          {/* Editable Title Section */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-700 mb-3">Title</h2>
+            <input
+              type="text"
+              value={editableTitle}
+              onChange={(e) => setEditableTitle(e.target.value)}
+              className="w-full p-3 bg-white border-2 border-gray-200 rounded-lg text-gray-800 font-medium text-lg focus:border-blue-400 focus:outline-none"
+              placeholder="Enter journal title..."
             />
-          </Section>
+          </div>
+
+          <Section title="Summary">{feedback.summary}</Section>
+
+          {/* Side-by-side comparison section */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Version Comparison</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Fixed Typo Version - Left Side */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <h3 className="text-md font-medium text-gray-800">Fixed Typo</h3>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200 min-h-[300px] relative">
+                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                    {feedback.fixed_typo || feedback.originalVersion}
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Version - Right Side */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <h3 className="text-md font-medium text-gray-800">Enhanced Version</h3>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200 min-h-[300px] relative">
+                  <div id="improved-version-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                    {feedback.enhanced_version || feedback.improvedVersion}
+                  </div>
+                  <HighlightSelector
+                    containerId="improved-version-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Feedback Details Section */}
+          {feedback.fb_details && feedback.fb_details.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">Feedback Details</h2>
+              <div className="space-y-4">
+                {feedback.fb_details.map((detail: any, index: number) => (
+                  <div key={index} className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-blue-600 mb-1">
+                          {detail.type_of_fix?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        </div>
+                        <div className="text-gray-800 font-medium">
+                          "{detail.improved_part}"
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded mt-2">
+                      <strong>Explanation:</strong> {detail.explanation}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Legacy Vocabulary Suggestions */}
+          {feedback.vocabSuggestions && feedback.vocabSuggestions.length > 0 && (
+            <Section title="Vocabulary Suggestions">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {feedback.vocabSuggestions.map((vocab: any, index: number) => (
+                  <div key={index} className="p-3 bg-white border border-gray-300 rounded-lg">
+                    <div className="font-semibold text-blue-600">{vocab.word}</div>
+                    <div className="text-sm text-gray-700 mt-1">{vocab.meaning}</div>
+                    {vocab.example && (
+                      <div className="text-xs text-gray-500 mt-2 italic">
+                        Example: {vocab.example}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
 
           <Section title="Saved Highlights">
             <HighlightList highlights={highlights} onRemove={removeHighlight} />
@@ -190,8 +280,8 @@ export default function JournalFeedbackPage() {
             <Button
               variant="outline"
               onClick={() => {
-                localStorage.setItem('editJournalContent', feedback.originalVersion || '');
-                localStorage.setItem('editJournalTitle', feedback.title || '');
+                localStorage.setItem('editJournalContent', feedback.fixed_typo || feedback.originalVersion || '');
+                localStorage.setItem('editJournalTitle', editableTitle || '');
                 router.push('/journal/new?edit=true');
               }}
             >

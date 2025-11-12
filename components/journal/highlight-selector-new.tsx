@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useResponsive } from '@/hooks/common/use-responsive';
 import { zIndex } from '@/utils/z-index';
-import styles from './highlight-selector.module.css';
+import styles from '@/components/features/journal/editor/highlight-selector.module.css';
 
 interface HighlightSelectorProps {
   containerId: string;
@@ -121,205 +121,107 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
     }
 
     console.log('Setting up highlight selector for container:', containerId);
+    
+    // Track selection timeout to debounce multiple events
+    let selectionTimeout: NodeJS.Timeout | null = null;
 
     // Function to handle text selection
     const handleSelection = () => {
-      const selection = window.getSelection();
-      
-      if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
-        setIsButtonVisible(false);
-        return;
+      // Clear any pending selection handler
+      if (selectionTimeout) {
+        clearTimeout(selectionTimeout);
       }
       
-      const text = selection.toString().trim();
-      if (!text) {
-        setIsButtonVisible(false);
-        return;
-      }
-      
-      const range = selection.getRangeAt(0);
-      
-      // Check if selection is within our container
-      if (!container.contains(range.commonAncestorContainer)) {
-        setIsButtonVisible(false);
-        return;
-      }
-      
-      // Store selected text
-      setSelectedText(text);
-      
-      // Calculate button position
-      const rect = range.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      
-      // Position the button - mobile-first approach
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      // Check if there's enough space below for the button
-      const spaceBelow = viewportHeight - rect.bottom;
-      const needsTopPosition = spaceBelow < 100;
-      
-      // Mobile-first positioning (default)
-      let topPosition = needsTopPosition 
-        ? rect.top - containerRect.top + window.scrollY - 60 
-        : rect.bottom - containerRect.top + window.scrollY + 10;
+      // Debounce selection handling to prevent multiple rapid calls
+      selectionTimeout = setTimeout(() => {
+        const selection = window.getSelection();
         
-      // Center horizontally but ensure it's within viewport bounds
-      let leftPosition = Math.min(
-        Math.max(viewportWidth * 0.2, rect.left + (rect.width / 2)),
-        viewportWidth * 0.8
-      );
-      
-      // Desktop positioning adjustments (when not mobile)
-      if (!isMobile) {
-        topPosition = rect.bottom - containerRect.top + window.scrollY + 5;
-        leftPosition = rect.left + (rect.width / 2);
-      }
-      
-      setButtonPosition({
-        top: topPosition,
-        left: leftPosition
-      });
-      
-      setIsButtonVisible(true);
-    };
-    
-    // Function to handle saving and highlighting - only save to parent state
-    const handleSaveHighlight = () => {
-      if (!selectedText) return;
-      
-      // Just save to parent state - don't manually apply highlight
-      onHighlightSaved(selectedText);
-      
-      // Clear selection and hide button
-      window.getSelection()?.removeAllRanges();
-      setIsButtonVisible(false);
-    };
-    
-    // Fallback highlighting method
-    const highlightTextManually = (text: string, container: HTMLElement) => {
-      // Get all text nodes in the container
-      const textNodes = getAllTextNodes(container);
-      let found = false;
-      
-      for (const node of textNodes) {
-        const nodeText = node.textContent || '';
-        const index = nodeText.indexOf(text);
-        
-        if (index >= 0 && !found) {
-          try {
-            // Create a range for this text
-            const range = document.createRange();
-            range.setStart(node, index);
-            range.setEnd(node, index + text.length);
-            
-            // Create highlight span
-            const span = document.createElement('span');
-            span.className = styles['highlighted-text'];
-            
-            // Apply highlighting
-            range.surroundContents(span);
-            found = true;
-            console.log('Manual highlighting successful');
-            break;
-          } catch (err) {
-            console.error('Error in manual highlighting:', err);
-            // Try another approach for complex DOM structures
-            try {
-              // Create a new range for this attempt
-              const complexRange = document.createRange();
-              complexRange.setStart(node, index);
-              complexRange.setEnd(node, index + text.length);
-              
-              // Extract the content
-              const fragment = complexRange.extractContents();
-              
-              // Create highlight span
-              const span = document.createElement('span');
-              span.className = styles['highlighted-text'];
-              
-              // Add the content to the span
-              span.appendChild(fragment);
-              
-              // Insert the span
-              complexRange.insertNode(span);
-              found = true;
-              console.log('Complex manual highlighting successful');
-              break;
-            } catch (extractErr) {
-              console.error('Failed complex manual highlighting:', extractErr);
-            }
-          }
+        if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+          setIsButtonVisible(false);
+          return;
         }
-      }
-      
-      if (!found) {
-        console.warn('Could not find text to highlight:', text);
-      }
-    };
-    
-    // Get all text nodes in a container
-    const getAllTextNodes = (element: Node): Text[] => {
-      const textNodes: Text[] = [];
-      
-      const walk = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-      
-      let node;
-      while ((node = walk.nextNode())) {
-        textNodes.push(node as Text);
-      }
-      
-      return textNodes;
+        
+        const text = selection.toString().trim();
+        if (!text) {
+          setIsButtonVisible(false);
+          return;
+        }
+        
+        const range = selection.getRangeAt(0);
+        
+        // Check if selection is within our container
+        if (!container.contains(range.commonAncestorContainer)) {
+          setIsButtonVisible(false);
+          return;
+        }
+        
+        // Store selected text
+        setSelectedText(text);
+        
+        // Calculate button position
+        const rect = range.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        // Position the button above the selected text
+        const buttonHeight = 40; // Approximate button height
+        const margin = 8; // Small margin above the selection
+        
+        // Calculate position relative to viewport (not container)
+        const topPosition = rect.top - buttonHeight - margin;
+        const leftPosition = rect.left + (rect.width / 2);
+        
+        setButtonPosition({
+          top: Math.max(10, topPosition), // Ensure it doesn't go above viewport
+          left: Math.max(10, Math.min(leftPosition, window.innerWidth - 100)) // Keep within viewport bounds
+        });
+        
+        setIsButtonVisible(true);
+      }, 100);
     };
     
     // Handle mouseup to detect selections
-    const handleMouseUp = () => {
-      setTimeout(handleSelection, 10);
+    const handleMouseUp = (e: MouseEvent) => {
+      // Only handle if the click was within our container
+      if (!container.contains(e.target as Node)) return;
+      handleSelection();
     };
     
     // Handle touchend for mobile devices
     const handleTouchEnd = (e: TouchEvent) => {
-      // Small delay to allow the browser to process the selection
-      setTimeout(handleSelection, 100);
-    };
-    
-    // Handle selection change event for both desktop and mobile
-    const handleSelectionChange = () => {
-      // Only process if we have a container
-      if (container) {
-        setTimeout(handleSelection, 50);
-      }
+      // Only handle if the touch was within our container
+      if (!container.contains(e.target as Node)) return;
+      handleSelection();
     };
 
     // Handle clicks/touches outside to hide the button
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      
+      // Don't hide if clicking the save button or within container
       if (
-        buttonRef.current && 
-        !buttonRef.current.contains(e.target as Node) && 
-        container && 
-        !container.contains(e.target as Node)
+        (buttonRef.current && buttonRef.current.contains(target)) ||
+        (container && container.contains(target))
       ) {
-        setIsButtonVisible(false);
+        return;
       }
+      
+      setIsButtonVisible(false);
+      setSelectedText('');
     };
     
-    // Add event listeners for both mouse and touch
+    // Add event listeners - only using mouseup/touchend, not selectionchange
     container.addEventListener('mouseup', handleMouseUp);
     container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    document.addEventListener('selectionchange', handleSelectionChange);
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('touchstart', handleOutsideClick as EventListener, { passive: true });
     
     // Cleanup
     return () => {
+      if (selectionTimeout) {
+        clearTimeout(selectionTimeout);
+      }
       container.removeEventListener('mouseup', handleMouseUp);
       container.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('selectionchange', handleSelectionChange);
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick as EventListener);
     };
@@ -329,30 +231,31 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
   const saveButton = (
     <div
       ref={buttonRef}
-      className={`
-        absolute transition-all duration-150
-        ${isButtonVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
-      `}
+      className="fixed transition-all duration-150 -translate-x-1/2"
       style={{
         top: `${buttonPosition.top}px`,
         left: `${buttonPosition.left}px`,
         zIndex: zIndex.highlightButton,
+        opacity: isButtonVisible ? 1 : 0,
+        transform: isButtonVisible ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(0.95)',
+        pointerEvents: isButtonVisible ? 'auto' : 'none'
       }}
     >
       <button
         onClick={() => {
           console.log('✅ Saved highlight:', selectedText);
-
           onHighlightSaved(selectedText);
           setIsButtonVisible(false);
+          setSelectedText('');
           window.getSelection()?.removeAllRanges();
         }}
         className="
           bg-gray-900 text-white text-sm font-medium
-          px-3 py-1.5 rounded-full shadow-lg
+          px-3 py-2 rounded-full shadow-lg
           flex items-center gap-1.5
           hover:bg-gray-800 active:scale-95
           focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-700
+          whitespace-nowrap
         "
       >
         <svg

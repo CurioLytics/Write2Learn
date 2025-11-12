@@ -1,29 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface JournalFeedbackRequest {
-  title?: string;
-  content: string;
-  userId?: string;
-}
-
-interface JournalFeedbackResponse {
-  title: string;
-  summary: string;
-  improvedVersion: string;
-  originalVersion: string;
-  vocabSuggestions: string[];
-}
-
-/**
- * Default feedback response for when the service is unavailable
- */
-const createDefaultFeedback = (request: JournalFeedbackRequest): JournalFeedbackResponse => ({
-  title: request.title || 'Journal Entry',
-  summary: "We couldn't generate a detailed summary for your journal entry at this time.",
-  improvedVersion: request.content,
-  originalVersion: request.content,
-  vocabSuggestions: [],
-});
+import { 
+  JournalFeedbackRequest, 
+  JournalFeedbackResponse,
+  WebhookResponse, 
+  WebhookFeedbackResponse,
+  FeedbackServiceResult 
+} from '@/types/journal-feedback';
 
 /**
  * Configuration for the feedback service
@@ -35,8 +17,7 @@ const FEEDBACK_CONFIG = {
 } as const;
 
 /**
- * Improved journal feedback API route with better error handling,
- * timeout management, and response normalization
+ * Journal feedback API route - no fallbacks, show real errors
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -52,10 +33,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Check if webhook URL is configured
     if (!FEEDBACK_CONFIG.WEBHOOK_URL) {
-      console.warn('Journal feedback webhook URL not configured');
+      console.error('NEXT_PUBLIC_GET_FEEDBACK_WEBHOOK_URL environment variable is not configured');
       return NextResponse.json(
-        createDefaultFeedback(body),
-        { status: 200 }
+        { error: 'Feedback service not configured. Missing NEXT_PUBLIC_GET_FEEDBACK_WEBHOOK_URL environment variable.' },
+        { status: 500 }
       );
     }
 
@@ -67,17 +48,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Journal feedback API error:', error);
     
-    // Try to extract the body for fallback response
-    let fallbackBody: JournalFeedbackRequest;
-    try {
-      fallbackBody = await req.json();
-    } catch {
-      fallbackBody = { content: '', title: 'Journal Entry' };
-    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
     return NextResponse.json(
-      createDefaultFeedback(fallbackBody),
-      { status: 200 } // Return 200 to not break the UI
+      { error: `Failed to get journal feedback: ${errorMessage}` },
+      { status: 500 }
     );
   }
 }
@@ -93,23 +68,37 @@ async function requestFeedbackWithRetry(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FEEDBACK_CONFIG.TIMEOUT_MS);
 
+    console.log(`Making feedback request to: ${FEEDBACK_CONFIG.WEBHOOK_URL}`);
+    console.log('Request payload:', JSON.stringify(body, null, 2));
+
     const response = await fetch(FEEDBACK_CONFIG.WEBHOOK_URL!, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'User-Agent': 'journal-feedback/1.0'
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        content: body.content,
+        title: body.title,
+        fixed_typo: body.content, // Send original content as fixed_typo baseline
+        enhanced_version: body.content // Will be improved by webhook
+      }),
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
+    console.log(`Response status: ${response.status}`);
+    
     if (!response.ok) {
-      throw new Error(`Webhook responded with status: ${response.status}`);
+      const responseText = await response.text();
+      console.error(`Webhook error response: ${responseText}`);
+      throw new Error(`Webhook responded with status: ${response.status}. Response: ${responseText}`);
     }
 
     const data = await response.json();
+    console.log('Webhook response:', JSON.stringify(data, null, 2));
+    
     return normalizeFeedbackResponse(data, body);
     
   } catch (error) {
@@ -117,11 +106,12 @@ async function requestFeedbackWithRetry(
     
     // Retry once if it's the first attempt and not an abort error
     if (retryCount < FEEDBACK_CONFIG.MAX_RETRIES && !isAbortError(error)) {
+      console.log('Retrying request...');
       return requestFeedbackWithRetry(body, retryCount + 1);
     }
     
-    // Return default feedback on final failure
-    return createDefaultFeedback(body);
+    // Throw the error instead of returning fallback data
+    throw new Error(`Webhook request failed after ${retryCount + 1} attempts: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -133,18 +123,27 @@ function normalizeFeedbackResponse(
   originalRequest: JournalFeedbackRequest
 ): JournalFeedbackResponse {
   // Handle different response structures from the webhook
-  const feedback = Array.isArray(data) && data[0]?.output
-    ? data[0].output
-    : data.output
-    ? data.output
+  const feedback = Array.isArray(data) && data[0]
+    ? data[0]
     : data;
 
+  // Validate that we have the required fields
+  if (!feedback) {
+    throw new Error('Webhook returned empty or invalid response');
+  }
+
+  // For new webhook format, return as-is if it has the expected structure
+  if (feedback.fixed_typo || feedback.enhanced_version || feedback.fb_details) {
+    return feedback;
+  }
+
+  // For legacy format, normalize to expected structure
   return {
-    title: feedback?.title || originalRequest.title || 'Journal Entry',
-    summary: feedback?.summary || "We couldn't generate a detailed summary for your journal entry at this time.",
-    improvedVersion: feedback?.improvedVersion || originalRequest.content,
-    originalVersion: feedback?.originalVersion || originalRequest.content,
-    vocabSuggestions: Array.isArray(feedback?.vocabSuggestions) 
+    title: feedback.title || originalRequest.title || '',
+    summary: feedback.summary || '',
+    improvedVersion: feedback.improvedVersion || '',
+    originalVersion: feedback.originalVersion || originalRequest.content || '',
+    vocabSuggestions: Array.isArray(feedback.vocabSuggestions) 
       ? feedback.vocabSuggestions 
       : [],
   };

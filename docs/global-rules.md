@@ -20,4 +20,5 @@
 - **Never hallucinate libraries, components, or functions** – only use verified packages for Nextjs + Supabase + Tailwind.  
 - **Confirm file paths and module names exist** before referencing them.  
 - **Follow project styling conventions** in all generated code (Tailwind classes, component patterns, consistent naming).  
-- **When generating files**, respect modular boundaries: separate components, pages, services, styles, and tests appropriately.
+- **When generating files**, respect modular boundaries: separate components, pages, services, styles, appropriately.
+- **Short and concise code, no mock up data unless specified.**

@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/auth/use-auth';
 import { journalTemplateService } from '@/services/api/journal-template-service';
 import { journalFeedbackService } from '@/services/api/journal-feedback-service';
 import { journalService } from '@/services/api/journal-service';
-import { generatePlaceholderFeedback } from '@/utils/journal-utils';
 import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor } from '@/components/features/journal/editor';
@@ -103,33 +102,33 @@ export default function NewJournalPage() {
 
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 bg-black/30 flex items-center justify-center text-white text-lg z-50';
-    overlay.innerText = 'Đang phân tích...';
+    overlay.innerText = 'Getting feedback...';
     document.body.appendChild(overlay);
 
     try {
-      const feedback = await journalFeedbackService.getFeedback(content, title);
-      document.body.removeChild(overlay);
-
-      const safeFeedback = {
-        title: feedback.title || title,
-        summary: feedback.summary || '',
-        improvedVersion: feedback.improvedVersion || content,
-        originalVersion: feedback.originalVersion || content,
-        vocabSuggestions: Array.isArray(feedback.vocabSuggestions)
-          ? feedback.vocabSuggestions
-          : [],
-      };
-
-      router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(safeFeedback))}`);
-    } catch {
-      document.body.removeChild(overlay);
-      const confirmFallback = confirm('Không thể lấy phản hồi. Tiếp tục với phản hồi cơ bản?');
-      if (confirmFallback) {
-        const fallback = generatePlaceholderFeedback(content, title);
-        router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(fallback))}`);
-      } else {
-        setError('Không thể lấy phản hồi.');
+      const result = await journalFeedbackService.getFeedback(content, title);
+      
+      if (overlay.parentNode) {
+        document.body.removeChild(overlay);
       }
+
+      if (result.success && result.data) {
+        // Use the properly structured data from the service
+        router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(result.data))}`);
+      } else {
+        // Show the actual error message
+        const errorMessage = result.error?.message || 'Unknown error occurred';
+        setError(`Feedback service error: ${errorMessage}`);
+        console.error('Feedback service error:', result.error);
+      }
+    } catch (error) {
+      if (overlay.parentNode) {
+        document.body.removeChild(overlay);
+      }
+      
+      console.error('Unexpected error in handleGetFeedback:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Unexpected error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
