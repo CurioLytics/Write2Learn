@@ -80,6 +80,15 @@ body {
   color: var(--foreground);
 }
 
+/* Hide scrollbar for horizontal drag */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* === DARK MODE === */
 .dark {
   --background: oklch(0 0 0); /* pure black */
