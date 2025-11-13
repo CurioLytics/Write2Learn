@@ -1,9 +1,12 @@
+'use client';
+
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { ChevronDown, ChevronUp, AlertCircle, Calendar } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { ErrorAnalysis } from '@/types/dashboard';
-import { formatDistanceToNow } from '@/utils/date-utils';
+import { ErrorData } from '@/types/exercise';
+import { PracticeDialog } from './PracticeDialog';
 
 interface ErrorAnalysisCardProps {
   title: string;
@@ -18,12 +21,24 @@ export function ErrorAnalysisCard({
   isLoading = false,
   error = null 
 }: ErrorAnalysisCardProps) {
-  const [expandedError, setExpandedError] = useState<string | null>(null);
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
+  const [selectedErrorData, setSelectedErrorData] = useState<ErrorData[]>([]);
+
+  const toggleTopic = (topic: string) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topic)) {
+      newExpanded.delete(topic);
+    } else {
+      newExpanded.add(topic);
+    }
+    setExpandedTopics(newExpanded);
+  };
 
   if (error) {
     return (
       <Card className="p-6 border border-red-200 bg-red-50">
-        <h3 className="mb-4 text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">{title}</h3>
         <div className="text-center py-4">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
           <p className="text-red-700 text-sm">{error}</p>
@@ -35,7 +50,7 @@ export function ErrorAnalysisCard({
   if (isLoading) {
     return (
       <Card className="p-6 border border-gray-200 bg-white">
-        <h3 className="mb-4 text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">{title}</h3>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-2 text-gray-600 text-sm">Đang tải...</p>
@@ -44,109 +59,120 @@ export function ErrorAnalysisCard({
     );
   }
 
-  if (!errors || errors.length === 0) {
+  // Filter only grammar errors and group them
+  const grammarErrors = errors.filter(error => error.category === 'grammar');
+
+  if (!grammarErrors || grammarErrors.length === 0) {
     return (
       <Card className="p-6 border border-gray-200 bg-white">
-        <h3 className="mb-4 text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">{title}</h3>
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-gray-600">Chưa có lỗi nào được ghi nhận</p>
+          <p className="text-gray-600">Chưa có lỗi ngữ pháp nào</p>
         </div>
       </Card>
     );
   }
 
-  // Group errors by category for this title
-  const categoryErrors = errors.filter(error => 
-    title.toLowerCase() === 'ngữ pháp' 
-      ? error.category === 'grammar'
-      : error.category === 'vocab'
-  );
-
-  // Group by topic name
-  const groupedErrors = categoryErrors.reduce((groups, error) => {
+  // Group errors by topic name for counting and details
+  const groupedErrors = grammarErrors.reduce((acc, error) => {
     const topic = error.topicName;
-    if (!groups[topic]) {
-      groups[topic] = [];
+    if (!acc[topic]) {
+      acc[topic] = { count: 0, details: [] };
     }
-    groups[topic].push(error);
-    return groups;
-  }, {} as Record<string, ErrorAnalysis[]>);
+    acc[topic].count += error.frequency;
+    acc[topic].details.push(error);
+    return acc;
+  }, {} as Record<string, { count: number; details: ErrorAnalysis[] }>);
 
   const sortedTopics = Object.entries(groupedErrors)
-    .sort(([,a], [,b]) => b.length - a.length); // Sort by error count descending
+    .sort(([, a], [, b]) => b.count - a.count)
+    .slice(0, 8); // Show top 8
+
+  const handlePracticeClick = () => {
+    // Use real error data from error details instead of mock data
+    const errorData = sortedTopics.flatMap(([topicName, data]) => 
+      data.details.map(detail => ({
+        topicName: detail.topicName,
+        grammarId: detail.id,
+        frequency: detail.frequency,
+        detectedAt: detail.detectedAt,
+        description: detail.description // Add description from real data
+      }))
+    );
+    
+    setSelectedErrorData(errorData);
+    setIsPracticeOpen(true);
+  };
 
   return (
-    <Card className="p-6 border border-gray-200 rounded-lg bg-white">
+    <Card className="p-6 border border-gray-200 bg-white">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-gray-900">{title}</h3>
-        <span className="text-sm text-gray-500">
-          {categoryErrors.length} lỗi
-        </span>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={handlePracticeClick}
+          disabled={!errors || errors.length === 0}
+          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+        >
+          Ôn tập từ lỗi sai
+        </Button>
       </div>
       
-      <div className="space-y-3">
-        {sortedTopics.map(([topicName, topicErrors]) => (
-          <Collapsible
-            key={topicName}
-            open={expandedError === topicName}
-            onOpenChange={(isOpen) => setExpandedError(isOpen ? topicName : null)}
-          >
-            <div className="group">
-              <CollapsibleTrigger className="w-full text-left">
-                <div className="flex items-center justify-between hover:bg-gray-50 p-3 rounded-md transition-colors">
-                  <div className="flex items-center gap-3 flex-1">
-                    <AlertCircle className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-900">{topicName}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <span className="text-gray-700 text-sm">
-                      {topicErrors.length} lỗi
-                    </span>
-                    
-                    {expandedError === topicName ? (
-                      <ChevronUp className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
-                    )}
-                  </div>
-                </div>
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <div className="mt-2 ml-10 space-y-3">
-                  {topicErrors.map((error) => (
-                    <div
-                      key={error.id}
-                      className="p-4 bg-gray-50 rounded-md border border-gray-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-xs text-gray-500 uppercase tracking-wider">
-                          {error.category}
-                        </span>
-                        {error.detectedAt && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(error.detectedAt))}
-                          </div>
-                        )}
+      <div className="space-y-1">
+        {sortedTopics.map(([topicName, data]) => (
+          <div key={topicName} className="border rounded-lg overflow-hidden">
+            <Button
+              variant="ghost"
+              onClick={() => toggleTopic(topicName)}
+              className="w-full flex items-center justify-between p-4 h-auto hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-gray-900 text-sm font-medium">{topicName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 text-sm font-semibold">
+                  {data.count}
+                </span>
+                {expandedTopics.has(topicName) ? (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-gray-500" />
+                )}
+              </div>
+            </Button>
+            
+            {expandedTopics.has(topicName) && (
+              <div className="px-4 pb-4 border-t bg-gray-50">
+                <div className="space-y-3 mt-3">
+                  {data.details.map((detail, index) => (
+                    <div key={index} className="text-sm bg-white p-3 rounded border">
+                      <p className="text-gray-700 mb-2 font-medium">{detail.description}</p>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Tần suất: {detail.frequency} lần</span>
+                        <span>{new Date(detail.detectedAt).toLocaleDateString('vi-VN')}</span>
                       </div>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {error.description}
-                      </p>
                     </div>
                   ))}
                 </div>
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
+              </div>
+            )}
+          </div>
         ))}
       </div>
+
+      {/* Practice Dialog */}
+      <PracticeDialog 
+        isOpen={isPracticeOpen}
+        onClose={() => setIsPracticeOpen(false)}
+        errorData={selectedErrorData}
+      />
     </Card>
   );
 }

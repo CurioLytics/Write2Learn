@@ -7,9 +7,9 @@ import { PlusCircle } from 'lucide-react';
 import { JournalList, CalendarView } from '@/components/features/journal/entries';
 import { JournalStatsDisplay } from '@/components/features/journal/stats';
 import { WakeUpCall } from '@/components/features/journal/motivation';
-import { TemplateSelection } from '@/components/journal/template-selection';
+import { TemplateCards } from '@/components/journal/template-cards';
 import { Journal, JournalStats } from '@/types/journal';
-import { journalService } from '@/services/api/journal-service';
+import { journalService } from '@/services/journal-service';
 import { useAuth } from '@/hooks/auth/use-auth';
 
 export default function JournalPage() {
@@ -88,101 +88,115 @@ export default function JournalPage() {
   };
 
   const renderEmptyState = () => (
-    <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-      <div className="mb-4"></div>
-      <h2 className="text-xl font-medium text-gray-800 mb-3">Start Your Journal Journey</h2>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto">
-        Keep track of your language learning progress by writing daily journal entries.
-      </p>
-      <Button 
-        onClick={() => router.push('/journal/new')}
-        className="bg-blue-600 hover:bg-blue-700"
-      >
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Create Your First Entry
-      </Button>
-    </div>
-  );
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Your Journal</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Ghi lại hành trình học tiếng Anh của bạn
-          </p>
-        </div>
-        
+    <div className="space-y-8">
+      {/* Empty state message */}
+      <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+        <div className="mb-4"></div>
+        <h2 className="text-xl font-medium text-gray-800 mb-3">Start Your Journal Journey</h2>
+        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+          Keep track of your language learning progress by writing daily journal entries.
+        </p>
         <Button 
           onClick={() => router.push('/journal/new')}
           className="bg-blue-600 hover:bg-blue-700"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
-          New Entry
+          Create Your First Entry
         </Button>
       </div>
       
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
-          <button 
-            onClick={() => window.location.reload()} 
-            className="ml-2 underline"
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Journal list */}
-          <div className="lg:col-span-2">
-            {journals.length === 0 ? renderEmptyState() : (
-              <>
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Your Journal Entries</h2>
-                  <JournalList 
-                    journals={journals}
-                    onSelect={handleJournalSelect}
-                    selectedJournalId={selectedJournal?.id}
-                  />
-                </div>
-                
-                {/* Wake up call section */}
-                {!showTemplates && (
-                  <WakeUpCall onShowTemplates={handleShowTemplates} />
-                )}
-                
-                {/* Template section */}
-                {showTemplates && (
-                  <div ref={templateSectionRef} className="mt-8">
-                    <TemplateSelection />
-                  </div>
-                )}
-              </>
-            )}
+      {/* Template cards for new users */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-medium text-gray-800 mb-4">Or Choose a Template</h2>
+        <TemplateCards />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
+      <div className="bg-white shadow rounded-2xl p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Your Journal</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Ghi lại hành trình học tiếng Anh của bạn
+            </p>
           </div>
           
-          {/* Right column - Stats and calendar */}
-          <div>
-            {/* Stats panel */}
-            <div className="mb-6">
-              <JournalStatsDisplay stats={stats} isLoading={isLoading} />
+          <Button 
+            onClick={() => router.push('/journal/new')}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Entry
+          </Button>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            {error}
+            <button 
+              onClick={() => window.location.reload()} 
+              className="ml-2 underline"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left column - Journal list */}
+            <div className="lg:col-span-2">
+              {journals.length === 0 ? renderEmptyState() : (
+                <>
+                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h2 className="text-lg font-medium text-gray-800 mb-4">Your Journal Entries</h2>
+                    <JournalList 
+                      journals={journals}
+                      onSelect={handleJournalSelect}
+                      selectedJournalId={selectedJournal?.id}
+                    />
+                  </div>
+                  
+                  {/* Wake up call section */}
+                  {!showTemplates && (
+                    <WakeUpCall onShowTemplates={handleShowTemplates} />
+                  )}
+                  
+                  {/* Template section */}
+                  {showTemplates && (
+                    <div ref={templateSectionRef} className="mt-8">
+                      <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-lg font-medium text-gray-800 mb-4">Choose a Template</h2>
+                        <TemplateCards />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
             
-            {/* Calendar panel */}
-            <CalendarView 
-              journals={journals}
-              onDateSelect={handleDateSelect}
-              selectedDate={selectedDate}
-            />
+            {/* Right column - Stats and calendar */}
+            <div>
+              {/* Stats panel */}
+              <div className="mb-6">
+                <JournalStatsDisplay stats={stats} isLoading={isLoading} />
+              </div>
+              
+              {/* Calendar panel */}
+              <CalendarView 
+                journals={journals}
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

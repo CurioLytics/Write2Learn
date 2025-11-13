@@ -6,7 +6,7 @@ export interface DateRange {
   to: string;   // ISO date string
 }
 
-export type DatePreset = 'this-week' | '7-days' | '30-days' | '3-months' | 'all-time';
+export type DatePreset = 'today' | 'this-week' | '7-days' | '30-days' | '3-months' | 'all-time';
 
 export interface ErrorAnalysisFilters {
   dateRange: DateRange | null;
@@ -33,14 +33,6 @@ export interface ErrorAnalysis {
 export interface DashboardData {
   stats: DashboardStats;
   errorAnalysis: ErrorAnalysis[];
-  profile: UserProfile | null;
-}
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  fullName: string;
-  level: string;
 }
 
 // Progress Card data
@@ -56,12 +48,10 @@ export interface ProgressCardData {
 export interface DashboardLoadingState {
   stats: boolean;
   errorAnalysis: boolean;
-  profile: boolean;
 }
 
 // Error states
 export interface DashboardErrorState {
   stats: string | null;
   errorAnalysis: string | null;
-  profile: string | null;
 }

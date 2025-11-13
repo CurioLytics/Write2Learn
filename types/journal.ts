@@ -1,21 +1,18 @@
 export type JournalTemplateCategory = 'Journaling' | 'Productivity' | 'Wellness' | 'Decision Making' | 'Problem Solving' | 'Business';
 
 /**
- * Interface for the journal_template table according to SRS.md
- * - id: Unique identifier for each journal template
+ * Interface for the templates table
+ * - profile_id: UUID of the user who owns the template
  * - name: Title or name of the journal template
- * - other: Additional metadata or unused field
  * - content: The actual prompt or body of the journal entry
- * - category: Category of the journal template (matches JournalTemplateCategory)
- * - tag: Array of tags for additional categorization and filtering
+ * - cover_image: URL or path to the template's cover image
  */
 export interface JournalTemplate {
-  id: string;
+  id?: string; // Optional for backwards compatibility
+  profile_id?: string;
   name: string;
-  other?: string;
   content: string;
-  category?: JournalTemplateCategory;
-  tag: string[];
+  cover_image?: string;
 }
 
 /**

@@ -243,33 +243,6 @@ export type Database = {
           },
         ]
       }
-      journal_template: {
-        Row: {
-          category: string | null
-          content: string | null
-          id: string
-          name: string
-          other: string | null
-          tag: string[] | null
-        }
-        Insert: {
-          category?: string | null
-          content?: string | null
-          id?: string
-          name: string
-          other?: string | null
-          tag?: string[] | null
-        }
-        Update: {
-          category?: string | null
-          content?: string | null
-          id?: string
-          name?: string
-          other?: string | null
-          tag?: string[] | null
-        }
-        Relationships: []
-      }
       journals: {
         Row: {
           content: string

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { PinnedTemplates } from '@/components/journal/pinned-templates';
+import { TemplateCards } from '@/components/journal/template-cards';
 import { Quote } from '@/components/ui/quote';
 import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { QuickReview } from '@/components/flashcards/quick-review';
@@ -72,7 +72,7 @@ export default function DashboardPage() {
                     <p className="text-gray-600 text-lg">Dành chút thời gian để viết và lắng nghe chính mình hôm nay.</p>
 
                     <div className="max-w-3xl mx-auto">
-                        <PinnedTemplates />
+                        <TemplateCards />
                     </div>
 
                     <Quote text={quote.text} author={quote.author} />
@@ -102,23 +102,48 @@ export default function DashboardPage() {
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {loading ? (
-                                <p className="text-gray-500 text-center col-span-3">Đang tải dữ liệu hội thoại...</p>
-                            ) : scenarios.length > 0 ? (
-                                scenarios.map((s) => (
-                                    <RoleplayCard
-                                        key={s.id}
-                                        id={s.id}
-                                        // ❗ Đã điều chỉnh tên props để phù hợp với component RoleplayCard
-                                        title={s.name}       // Map từ 'name'
-                                        description={s.context} // Map từ 'context'
-                                        imageUrl={s.image || ''} // Map từ 'image' và đảm bảo là string
-                                    />
-                                ))
-                            ) : (
-                                <p className="text-gray-500 text-center col-span-3">Chưa có hội thoại nào được thêm.</p>
-                            )}
+                        <div className="overflow-x-auto scrollbar-hide">
+                            <div className="flex gap-4 pb-2 cursor-grab active:cursor-grabbing"
+                                 onMouseDown={(e) => {
+                                   const slider = e.currentTarget.parentElement!;
+                                   let isDown = true;
+                                   let startX = e.pageX - slider.offsetLeft;
+                                   let scrollLeft = slider.scrollLeft;
+                                   
+                                   const handleMouseMove = (e: MouseEvent) => {
+                                     if (!isDown) return;
+                                     e.preventDefault();
+                                     const x = e.pageX - slider.offsetLeft;
+                                     const walk = (x - startX) * 2;
+                                     slider.scrollLeft = scrollLeft - walk;
+                                   };
+                                   
+                                   const handleMouseUp = () => {
+                                     isDown = false;
+                                     document.removeEventListener('mousemove', handleMouseMove);
+                                     document.removeEventListener('mouseup', handleMouseUp);
+                                   };
+                                   
+                                   document.addEventListener('mousemove', handleMouseMove);
+                                   document.addEventListener('mouseup', handleMouseUp);
+                                 }}>
+                                {loading ? (
+                                    <p className="text-gray-500 text-center w-full">Đang tải dữ liệu hội thoại...</p>
+                                ) : scenarios.length > 0 ? (
+                                    scenarios.map((s) => (
+                                        <div key={s.id} className="flex-shrink-0">
+                                            <RoleplayCard
+                                                id={s.id}
+                                                title={s.name}
+                                                description={s.context}
+                                                imageUrl={s.image || ''}
+                                            />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500 text-center w-full">Chưa có hội thoại nào được thêm.</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 

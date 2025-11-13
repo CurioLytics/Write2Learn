@@ -3,7 +3,7 @@
 import { createContext, useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { getCurrentUser, signOut as authSignOut } from '@/services/api/auth-service';
+import { getCurrentUser, signOut as authSignOut } from '@/services/auth-service';
 import { AuthContextType } from '@/hooks/auth/use-auth';
 
 export const AuthContext = createContext<AuthContextType>({

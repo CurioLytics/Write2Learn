@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { roleplayService } from '@/services/api/roleplay-service';
+import { roleplayService } from '@/services/roleplay-service';
 import { RoleplayScenario } from '@/types/roleplay';
 import { ChatInterface } from '@/components/roleplay/chat-interface';
 import { Button } from '@/components/ui/button';

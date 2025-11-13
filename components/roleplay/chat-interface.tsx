@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { MessageBubble } from './message-bubble';
-import { roleplayWebhookService } from '@/services/api/roleplay-webhook-service';
+import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 import styles from './roleplay.module.css';
 

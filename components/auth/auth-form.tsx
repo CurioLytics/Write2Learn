@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from '@/components/ui/button';
-import { signInWithEmail, signUpWithEmail } from '@/services/api/auth-service';
+import { signInWithEmail, signUpWithEmail } from '@/services/auth-service';
 import { OAuthButtons } from './oauth-buttons';
 import { VerificationStep } from './verification-step';
 import type { User } from '@supabase/supabase-js';

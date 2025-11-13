@@ -3,39 +3,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { JournalFeedback } from '@/types/journal';
 import { Button } from '@/components/ui/button';
-import { BreathingLoader } from '@/components/ui/breathing-loader';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
 import { HighlightSelector } from '@/components/journal/highlight-selector-new';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
+import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import styles from '@/components/features/journal/editor/highlight-selector.module.css';
 
-// --------------------------
-// ✅ Custom Hooks
-// --------------------------
-
+// Custom hooks
 function useJournalFeedback() {
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
   const [feedback, setFeedback] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [editableTitle, setEditableTitle] = useState<string>('');
 
   useEffect(() => {
     try {
       const param = searchParams?.get('feedback');
       if (!param) throw new Error('No feedback data found.');
       const parsed = JSON.parse(decodeURIComponent(param));
-      // Handle both old and new webhook response formats
-      const feedbackData = Array.isArray(parsed) ? parsed[0] : parsed;
-      setFeedback(feedbackData);
-      setEditableTitle(feedbackData.title || '');
+      setFeedback(Array.isArray(parsed) ? parsed[0] : parsed);
     } catch (err) {
       setError('Failed to load feedback data.');
     }
   }, [searchParams]);
 
-  return { feedback, error, user, loading, editableTitle, setEditableTitle };
+  return { feedback, error };
 }
 
 function useHighlights() {
@@ -63,20 +57,11 @@ function useHighlights() {
   return { highlights, addHighlight, removeHighlight };
 }
 
-// --------------------------
-// ✅ Helper: Save + Send to n8n webhook
-// --------------------------
-
+// Save function
 async function saveJournalAndHighlights({
-  userId,
-  feedback,
-  highlights,
-  title,
+  userId, feedback, highlights, title
 }: {
-  userId: string;
-  feedback: any;
-  highlights: string[];
-  title: string;
+  userId: string; feedback: any; highlights: string[]; title: string;
 }) {
   const payload = {
     userId,
@@ -86,8 +71,7 @@ async function saveJournalAndHighlights({
     highlights,
   };
 
-  const webhookUrl =
-    process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL ||
+  const webhookUrl = process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL || 
     'https://automain.elyandas.com/webhook/save-process-highlight-v1';
 
   const res = await fetch(webhookUrl, {
@@ -97,28 +81,37 @@ async function saveJournalAndHighlights({
   });
 
   if (!res.ok) throw new Error('Webhook request failed');
+  
+  if (feedback.fb_details?.length > 0) {
+    try {
+      await feedbackLogsService.saveFeedbackLogs(userId, feedback.fb_details);
+    } catch (error) {
+      console.error('Failed to save feedback logs:', error);
+    }
+  }
+
   return res.json();
 }
 
-// --------------------------
-// ✅ Main Component
-// --------------------------
-
 export default function JournalFeedbackPage() {
   const router = useRouter();
-  const { feedback, error, user, loading, editableTitle, setEditableTitle } = useJournalFeedback();
+  const { user, loading } = useAuth();
+  const { feedback, error } = useJournalFeedback();
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [editableTitle, setEditableTitle] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) router.push('/auth');
-  }, [loading, user, router]);
+    if (feedback) setEditableTitle(feedback.title || '');
+  }, [loading, user, router, feedback]);
 
   const handleSave = async (redirectToFlashcards: boolean) => {
     if (!user?.id || !feedback) return;
     setProcessing(true);
     setErrMsg(null);
+    
     try {
       const data = await saveJournalAndHighlights({
         userId: user.id,
@@ -140,25 +133,21 @@ export default function JournalFeedbackPage() {
     }
   };
 
+  const handleEdit = () => {
+    localStorage.setItem('editJournalContent', feedback.fixed_typo || feedback.originalVersion || '');
+    localStorage.setItem('editJournalTitle', editableTitle || '');
+    router.push('/journal/new?edit=true');
+  };
+
   if (loading || processing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <BreathingLoader
-          message={processing ? 'Processing your highlights' : 'Preparing your feedback'}
-        />
-      </div>
-    );
+    return <LoadingState message={processing ? 'Processing your highlights' : 'Preparing your feedback'} />;
   }
 
   if (error || !feedback) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">Feedback Not Available</h2>
-            <p className="text-gray-600 mb-8">{error}</p>
-            <Button onClick={() => router.back()}>Go Back</Button>
-          </div>
+        <div className="max-w-3xl mx-auto p-6">
+          <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
         </div>
       </div>
     );
@@ -166,154 +155,173 @@ export default function JournalFeedbackPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            Journal Feedback
-          </h1>
-
-          {/* Editable Title Section */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Title</h2>
-            <input
-              type="text"
-              value={editableTitle}
-              onChange={(e) => setEditableTitle(e.target.value)}
-              className="w-full p-3 bg-white border-2 border-gray-200 rounded-lg text-gray-800 font-medium text-lg focus:border-blue-400 focus:outline-none"
-              placeholder="Enter journal title..."
-            />
-          </div>
-
-          <Section title="Summary">{feedback.summary}</Section>
-
-          {/* Side-by-side comparison section */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Version Comparison</h2>
+      <div className="max-w-7xl mx-auto px-4 space-y-6">
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Journal Feedback</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* Fixed Typo Version - Left Side */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <h3 className="text-md font-medium text-gray-800">Fixed Typo</h3>
-                </div>
-                <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200 min-h-[300px] relative">
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {feedback.fixed_typo || feedback.originalVersion}
-                  </div>
-                </div>
-              </div>
+            {/* Title Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <Input
+                value={editableTitle}
+                onChange={(e) => setEditableTitle(e.target.value)}
+                placeholder="Enter journal title..."
+                className="text-lg"
+              />
+            </div>
 
-              {/* Enhanced Version - Right Side */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <h3 className="text-md font-medium text-gray-800">Enhanced Version</h3>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200 min-h-[300px] relative">
-                  <div id="improved-version-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {feedback.enhanced_version || feedback.improvedVersion}
-                  </div>
+            {/* Summary */}
+            <ContentSection title="Summary" content={feedback.summary} />
+
+            {/* Version Comparison */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Version Comparison</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <VersionCard
+                  title="Fixed Typo"
+                  content={feedback.fixed_typo || feedback.originalVersion}
+                  className="border-orange-200 bg-orange-50"
+                  dotColor="bg-orange-500"
+                />
+                
+                <VersionCard
+                  title="Enhanced Version"
+                  content={feedback.enhanced_version || feedback.improvedVersion}
+                  className="border-green-200 bg-green-50"
+                  dotColor="bg-green-500"
+                  id="improved-version-content"
+                >
                   <HighlightSelector
                     containerId="improved-version-content"
                     onHighlightSaved={addHighlight}
                     highlights={highlights}
                   />
-                </div>
+                </VersionCard>
               </div>
             </div>
-          </div>
 
-          {/* Feedback Details Section */}
-          {feedback.fb_details && feedback.fb_details.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">Feedback Details</h2>
-              <div className="space-y-4">
-                {feedback.fb_details.map((detail: any, index: number) => (
-                  <div key={index} className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-blue-600 mb-1">
-                          {detail.type_of_fix?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                        </div>
-                        <div className="text-gray-800 font-medium">
-                          "{detail.improved_part}"
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded mt-2">
-                      <strong>Explanation:</strong> {detail.explanation}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Feedback Details */}
+            {feedback.fb_details?.length > 0 && (
+              <FeedbackDetailsSection details={feedback.fb_details} />
+            )}
+
+            {/* Legacy Vocab Suggestions */}
+            {feedback.vocabSuggestions?.length > 0 && (
+              <VocabSuggestionsSection suggestions={feedback.vocabSuggestions} />
+            )}
+
+            {/* Highlights */}
+            <ContentSection title="Saved Highlights">
+              <HighlightList highlights={highlights} onRemove={removeHighlight} />
+            </ContentSection>
+
+            {errMsg && <p className="text-red-500">{errMsg}</p>}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-4 pt-4">
+              <Button variant="outline" onClick={handleEdit}>
+                Sửa
+              </Button>
+              <Button onClick={() => handleSave(highlights.length > 0)} disabled={processing}>
+                {processing ? 'Processing...' : 
+                 highlights.length > 0 ? 'Lưu nhật ký và Tạo Flashcards' : 'Lưu'}
+              </Button>
             </div>
-          )}
-
-          {/* Legacy Vocabulary Suggestions */}
-          {feedback.vocabSuggestions && feedback.vocabSuggestions.length > 0 && (
-            <Section title="Vocabulary Suggestions">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {feedback.vocabSuggestions.map((vocab: any, index: number) => (
-                  <div key={index} className="p-3 bg-white border border-gray-300 rounded-lg">
-                    <div className="font-semibold text-blue-600">{vocab.word}</div>
-                    <div className="text-sm text-gray-700 mt-1">{vocab.meaning}</div>
-                    {vocab.example && (
-                      <div className="text-xs text-gray-500 mt-2 italic">
-                        Example: {vocab.example}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          <Section title="Saved Highlights">
-            <HighlightList highlights={highlights} onRemove={removeHighlight} />
-          </Section>
-
-          {errMsg && <p className="text-red-500 mt-4">{errMsg}</p>}
-
-          <div className="flex justify-end gap-4 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => {
-                localStorage.setItem('editJournalContent', feedback.fixed_typo || feedback.originalVersion || '');
-                localStorage.setItem('editJournalTitle', editableTitle || '');
-                router.push('/journal/new?edit=true');
-              }}
-            >
-              Sửa
-            </Button>
-
-            <Button
-              onClick={() => handleSave(highlights.length > 0)}
-              disabled={processing}
-            >
-              {processing
-                ? 'Processing...'
-                : highlights.length > 0
-                ? 'Lưu nhật ký và Tạo Flashcards'
-                : 'Lưu'}
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
 
-// --------------------------
-// ✅ Small Reusable UI Section
-// --------------------------
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// Reusable Components
+function ContentSection({ title, content, children }: { 
+  title: string; 
+  content?: string; 
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-700 mb-3">{title}</h2>
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">{children}</div>
+    <div>
+      <h3 className="text-lg font-semibold text-gray-700 mb-3">{title}</h3>
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        {content && <div className="whitespace-pre-wrap text-gray-800">{content}</div>}
+        {children}
+      </div>
     </div>
+  );
+}
+
+function VersionCard({ 
+  title, content, className, dotColor, id, children 
+}: {
+  title: string; content: string; className: string; dotColor: string; id?: string; children?: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <div className={`w-3 h-3 ${dotColor} rounded-full`}></div>
+        <h4 className="text-md font-medium text-gray-800">{title}</h4>
+      </div>
+      <div className={`p-4 rounded-lg border-2 min-h-[300px] relative ${className}`}>
+        <div id={id} className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+          {content}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function FeedbackDetailsSection({ details }: { details: any[] }) {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Chi tiết phản hồi</h3>
+      <div className="space-y-4">
+        {details.map((detail: any, index: number) => (
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium text-blue-600 mb-2">
+                {(detail.type || detail.type_of_fix)?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              </div>
+              <div className="text-gray-800">
+                {detail.fix || `"${detail.improved_part}"`}
+              </div>
+              {detail.explanation && (
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded mt-2">
+                  <strong>Giải thích:</strong> {detail.explanation}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VocabSuggestionsSection({ suggestions }: { suggestions: any[] }) {
+  return (
+    <ContentSection title="Vocabulary Suggestions">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {suggestions.map((vocab: any, index: number) => (
+          <Card key={index}>
+            <CardContent className="p-3">
+              <div className="font-semibold text-blue-600">{vocab.word}</div>
+              <div className="text-sm text-gray-700 mt-1">{vocab.meaning}</div>
+              {vocab.example && (
+                <div className="text-xs text-gray-500 mt-2 italic">
+                  Example: {vocab.example}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </ContentSection>
   );
 }

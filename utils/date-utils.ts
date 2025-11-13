@@ -70,6 +70,17 @@ export function getDateRangeFromPreset(preset: DatePreset): DateRange | null {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   switch (preset) {
+    case 'today': {
+      const startOfToday = new Date(today);
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
+      
+      return {
+        from: startOfToday.toISOString(),
+        to: endOfToday.toISOString(),
+      };
+    }
+    
     case 'this-week': {
       // Start from Monday of current week
       const startOfWeek = new Date(today);
@@ -152,6 +163,8 @@ export function formatDateRange(dateRange: DateRange | null): string {
  */
 export function getPresetLabel(preset: DatePreset): string {
   switch (preset) {
+    case 'today':
+      return 'Hôm nay';
     case 'this-week':
       return 'Tuần này';
     case '7-days':

@@ -5,7 +5,6 @@ import { DashboardService } from '@/services/dashboard/dashboard-service';
 import {
   DashboardStats,
   ErrorAnalysis,
-  UserProfile,
   DashboardLoadingState,
   DashboardErrorState,
   DashboardData,
@@ -19,14 +18,12 @@ export function useDashboardData(profileId: string | null) {
   
   const [loading, setLoading] = useState<DashboardLoadingState>({
     stats: true,
-    errorAnalysis: true,
-    profile: true
+    errorAnalysis: true
   });
 
   const [errors, setErrors] = useState<DashboardErrorState>({
     stats: null,
-    errorAnalysis: null,
-    profile: null
+    errorAnalysis: null
   });
 
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -65,26 +62,6 @@ export function useDashboardData(profileId: string | null) {
       // KHÔNG set fallback data - để component hiển thị lỗi
     } finally {
       updateLoading('stats', false);
-    }
-  }, [profileId, updateLoading, updateError]);
-
-  // Fetch user profile
-  const fetchProfile = useCallback(async () => {
-    if (!profileId) return;
-
-    try {
-      updateLoading('profile', true);
-      updateError('profile', null);
-
-      const profile = await DashboardService.getUserProfile(profileId);
-      setData(prev => ({ ...prev, profile }));
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định khi tải thông tin người dùng';
-      updateError('profile', errorMessage);
-      // KHÔNG set fallback data
-    } finally {
-      updateLoading('profile', false);
     }
   }, [profileId, updateLoading, updateError]);
 
@@ -131,10 +108,9 @@ export function useDashboardData(profileId: string | null) {
     setLastUpdate(new Date());
     await Promise.all([
       fetchStats(),
-      fetchProfile(),
       fetchErrorAnalysis()
     ]);
-  }, [profileId, fetchStats, fetchProfile, fetchErrorAnalysis]);
+  }, [profileId, fetchStats, fetchErrorAnalysis]);
 
   // Initial data fetch
   useEffect(() => {
@@ -150,7 +126,6 @@ export function useDashboardData(profileId: string | null) {
   return {
     // Data
     stats: data.stats || null,
-    profile: data.profile || null,
     errorAnalysis: data.errorAnalysis || null,
     
     // States
@@ -167,7 +142,6 @@ export function useDashboardData(profileId: string | null) {
     // Actions
     refreshData,
     fetchStats,
-    fetchProfile,
     fetchErrorAnalysis,
     updateDateFilter
   };

@@ -17,7 +17,6 @@ export default function ReportPage() {
   
   const {
     stats,
-    profile,
     errorAnalysis,
     loading,
     errors,
@@ -29,34 +28,36 @@ export default function ReportPage() {
   // Loading state
   if (loading.stats && loading.errorAnalysis) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Report</h1>
-        
-        <div className="space-y-6">
-          {/* Stats Loading */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
+      <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
+        <div className="bg-white shadow rounded-2xl p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
+          
+          <div className="space-y-6">
+            {/* Stats Loading */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
 
-          {/* Error Analysis Loading */}
-          <div className="animate-pulse">
-            <Card>
-              <CardHeader>
-                <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-32 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
+            {/* Error Analysis Loading */}
+            <div className="animate-pulse">
+              <Card>
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-32 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
@@ -66,32 +67,34 @@ export default function ReportPage() {
   // Error state
   if (errors.stats && errors.errorAnalysis) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Report</h1>
-        
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600">Lỗi tải dữ liệu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {errors.stats && (
-                <p className="text-sm text-red-600">Stats: {errors.stats}</p>
-              )}
-              {errors.errorAnalysis && (
-                <p className="text-sm text-red-600">Error Analysis: {errors.errorAnalysis}</p>
-              )}
-            </div>
-            <Button 
-              onClick={refreshData}
-              className="mt-4"
-              variant="outline"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Thử lại
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
+        <div className="bg-white shadow rounded-2xl p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
+          
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600">Lỗi tải dữ liệu</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {errors.stats && (
+                  <p className="text-sm text-red-600">Stats: {errors.stats}</p>
+                )}
+                {errors.errorAnalysis && (
+                  <p className="text-sm text-red-600">Error Analysis: {errors.errorAnalysis}</p>
+                )}
+              </div>
+              <Button 
+                onClick={refreshData}
+                className="mt-4"
+                variant="outline"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Thử lại
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -125,9 +128,9 @@ export default function ReportPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="bg-white shadow rounded-2xl p-6">
         <h1 className="text-3xl font-bold text-gray-900">Report</h1>
         <p className="mt-2 text-sm text-gray-600">
           Báo cáo tiến độ học tập và phân tích lỗi
@@ -136,7 +139,7 @@ export default function ReportPage() {
 
       <div className="space-y-8">
         {/* Stats Section */}
-        <section>
+        <div className="bg-white shadow rounded-2xl p-6">
           <h2 className="text-xl font-semibold mb-4">Tổng quan tiến độ</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {progressCards.map((card) => (
@@ -151,10 +154,10 @@ export default function ReportPage() {
               />
             ))}
           </div>
-        </section>
+        </div>
 
         {/* Error Analysis Section */}
-        <section>
+        <div className="bg-white shadow rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <h2 className="text-xl font-semibold">Phân tích lỗi theo kỹ năng</h2>
             <div className="flex items-center gap-2">
@@ -189,41 +192,29 @@ export default function ReportPage() {
                 isLoading={loading.errorAnalysis}
                 error={errors.errorAnalysis}
               />
-              
-              {/* Vocabulary Error Analysis */}
-              <ErrorAnalysisCard
-                title="Từ vựng"
-                errors={errorAnalysis || []}
-                isLoading={loading.errorAnalysis}
-                error={errors.errorAnalysis}
-              />
             </div>
           )}
-        </section>
+        </div>
 
         {/* Practice Section */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Luyện tập thêm</h2>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Trò chuyện với AI</h3>
-                  <p className="text-gray-600 text-sm">
-                    Luyện tập các kỹ năng cần cải thiện thông qua cuộc trò chuyện tương tác
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => setIsChatbotOpen(true)}
-                  className="bg-black hover:bg-gray-800 text-white"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Bắt đầu luyện tập
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+        <div className="bg-white shadow rounded-2xl p-6">
+          <h2 className="text-xl font-semibold mb-4">Ôn tập từ lỗi sai</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="font-semibold mb-2">Trò chuyện với AI</h3>
+              <p className="text-gray-600 text-sm">
+                Luyện tập các kỹ năng cần cải thiện thông qua cuộc trò chuyện tương tác
+              </p>
+            </div>
+            <Button 
+              onClick={() => setIsChatbotOpen(true)}
+              className="bg-black hover:bg-gray-800 text-white"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Bắt đầu luyện tập
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Chatbot Modal */}

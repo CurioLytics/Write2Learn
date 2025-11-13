@@ -11,6 +11,7 @@ interface DateFilterProps {
 }
 
 const PRESET_OPTIONS: DatePreset[] = [
+  'today',
   'this-week',
   '7-days', 
   '30-days',

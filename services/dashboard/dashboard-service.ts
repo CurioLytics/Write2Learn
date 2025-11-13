@@ -1,6 +1,6 @@
 import { supabase } from '@/services/supabase/client';
 import { Tables } from '@/types/database.types';
-import type { DashboardStats, ErrorAnalysis, UserProfile, ErrorAnalysisFilters } from '@/types/dashboard';
+import type { DashboardStats, ErrorAnalysis, ErrorAnalysisFilters } from '@/types/dashboard';
 
 /**
  * Service để lấy thông tin tổng quan cho dashboard
@@ -29,36 +29,6 @@ export class DashboardService {
       };
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      throw error; // Re-throw để component hiển thị lỗi thực tế
-    }
-  }
-
-  /**
-   * Lấy thông tin người dùng
-   */
-  static async getUserProfile(profileId: string): Promise<UserProfile> {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', profileId)
-        .single();
-
-      if (error) {
-        throw new Error(`Lỗi khi truy vấn profiles: ${error.message}`);
-      }
-
-      // Type assertion for the profile data
-      const profileData = profile as any;
-
-      return {
-        id: profileData.id,
-        email: '', // Email comes from auth.users, not profiles
-        fullName: profileData.name || '',
-        level: profileData.english_level || 'Beginner',
-      };
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
       throw error; // Re-throw để component hiển thị lỗi thực tế
     }
   }

@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { journalTemplateService } from '@/services/api/journal-template-service';
-import { journalFeedbackService } from '@/services/api/journal-feedback-service';
-import { journalService } from '@/services/api/journal-service';
+import { journalTemplateService } from '@/services/journal-template-service';
+import { journalFeedbackService } from '@/services/journal-feedback-service';
+import { journalService } from '@/services/journal-service';
 import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor } from '@/components/features/journal/editor';
@@ -16,26 +16,23 @@ export default function NewJournalPage() {
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
 
-  // ---- State ----
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const templateId = searchParams?.get('templateId');
+  const templateName = searchParams?.get('templateName');
   const customContent = searchParams?.get('customContent');
   const isEdit = searchParams?.get('edit') === 'true';
-  const entryDate = formatDateInput(new Date());
 
-  // ---- Handle unauthenticated users ----
+  // Redirect unauthenticated users
   useEffect(() => {
-    if (!loading && !user) {
-      const onboardingData = sessionStorage.getItem('onboardingData');
-      if (!onboardingData) router.push('/auth');
+    if (!loading && !user && !sessionStorage.getItem('onboardingData')) {
+      router.push('/auth');
     }
   }, [user, loading, router]);
 
-  // ---- Load template or edit data ----
+  // Load template or edit data
   useEffect(() => {
     if (isEdit) {
       setTitle(localStorage.getItem('editJournalTitle') || '');
@@ -45,22 +42,22 @@ export default function NewJournalPage() {
       return;
     }
 
-    if (!templateId) return;
-    (async () => {
-      try {
-        setIsLoading(true);
-        const template = await journalTemplateService.getTemplateById(templateId);
-        setTitle(template.name || '');
-        setContent(customContent ? decodeURIComponent(customContent) : template.content || '');
-      } catch {
-        setError('Không thể tải mẫu viết.');
-      } finally {
-        setIsLoading(false);
+    // If we have custom content from template, use it directly
+    if (customContent) {
+      setContent(decodeURIComponent(customContent));
+      if (templateName) {
+        setTitle(templateName);
       }
-    })();
-  }, [templateId, customContent, isEdit]);
+      return;
+    }
 
-  // ---- Save journal ----
+    // Legacy support: if only templateName is provided without customContent
+    if (templateName && !customContent) {
+      // Just set a default title, no content loading needed
+      setTitle(templateName);
+    }
+  }, [templateName, customContent, isEdit]);
+
   const handleSave = async () => {
     setError(null);
     setIsLoading(true);
@@ -70,7 +67,7 @@ export default function NewJournalPage() {
         const result = await journalService.createJournal(user.id, {
           title,
           content,
-          journal_date: entryDate,
+          journal_date: formatDateInput(new Date()),
         });
         router.push(`/journal/${result.id}`);
       } else {
@@ -78,7 +75,7 @@ export default function NewJournalPage() {
           id: `offline-${Date.now()}`,
           title,
           content,
-          entryDate,
+          entryDate: formatDateInput(new Date()),
           createdAt: new Date().toISOString(),
         };
         const saved = JSON.parse(localStorage.getItem('offlineJournalEntries') || '[]');
@@ -87,88 +84,61 @@ export default function NewJournalPage() {
         router.push('/auth?message=journal_saved');
       }
     } catch {
-      setError('Không thể lưu nhật ký.');
+      setError('Không thể lưu nhật ký');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ---- Get feedback ----
   const handleGetFeedback = async () => {
-    if (!content.trim()) return setError('Vui lòng viết nội dung trước.');
+    if (!content.trim()) return setError('Vui lòng viết nội dung trước');
 
     setIsLoading(true);
     setError(null);
 
-    const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 bg-black/30 flex items-center justify-center text-white text-lg z-50';
-    overlay.innerText = 'Getting feedback...';
-    document.body.appendChild(overlay);
-
     try {
       const result = await journalFeedbackService.getFeedback(content, title);
-      
-      if (overlay.parentNode) {
-        document.body.removeChild(overlay);
-      }
 
       if (result.success && result.data) {
-        // Use the properly structured data from the service
         router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(result.data))}`);
       } else {
-        // Show the actual error message
-        const errorMessage = result.error?.message || 'Unknown error occurred';
-        setError(`Feedback service error: ${errorMessage}`);
-        console.error('Feedback service error:', result.error);
+        setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
       }
     } catch (error) {
-      if (overlay.parentNode) {
-        document.body.removeChild(overlay);
-      }
-      
-      console.error('Unexpected error in handleGetFeedback:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setError(`Unexpected error: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
+      setError(`Lỗi: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ---- Loading ----
   if (loading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <BreathingLoader message="Đang tải trang viết..." />
+        <BreathingLoader message="Đang tải..." />
       </div>
     );
   }
 
-  // ---- UI ----
   return (
-    <div
-      className="min-h-screen flex flex-col bg-white px-6 py-8"
-      style={{ fontFamily: 'var(--font-sans)', color: 'var(--foreground)' }}
-    >
+    <div className="min-h-screen flex flex-col bg-white px-6 py-8">
       <main className="max-w-3xl w-full mx-auto flex flex-col flex-grow">
-        {/* Header row */}
         <div className="flex items-start justify-between mb-6">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Tiêu đề..."
-            className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full text-left"
+            className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full"
           />
           <Button
             onClick={handleSave}
-            variant="default"
-            className="ml-4 bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6 py-2 shadow-md whitespace-nowrap"
+            className="ml-4 bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6 py-2"
           >
             Lưu
           </Button>
         </div>
 
-        {/* Content */}
         <LiveMarkdownEditor
           value={content}
           onChange={setContent}
@@ -176,19 +146,16 @@ export default function NewJournalPage() {
           minHeight={400}
         />
 
-        {/* Error */}
         {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
 
-        {/* Footer buttons */}
         <div className="flex justify-end mt-8 gap-3">
           <Button
             variant="outline"
             onClick={() => router.back()}
-            className="rounded-full text-gray-700 hover:bg-gray-50"
+            className="rounded-full"
           >
             Hủy
           </Button>
-
           <Button
             onClick={handleGetFeedback}
             disabled={!content || !title}

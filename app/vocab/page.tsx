@@ -46,38 +46,40 @@ export default function VocabPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Vocabulary</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Quản lý và ôn tập từ vựng tiếng Anh của bạn
-        </p>
-      </div>
+      <div className="bg-white shadow rounded-2xl p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Vocabulary</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Quản lý và ôn tập từ vựng tiếng Anh của bạn
+          </p>
+        </div>
 
-      {/* Main Content */}
-      <div className="space-y-8">
-        <FlashcardSetList
-          flashcardSets={flashcardSets}
-          isLoading={isLoadingFlashcards}
-          error={flashcardError}
-          onSelectSet={handleSelectSet}
-        />
+        {/* Main Content */}
+        <div className="space-y-6">
+          <FlashcardSetList
+            flashcardSets={flashcardSets}
+            isLoading={isLoadingFlashcards}
+            error={flashcardError}
+            onSelectSet={handleSelectSet}
+          />
 
-        <div className="flex justify-center gap-3">
-          <Button
-            className="px-5 py-2 text-sm rounded-full"
-            onClick={() => router.push('/flashcards/review')}
-          >
-            Ôn tập từ vựng
-          </Button>
-          <Button
-            variant="outline"
-            className="px-5 py-2 text-sm rounded-full"
-            onClick={() => router.push('/stories/translate')}
-          >
-            Dịch truyện
-          </Button>
+          <div className="flex justify-center gap-3">
+            <Button
+              className="px-5 py-2 text-sm rounded-full"
+              onClick={() => router.push('/flashcards/review')}
+            >
+              Ôn tập từ vựng
+            </Button>
+            <Button
+              variant="outline"
+              className="px-5 py-2 text-sm rounded-full"
+              onClick={() => router.push('/stories/translate')}
+            >
+              Dịch truyện
+            </Button>
+          </div>
         </div>
       </div>
     </div>
