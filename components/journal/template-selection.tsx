@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { JournalTemplate, JournalTemplateCategory, TEMPLATE_CATEGORIES } from '@/types/journal';
-import { journalTemplateService } from '@/services/api/journal-template-service';
+import { journalTemplateService } from '@/services/journal-template-service';
 import { PinnedTemplates } from './pinned-templates';
 import { CategorySection } from './category-section';
 import { LoadingState, ErrorState } from './state-components';
