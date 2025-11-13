@@ -11,7 +11,7 @@ import {
  * Configuration for the feedback service
  */
 const FEEDBACK_CONFIG = {
-  TIMEOUT_MS: 30000,
+  TIMEOUT_MS: 60000,
   MAX_RETRIES: 1,
   WEBHOOK_URL: process.env.NEXT_PUBLIC_GET_FEEDBACK_WEBHOOK_URL,
 } as const;

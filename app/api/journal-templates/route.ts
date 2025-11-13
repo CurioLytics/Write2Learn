@@ -1,23 +1,14 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { SUPABASE_CONFIG } from '@/config/supabase';
+import { authenticateUser, handleApiError, createSuccessResponse } from '@/utils/api-helpers';
+import { journalTemplateService } from '@/services/journal-template-service';
 
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data, error } = await supabase
-      .from(SUPABASE_CONFIG.tables.templates)
-      .select('*')
-      .order('name');
+    const user = await authenticateUser();
+    const templates = await journalTemplateService.getTemplatesByUserId(user.id);
     
-    if (error) throw error;
-    return NextResponse.json({ templates: data });
-    
+    return NextResponse.json(templates);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch templates' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

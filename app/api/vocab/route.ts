@@ -1,17 +1,18 @@
-// flashcard-service.ts
-import { supabase } from '@/services/supabase/client';
+import { NextResponse } from 'next/server';
+import { authenticateUser, handleApiError, createSuccessResponse } from '@/utils/api-helpers';
+import { vocabService } from '@/services/vocab-service';
 
-export const flashcardService = {
-  async getFlashcardSets(userId: string) {
-    const { data, error } = await supabase.rpc('get_flashcard_set_stats', {
-      user_uuid: userId,
-    });
-
-    if (error) {
-      console.error('Supabase RPC error:', error);
-      throw new Error(error.message);
-    }
-
-    return data || [];
-  },
-};
+/**
+ * GET /api/vocab
+ * Get vocabulary collections for the authenticated user
+ */
+export async function GET() {
+  try {
+    const user = await authenticateUser();
+    const collections = await vocabService.getVocabCollections(user.id);
+    
+    return createSuccessResponse({ collections });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}

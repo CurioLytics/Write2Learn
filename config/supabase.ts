@@ -4,7 +4,7 @@ export const SUPABASE_CONFIG = {
   tables: {
     profiles: 'profiles',
     journals: 'journals',
-    templates: 'journal_template',
+    templates: 'templates',
     vocabulary: 'vocabulary'
   }
 };

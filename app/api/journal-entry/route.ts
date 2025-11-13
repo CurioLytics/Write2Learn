@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { authenticateUser, handleApiError, parseRequestBody, createSuccessResponse } from '@/utils/api-helpers';
+import { journalService } from '@/services/journal-service';
 
 /**
  * POST /api/journal
@@ -8,103 +8,40 @@ import { NextResponse } from 'next/server';
  */
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const user = await authenticateUser();
     
-    // Verify user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { 
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-    }
-
-    // Parse request body
-    const { title, content, templateId, entryDate } = await request.json();
+    const { title, content, templateId, entryDate } = await parseRequestBody<{
+      title?: string;
+      content: string;
+      templateId?: string;
+      entryDate?: string;
+    }>(request);
     
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: 'Title and content are required' }, 
-        { 
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    if (!content) {
+      throw new Error('Content is required');
     }
     
     // Validate date format if provided
     let parsedDate: string;
     try {
-      // If entryDate is provided, use it; otherwise, use current date
       parsedDate = entryDate 
         ? new Date(entryDate).toISOString()
         : new Date().toISOString();
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid date format' }, 
-        { 
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    } catch {
+      throw new Error('Invalid date format');
     }
 
-    // Insert journal entry
-    const { data, error } = await supabase
-      .from('journals')
-      .insert({
-        user_id: user.id,
-        title,
-        content,
-        template_id: templateId || null,
-        created_at: parsedDate, // Use the validated date
-      })
-      .select('id')
-      .single();
-    
-    if (error) {
-      console.error('Error creating journal entry:', error);
-      return NextResponse.json(
-        { error: error.message }, 
-        { 
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Journal entry created successfully',
-      id: data.id 
-    },
-    { 
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    const result = await journalService.createJournal(user.id, {
+      title: title || null,
+      content,
+      journal_date: parsedDate,
     });
-  } catch (error) {
-    console.error('Unexpected error in journal API:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+
+    return createSuccessResponse(
+      { id: result.id },
+      'Journal entry created successfully'
     );
+  } catch (error) {
+    return handleApiError(error);
   }
 }
