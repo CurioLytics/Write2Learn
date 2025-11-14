@@ -21,7 +21,7 @@ class RoleplayService {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       
       const { data, error } = await supabase
-        .from('roleplay_scenario')
+        .from('roleplays')
         .select('*');
         
       clearTimeout(timeoutId);
@@ -59,7 +59,7 @@ class RoleplayService {
       const supabase = createClientComponentClient();
       
       const { data, error } = await supabase
-        .from('roleplay_scenario')
+        .from('roleplays')
         .select('*')
         .eq('id', id)
         .single();

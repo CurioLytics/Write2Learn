@@ -300,7 +300,7 @@ export type Database = {
         }
         Relationships: []
       }
-      roleplay_scenario: {
+      roleplays: {
         Row: {
           context: string
           created_at: string | null

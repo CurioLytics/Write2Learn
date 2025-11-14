@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { MessageBubble } from './message-bubble';
 import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
+import { roleplaySessionService } from '@/services/roleplay-session-service';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 import styles from './roleplay.module.css';
 
@@ -14,6 +16,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +67,12 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const handleFinish = async () => {
     setFinishing(true);
     try {
+      // Save session to database first
+      if (user?.id && messages.length > 1) {
+        await roleplaySessionService.saveSession(user.id, scenario, messages);
+      }
+
+      // Then call the existing webhook
       const res = await fetch('/api/roleplay/finish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,8 +81,14 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
 
       const text = await res.text();
       setSummary(text);
-    } catch {
-      setSummary('Lỗi khi gọi webhook.');
+      
+      // Navigate back to roleplay page after a short delay
+      setTimeout(() => {
+        router.push('/roleplay');
+      }, 2000);
+    } catch (error) {
+      console.error('Error finishing roleplay session:', error);
+      setSummary('Lỗi khi lưu phiên hội thoại.');
     } finally {
       setFinishing(false);
     }
@@ -85,14 +100,12 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
       <div className="p-4 border-b flex justify-between items-center">
         <h2 className="font-medium text-gray-800">{scenario.name}</h2>
         <Button
-          onClick={() => {
-            sessionStorage.setItem('roleplayMessages', JSON.stringify(messages));
-            router.push('/roleplay/summary');
-          }}
+          onClick={handleFinish}
+          disabled={finishing || messages.length <= 1}
           variant="outline"
           className="text-sm"
         >
-          Finish
+          {finishing ? 'Finishing...' : 'Finish'}
         </Button>
       </div>
 

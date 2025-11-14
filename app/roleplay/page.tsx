@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { ScenarioFilter } from '@/components/roleplay/scenario-filter';
+import { SessionHistory } from '@/components/roleplay/session-history';
 import { useRoleplayScenarios } from '@/services/roleplay-service';
 
 export default function RoleplayPage() {
@@ -90,6 +91,9 @@ export default function RoleplayPage() {
           )}
         </div>
       </div>
+
+      {/* Session History */}
+      <SessionHistory />
     </div>
   );
 }

@@ -185,50 +185,27 @@ profile page:
   - Delete account option
 each group is under a collapsible section
 
-Role-play
-supabase table: roleplay_scenario
-output: 
-create table roleplay_scenario (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,              -- scenario name, e.g. "IT Job Interview"
-  context text not null,           -- setup paragraph
-  starter_message text not null,   -- first message to kick off role-play
-  guide text,                      -- instructions or tips for the learner
-  level text,                      -- CEFR level: A1, B2, etc.
-  topic text,                      -- topic area: work, travel, etc.
-  created_at timestamp default now(),
-  role1 text
-);
-Screen display: card collection, name ,level. Filter: topic
-Once clicked, show a card info: name, context, guide.
-once click "start"
--> go to chat page, with the context and first message loaded.
-chat page: left: role1, right: user
 
-
-------------------------------UI------------------------
-side bar: always in collapsed,if user click hamburger icon, show full side bar. sidebar over screen,dark background, click outside to close. dont affect the page width.
-
-No declutter, writing space no need background color change, just keep it clean, no other element on the screen.
-
-calendar: darkest: today, darder: days having hournal , ligher: days no journal
-
-
--------------------------------REFACTOR------------------
-Choose template of iccons, global theme
-save all the endponts, webhook, supabase funtion in a place 
-
--------------------------LOGIN---------------------------------
-once sign in, should store profiles info (name, userid) so that other
-elements in app can use it (for example to show user name in header...)
-No email sent
-
--->
-
-
-
-
-text editor: https://overtype.dev/?ref=dailydev
+----------------------------ROLEPLAY-------------------------------
+when fisnihs roleplay, save the session to supabase table "roleplay_sessions" with correct columns where in 
+column messages: store the interaction_logs as jsonb
+example of interaction_logs:
+{
+  scenario_id: string;
+  scenario_name: string;
+  messages: [{role_name(role1/ "user"), message}];
+} 
+-------------------------------
+-
+adjust the payload send to webhook roleplay
+send theses data as json:
+{
+  context: string;
+  level: string;
+  topic: string;
+  ai_role: string; (this is the role1)
+  messages: RoleplayMessage[];
+}
 
 
 
@@ -249,41 +226,4 @@ text editor: https://overtype.dev/?ref=dailydev
 
 
 
-
-
-
-
-
-
-
-
-
-## Completed
-
-- Create dedicated landing page for the application [September 22, 2025]
-  - Reviewed project architecture to align with existing patterns
-  - Developed responsive landing page component following the design in the provided image
-  - Configured Next.js app router to make landing page the entry point to the application
-  - Implemented mobile-first responsive design using Tailwind and shared hooks
-  - Extracted reusable UI components for page sections (Header, Hero, Section, Footer, etc.)
-  - Added appropriate content, copy, and call-to-action elements
-  - Connected landing page to authentication flow for proper user journey
-  - Wrote comprehensive unit tests (expected use, edge cases, failure cases)
-  - Ensured consistent styling with the rest of the application
-
-- Implement mobile-first layout approach across the application [September 22, 2025]
-  - Created shared useResponsive hook for consistent breakpoint detection
-  - Implemented z-index management system for proper UI layering
-  - Refactored Navigation component for mobile-first styling
-  - Updated AppLayout component to eliminate duplicate navigation rendering
-  - Improved highlight selector component with mobile touch handling
-  - Enhanced VocabPage with mobile-optimized buttons and layouts
-  - Added mobile-friendly utility classes in global CSS
-  - Created comprehensive mobile-first development guide
-  - Added tests for responsive components
-  - Optimized touch targets for mobile interaction (minimum 44×44px)
-  - Implemented responsive transitions between mobile and desktop views
-  - Created useTransitionStyles hook for smooth layout transitions
-  - Updated auth pages with mobile-friendly layouts
-  - Documented mobile-first implementation patterns for future development
 

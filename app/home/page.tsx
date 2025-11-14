@@ -38,7 +38,7 @@ export default function DashboardPage() {
     useEffect(() => {
         async function fetchScenarios() {
             const { data, error } = await supabase
-                .from('roleplay_scenario') // Tên bảng
+                .from('roleplays') // Tên bảng
                 // ❗ Đã điều chỉnh tên cột theo schema bạn cung cấp
                 .select('id, name, context, image') 
                 .order('created_at', { ascending: false })
