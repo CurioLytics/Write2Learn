@@ -195,7 +195,7 @@ example of interaction_logs:
   scenario_name: string;
   messages: [{role_name(role1/ "user"), message}];
 } 
--------------------------------
+------------PAYLOAD---------
 -
 adjust the payload send to webhook roleplay
 send theses data as json:

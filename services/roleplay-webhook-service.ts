@@ -17,7 +17,7 @@ interface WebhookRequestPayload {
     };
     convo_id: string;
     messages: {
-      role: 'user' | 'ai';
+      role: 'user' | string; // Can be 'user' or the role1 from scenario (e.g., 'tourist', 'customer', etc.)
       content: string;
     }[];
   };
@@ -142,7 +142,7 @@ class RoleplayWebhookService {
           },
           convo_id: convoId,
           messages: messages.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'ai',
+            role: msg.sender === 'user' ? 'user' : scenario.role1, // Use actual role1 instead of 'ai'
             content: msg.content
           }))
         }
