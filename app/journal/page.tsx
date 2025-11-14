@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Search } from 'lucide-react';
@@ -117,15 +116,7 @@ export default function JournalPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Compact Header - Center aligned like homepage */}
       <div className="text-center mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <div></div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Journal Hub</h1>
-          </div>
-          <Link href="/home" className="text-blue-600 text-sm hover:underline">
-            ⬅ Back to Home
-          </Link>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Journal Hub</h1>
         <p className="text-gray-600 mb-6">
           Your central space for writing, learning, and growing
         </p>
