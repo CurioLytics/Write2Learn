@@ -23,6 +23,7 @@ export interface RoleplaySession {
   scenarioId: string;
   messages: RoleplayMessage[];
   startedAt: number; // Timestamp
+  feedback?: string; // Assessment feedback from AI
 }
 
 // Enum cho các level hiển thị màu khác nhau

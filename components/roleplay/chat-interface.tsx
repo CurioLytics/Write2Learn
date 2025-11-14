@@ -22,6 +22,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,29 +68,67 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
 
   const handleFinish = async () => {
     setFinishing(true);
+    setError(null);
+    setFeedback(null);
+    setSummary(null);
+    
     try {
       // Save session to database first
+      let sessionId: string | undefined;
       if (user?.id && messages.length > 1) {
-        await roleplaySessionService.saveSession(user.id, scenario, messages);
+        sessionId = await roleplaySessionService.saveSession(user.id, scenario, messages);
       }
 
-      // Then call the existing webhook
-      const res = await fetch('/api/roleplay/finish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
-      });
+      // Generate feedback assessment
+      try {
+        const feedbackRes = await fetch('/api/roleplay/assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario, messages }),
+        });
 
-      const text = await res.text();
-      setSummary(text);
+        if (feedbackRes.ok) {
+          const { feedback: feedbackText } = await feedbackRes.json();
+          setFeedback(feedbackText);
+          
+          // Save feedback to database if session was created
+          if (sessionId && feedbackText) {
+            await roleplaySessionService.saveFeedback(sessionId, feedbackText);
+          }
+        } else {
+          const errorData = await feedbackRes.json();
+          setError(errorData.error || 'Failed to generate feedback');
+        }
+      } catch (feedbackError) {
+        console.error('Feedback generation error:', feedbackError);
+        setError('Unable to generate feedback. Network error.');
+      }
+
+      // Call the existing finish webhook
+      try {
+        const res = await fetch('/api/roleplay/finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages }),
+        });
+
+        const text = await res.text();
+        setSummary(text);
+      } catch (summaryError) {
+        console.error('Summary generation error:', summaryError);
+        // Don't set error for summary failure - feedback is more important
+      }
       
-      // Navigate back to roleplay page after a short delay
-      setTimeout(() => {
-        router.push('/roleplay');
-      }, 2000);
+      // Only navigate if no errors occurred
+      if (!error && feedback) {
+        setTimeout(() => {
+          router.push('/roleplay');
+        }, 5000);
+      }
+      
     } catch (error) {
       console.error('Error finishing roleplay session:', error);
-      setSummary('Lỗi khi lưu phiên hội thoại.');
+      setError('Error saving session. Please try again.');
     } finally {
       setFinishing(false);
     }
@@ -133,10 +173,25 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Webhook result */}
-      {summary && (
-        <div className="p-3 bg-gray-100 text-sm text-center text-gray-700 border-t">
-          {summary}
+      {/* Results section */}
+      {(feedback || summary || error) && (
+        <div className="border-t bg-gray-50">
+          {error && (
+            <div className="p-3 bg-red-50 text-sm text-red-700 border-b border-red-200">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+          {feedback && (
+            <div className="p-4 text-sm">
+              <h3 className="font-medium text-gray-800 mb-2">Assessment Feedback:</h3>
+              <div className="text-gray-700 whitespace-pre-wrap">{feedback}</div>
+            </div>
+          )}
+          {summary && (
+            <div className="p-3 bg-blue-50 text-sm text-blue-700 border-t border-blue-200">
+              {summary}
+            </div>
+          )}
         </div>
       )}
 

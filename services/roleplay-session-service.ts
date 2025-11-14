@@ -138,6 +138,28 @@ class RoleplaySessionService {
       return null;
     }
   }
+
+  /**
+   * Save feedback assessment for a session
+   */
+  async saveFeedback(sessionId: string, feedback: string): Promise<void> {
+    try {
+      const supabase = createClientComponentClient();
+      
+      const { error } = await supabase
+        .from('sessions')
+        .update({ feedback })
+        .eq('session_id', sessionId);
+
+      if (error) {
+        console.error('Error saving feedback:', error);
+        throw new Error('Failed to save feedback to database');
+      }
+    } catch (error) {
+      console.error('Error in saveFeedback:', error);
+      throw error;
+    }
+  }
 }
 
 export const roleplaySessionService = new RoleplaySessionService();

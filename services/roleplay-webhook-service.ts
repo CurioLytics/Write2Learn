@@ -13,7 +13,7 @@ interface WebhookRequestPayload {
       scenario_context: string;
       title: string;
       difficulty: string;
-      role1: string;
+      topic: string; // Using topic instead of role1
     };
     convo_id: string;
     messages: {
@@ -26,13 +26,7 @@ interface WebhookRequestPayload {
 // Fallback responses when the webhook fails
 const FALLBACK_RESPONSES = [
   "I understand you're looking for a response. How can I assist you further?",
-  "Let's continue our conversation. What would you like to discuss next?",
-  "I'm here to help with your language practice. What would you like to talk about?",
-  "That's an interesting point. Could you tell me more about your thoughts on this?",
-  "Let's keep practicing! What else would you like to say about this topic?",
-  "I'd be happy to continue our conversation. What aspects of this topic interest you most?",
-  "Thank you for sharing. Would you like to explore this topic further or try something else?",
-  "I appreciate your engagement. How would you like to proceed with our conversation?"
+  "Let's continue our conversation. What would you like to discuss next?"
 ];
 
 // Interface for the webhook response
@@ -138,11 +132,11 @@ class RoleplayWebhookService {
             scenario_context: scenario.context,
             title: scenario.name,  // Using 'name' instead of 'title'
             difficulty: scenario.level.toLowerCase(), // Using 'level' instead of 'difficulty'
-            role1: scenario.role1 // Add role1 field
+            topic: scenario.topic // Using topic instead of role1
           },
           convo_id: convoId,
           messages: messages.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : scenario.role1, // Use actual role1 instead of 'ai'
+            role: msg.sender === 'user' ? 'user' : scenario.role1, // Use actual role1 for message role
             content: msg.content
           }))
         }
