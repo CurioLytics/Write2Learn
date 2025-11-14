@@ -1,121 +1,107 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { journalTemplateService } from '@/services/journal-template-service';
-import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { journalService } from '@/services/journal-service';
+import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
 import { formatDateInput } from '@/utils/date-utils';
+import type { Journal } from '@/types/journal';
 
-export default function NewJournalPage() {
+export default function JournalViewPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
+  const params = useParams();
+  const { user, loading: authLoading } = useAuth();
+  const journalId = params?.id as string;
 
+  const [journal, setJournal] = useState<Journal | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [journalDate, setJournalDate] = useState(formatDateInput(new Date()));
+  const [journalDate, setJournalDate] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [journalId, setJournalId] = useState<string | null>(null);
-
-  const templateName = searchParams?.get('templateName');
-  const customContent = searchParams?.get('customContent');
-  const isEdit = searchParams?.get('edit') === 'true';
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect unauthenticated users
   useEffect(() => {
-    if (!loading && !user && !sessionStorage.getItem('onboardingData')) {
+    if (!authLoading && !user) {
       router.push('/auth');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
-  // Load template or edit data
+  // Load journal data
   useEffect(() => {
-    if (isEdit) {
-      setTitle(localStorage.getItem('editJournalTitle') || '');
-      setContent(localStorage.getItem('editJournalContent') || '');
-      localStorage.removeItem('editJournalTitle');
-      localStorage.removeItem('editJournalContent');
-      return;
-    }
+    const fetchJournal = async () => {
+      if (!journalId || !user) return;
 
-    // If we have custom content from template, use it directly
-    if (customContent) {
-      setContent(decodeURIComponent(customContent));
-      if (templateName) {
-        setTitle(templateName);
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Get all journals and find the specific one
+        const journals = await journalService.getJournals(user.id);
+        const journalData = journals.find(j => j.id === journalId);
+        
+        if (!journalData) {
+          throw new Error('Journal not found');
+        }
+        
+        // Load tags for this journal
+        const journalTags = await journalService.getJournalEntryTags(journalId);
+        
+        setJournal(journalData);
+        setTitle(journalData.title || '');
+        setContent(journalData.content || '');
+        setJournalDate(journalData.journal_date || formatDateInput(new Date()));
+        setTags(journalTags);
+      } catch (error) {
+        console.error('Error fetching journal:', error);
+        setError('Không thể tải nhật ký. Vui lòng thử lại.');
+      } finally {
+        setIsLoading(false);
       }
-      return;
-    }
+    };
 
-    // Legacy support: if only templateName is provided without customContent
-    if (templateName && !customContent) {
-      // Just set a default title, no content loading needed
-      setTitle(templateName);
-    }
-  }, [templateName, customContent, isEdit]);
+    fetchJournal();
+  }, [journalId, user]);
 
   const handleSave = async () => {
+    if (!journalId) return;
+
     setError(null);
-    setIsLoading(true);
+    setIsSaving(true);
 
     try {
-      if (user) {
-        if (journalId) {
-          // Update existing journal
-          await journalService.updateJournal(journalId, {
-            title,
-            content,
-            journal_date: journalDate,
-          });
-        } else {
-          // Create new journal
-          const result = await journalService.createJournal(user.id, {
-            title,
-            content,
-            journal_date: journalDate,
-          });
-          
-          // Save tags to journal_tag table if any
-          if (tags.length > 0) {
-            await journalService.saveJournalTags(result.id, tags);
-          }
-          
-          setJournalId(result.id);
-        }
-        router.push('/journal');
-      } else {
-        const offlineEntry = {
-          id: `offline-${Date.now()}`,
-          title,
-          content,
-          entryDate: journalDate,
-          createdAt: new Date().toISOString(),
-        };
-        const saved = JSON.parse(localStorage.getItem('offlineJournalEntries') || '[]');
-        saved.push(offlineEntry);
-        localStorage.setItem('offlineJournalEntries', JSON.stringify(saved));
-        router.push('/auth?message=journal_saved');
-      }
-    } catch {
+      // Update journal content
+      await journalService.updateJournal(journalId, {
+        title,
+        content,
+        journal_date: journalDate,
+      });
+      
+      // Save tags to journal_tag table
+      await journalService.saveJournalTags(journalId, tags);
+      
+      // Redirect back to journal list like in journal/new
+      router.push('/journal');
+    } catch (error) {
+      console.error('Error updating journal:', error);
       setError('Không thể lưu nhật ký');
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleGetFeedback = async () => {
     if (!content.trim()) return setError('Vui lòng viết nội dung trước');
 
-    setIsLoading(true);
+    setIsSaving(true);
     setError(null);
 
     try {
@@ -130,7 +116,7 @@ export default function NewJournalPage() {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
       setError(`Lỗi: ${errorMessage}`);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -143,8 +129,6 @@ export default function NewJournalPage() {
   };
 
   const handleDelete = async () => {
-    if (!journalId) return;
-    
     try {
       await journalService.deleteJournal(journalId);
       router.push('/journal');
@@ -153,10 +137,28 @@ export default function NewJournalPage() {
     }
   };
 
-  if (loading || isLoading) {
+  // Show loading state
+  if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <BreathingLoader message="Đang tải..." />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !journal) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Không thể tải nhật ký</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link href="/journal">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              Quay lại danh sách
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -171,7 +173,7 @@ export default function NewJournalPage() {
           </Link>
           <div className="flex items-center gap-3">
             <JournalActionsMenu
-              journalId={journalId || undefined}
+              journalId={journalId}
               currentDate={journalDate}
               currentTags={tags}
               onDateChange={handleDateChange}
@@ -180,9 +182,10 @@ export default function NewJournalPage() {
             />
             <Button
               onClick={handleSave}
+              disabled={isSaving}
               className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6 py-2"
             >
-              {journalId ? 'Update' : 'Save'}
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>
@@ -225,12 +228,14 @@ export default function NewJournalPage() {
           minHeight={400}
         />
 
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+        )}
 
         <div className="flex justify-center mt-8">
           <Button
             onClick={handleGetFeedback}
-            disabled={!content || !title}
+            disabled={!content || !title || isSaving}
             className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
           >
             Nhận phản hồi

@@ -28,23 +28,35 @@ export default function JournalPage() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   
-  // Filter journals based on search query and selected tag
+  // Filter journals based on search query only
   const filteredJournals = useMemo(() => {
     return journals.filter(journal => {
       const matchesSearch = !searchQuery || 
         journal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         journal.content.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesTag = !selectedTag || 
-        journal.title?.toLowerCase().includes(selectedTag.toLowerCase()) ||
-        journal.content.toLowerCase().includes(selectedTag.toLowerCase());
-      
-      return matchesSearch && matchesTag;
+      return matchesSearch;
     });
-  }, [journals, searchQuery, selectedTag]);
+  }, [journals, searchQuery]);
 
-  const handleTagFilterChange = (tag: string | null) => {
+  const handleTagFilterChange = async (tag: string | null) => {
     setSelectedTag(tag);
+    
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    try {
+      const journalsData = tag 
+        ? await journalService.getJournalsByTag(user.id, tag)
+        : await journalService.getJournals(user.id);
+      
+      setJournals(journalsData);
+    } catch (err) {
+      console.error('Error fetching filtered journals:', err);
+      setError('Failed to filter journals. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -201,7 +213,7 @@ export default function JournalPage() {
           ) : (
             <div className="max-h-80 overflow-y-auto">
               <JournalList 
-                journals={filteredJournals.slice(0, 5)}
+                journals={filteredJournals}
                 onSelect={handleJournalSelect}
                 selectedJournalId={selectedJournal?.id}
               />
