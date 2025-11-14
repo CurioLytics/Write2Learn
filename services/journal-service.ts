@@ -11,6 +11,40 @@ import { Journal, JournalStats } from '@/types/journal';
  */
 class JournalService {
   /**
+   * Get all available journal tags
+   * 
+   * @returns Promise with array of tag names
+   */
+  async getJournalTags(): Promise<string[]> {
+    try {
+      console.log('getJournalTags - Fetching all journal tags');
+      
+      const supabase = createSupabaseClient();
+      
+      const { data, error } = await supabase
+        .from('journal_tags')
+        .select('name')
+        .order('name');
+      
+      console.log('getJournalTags - Response from Supabase:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching journal tags:', error);
+        throw error;
+      }
+      
+      if (!data || !Array.isArray(data)) {
+        console.warn('Invalid data structure returned from journal_tags:', data);
+        return [];
+      }
+      
+      return data.map((tag: any) => tag.name);
+    } catch (error) {
+      console.error('Error in getJournalTags:', error);
+      throw error;
+    }
+  }
+  /**
    * Get all journal entries for a user
    * 
    * @param userId The user ID to fetch journals for
