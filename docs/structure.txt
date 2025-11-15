@@ -5913,7 +5913,7 @@
 │   │   ├── auth-helpers-nextjs
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE
-│   │   │   ├── MIGRATION_GUIDE.md
+│   │   │   ├── MIGRATION_task.md
 │   │   │   ├── README.md
 │   │   │   ├── dist
 │   │   │   │   ├── index.d.ts

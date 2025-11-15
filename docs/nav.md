@@ -30,7 +30,7 @@ Full-width layout, focus on current task.
 
 Optional: small back button to return to main page.
 
-3. Icon and Label Guidelines
+3. Icon and Label tasklines
 
 Convert all nav icons to block layout.
 

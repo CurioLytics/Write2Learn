@@ -34,14 +34,15 @@ class RoleplayService {
       // Biến đổi dữ liệu để đảm bảo tuân thủ RoleplayScenario interface
       const scenarios = data.map(scenario => ({
         id: scenario.id,
-        name: scenario.name || 'Unnamed Scenario',
-        context: scenario.context || '',
-        starter_message: scenario.starter_message || '',
-        guide: scenario.guide || '',
-        level: scenario.level || 'Beginner',
-        topic: scenario.topic || 'General',
-        role1: scenario.role1 || 'Conversation Partner',
-        image: scenario.image || null 
+        name: scenario.name,
+        context: scenario.context,
+        starter_message: scenario.starter_message,
+        task: scenario.task,
+        level: scenario.level,
+        topic: scenario.topic,
+        ai_role: scenario.ai_role,
+        partner_prompt: scenario.partner_prompt,
+        image: scenario.image 
       }));
       
       return scenarios;
@@ -76,14 +77,15 @@ class RoleplayService {
       // Biến đổi dữ liệu để đảm bảo tuân thủ RoleplayScenario interface
       const scenario: RoleplayScenario = {
         id: data.id,
-        name: data.name || 'Unnamed Scenario',
-        context: data.context || '',
-        starter_message: data.starter_message || '',
-        guide: data.guide || '',
-        level: data.level || 'Beginner',
-        topic: data.topic || 'General',
-        role1: data.role1 || 'Conversation Partner',
-        image: data.image || null 
+        name: data.name,
+        context: data.context,
+        starter_message: data.starter_message,
+        task: data.task,
+        level: data.level,
+        topic: data.topic,
+        ai_role: data.ai_role,
+        partner_prompt: data.partner_prompt,
+        image: data.image 
       };
       
       return scenario;

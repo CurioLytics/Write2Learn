@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const text = await response.text();
     return new NextResponse(text, { status: 200 });
   } catch (error) {
-    console.error('Error calling finish webhook:', error);
+    console.error('Eok:', error);
     return new NextResponse('Webhook error', { status: 500 });
   }
 }

@@ -134,11 +134,11 @@ Table: roleplays (RLS: ❌ OFF) - 3 records
 | name | text | - | required | Scenario title |
 | context | text | - | required | Background description |
 | starter_message | text | - | required | Opening message |
-| guide | text | null | nullable | Instructions for user |
+| task | text | null | nullable | Instructions for user |
 | level | text | null | nullable | Difficulty level |
 | topic | text | null | FK → roleplay_topics.name | Category reference |
 | created_at | timestamp | now() | nullable | Creation time |
-| role1 | text | null | nullable | User's role description |
+| ai_role | text | null | nullable | User's role description |
 | image | text | null | nullable | Scenario image URL |
 
 ### 💬 **sessions** (Roleplay Conversations)

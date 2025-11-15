@@ -42,7 +42,7 @@ Code is organized by feature (auth, journal, vocab) rather than technical concer
 - Tailwind CSS with utility-first approach
 - Shared UI components in components/ui/
 
-## Development Guidelines
+## Development tasklines
 1. Organize by feature
 2. Files under 500 lines
 3. Test new functionality

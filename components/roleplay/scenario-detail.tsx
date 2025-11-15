@@ -66,9 +66,9 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
       </div>
       
       <div className="mb-6">
-        <h2 className="text-lg font-medium text-gray-700 mb-2">Guide</h2>
+        <h2 className="text-lg font-medium text-gray-700 mb-2">task</h2>
         <div className="text-gray-600 bg-blue-50 p-4 rounded-md">
-          {scenario.guide}
+          {scenario.task}
         </div>
       </div>
       
@@ -76,9 +76,9 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
         <h2 className="text-lg font-medium text-gray-700 mb-2">You'll be talking with</h2>
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium">
-            {scenario.role1.charAt(0).toUpperCase()}
+            {scenario.ai_role.charAt(0).toUpperCase()}
           </div>
-          <span className="text-gray-700">{scenario.role1}</span>
+          <span className="text-gray-700">{scenario.ai_role}</span>
         </div>
       </div>
       

@@ -3,10 +3,11 @@ export interface RoleplayScenario {
   name: string;
   context: string;
   starter_message: string;
-  guide: string;
+  task: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   topic: string;
-  role1: string;
+  ai_role: string;
+  partner_prompt: string | null;
   image?: string | null; 
 }
 

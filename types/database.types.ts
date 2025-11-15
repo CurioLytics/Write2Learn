@@ -304,33 +304,33 @@ export type Database = {
         Row: {
           context: string
           created_at: string | null
-          guide: string | null
+          task: string | null
           id: string
           level: string | null
           name: string
-          role1: string | null
+          ai_role: string | null
           starter_message: string
           topic: string | null
         }
         Insert: {
           context: string
           created_at?: string | null
-          guide?: string | null
+          task?: string | null
           id?: string
           level?: string | null
           name: string
-          role1?: string | null
+          ai_role?: string | null
           starter_message: string
           topic?: string | null
         }
         Update: {
           context?: string
           created_at?: string | null
-          guide?: string | null
+          task?: string | null
           id?: string
           level?: string | null
           name?: string
-          role1?: string | null
+          ai_role?: string | null
           starter_message?: string
           topic?: string | null
         }

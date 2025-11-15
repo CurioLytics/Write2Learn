@@ -1,164 +1,145 @@
 'use client';
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { RoleplayMessage, RoleplaySession, RoleplayScenario } from '@/types/roleplay';
+import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
+import { rootTaskDispose } from 'next/dist/build/swc/generated-native';
 
-export interface RoleplaySessionData {
-  session_id: string;
-  scenario_name: string;
-  messages: RoleplayMessage[];
-}
-
-/**
- * Service for managing roleplay session storage in sessions table
- */
 class RoleplaySessionService {
   /**
-   * Save a completed roleplay session
+   * Complete session workflow: Save + Generate feedback
    */
-  async saveSession(
-    userId: string,
-    scenario: RoleplayScenario,
-    messages: RoleplayMessage[]
-  ): Promise<string> {
+  async completeSession(userId: string, scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
+    const supabase = createClientComponentClient();
+    
+    // Save session
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert({
+        profile_id: userId,
+        roleplay_id: scenario.id,
+        conversation_json: { messages }
+      })
+      .select('session_id')
+      .single();
+
+    if (error) throw new Error(`Failed to save session: ${error.message}`);
+    
+    const sessionId = data.session_id;
+    
+    // Generate feedback
     try {
-      const supabase = createClientComponentClient();
-      
-      // Transform messages to database format
-      const dbMessages = messages.map(msg => ({
-        text: msg.content,
-        sender: msg.sender
-      }));
-      
-      const { data, error } = await supabase
-        .from('sessions')
-        .insert({
-          profile_id: userId,
-          roleplay_id: scenario.id,
-          conversation_json: { messages: dbMessages }
-        })
-        .select('session_id')
-        .single();
-
-      if (error) {
-        console.error('Error saving roleplay session:', error);
-        throw new Error('Failed to save session');
-      }
-
-      return data.session_id;
-    } catch (error) {
-      console.error('Error in saveSession:', error);
-      throw error;
+      const feedback = await this.generateFeedback(scenario, messages);
+      await this.saveFeedback(sessionId, feedback);
+    } catch (feedbackError) {
+      // Continue even if feedback fails - user can still access summary
+      console.error('Feedback generation failed:', feedbackError);
     }
+    
+    return sessionId;
+  }
+
+  private async generateFeedback(scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
+    const payload = {
+      body: {
+        query: {
+          title: scenario.name,
+          level: scenario.level,
+          ai_role: scenario.ai_role,
+          partner_prompt: scenario.partner_prompt
+        }
+      },
+      messages: messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : scenario.ai_role,
+        content: msg.content
+      }))
+    };
+
+    const response = await fetch('https://automain.elyandas.com/webhook/roleplay-assesment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Feedback service failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data[0]?.text : data.feedback;
   }
 
   /**
-   * Get all roleplay sessions for a user
+   * Get session with feedback for summary page
    */
-  async getSessions(userId: string): Promise<RoleplaySessionData[]> {
-    try {
-      const supabase = createClientComponentClient();
-      
-      const { data, error } = await supabase
-        .from('sessions')
-        .select(`
-          session_id,
-          conversation_json,
-          roleplays(
-            name
-          )
-        `)
-        .eq('profile_id', userId);
+  async getSessionWithFeedback(sessionId: string) {
+    const supabase = createClientComponentClient();
+    
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        session_id,
+        conversation_json,
+        feedback,
+        highlights,
+        roleplays(name, context, ai_role)
+      `)
+      .eq('session_id', sessionId)
+      .single();
 
-      if (error) {
-        console.error('Error fetching roleplay sessions:', error);
-        throw new Error('Failed to load sessions');
-      }
+    if (error || !data) throw new Error(`Session not found: ${error?.message}`);
 
-      return data.map(session => {
-        const rawMessages = session.conversation_json?.messages || [];
-        const transformedMessages = rawMessages.map((msg: any, index: number) => ({
-          id: `${session.session_id}-${index}`,
-          content: msg.text || msg.content || '',
-          sender: msg.sender === 'user' ? 'user' as const : 'bot' as const,
-          timestamp: Date.now() - (rawMessages.length - index) * 1000
-        }));
-
-        return {
-          session_id: session.session_id,
-          scenario_name: (session.roleplays as any)?.name || 'Unknown Scenario',
-          messages: transformedMessages
-        };
-      });
-    } catch (error) {
-      console.error('Error in getSessions:', error);
-      throw error;
-    }
+    return {
+      session_id: data.session_id,
+      scenario_name: (data.roleplays as any)?.name || 'Unknown Scenario',
+      scenario: data.roleplays,
+      feedback: data.feedback,
+      messages: data.conversation_json?.messages || [],
+      highlights: data.highlights || []
+    };
   }
 
   /**
-   * Get a specific session by ID
+   * Save highlights and generate flashcards
    */
-  async getSessionById(sessionId: string): Promise<RoleplaySessionData | null> {
-    try {
-      const supabase = createClientComponentClient();
-      
-      const { data, error } = await supabase
-        .from('sessions')
-        .select(`
-          session_id,
-          conversation_json,
-          roleplays(
-            name
-          )
-        `)
-        .eq('session_id', sessionId)
-        .single();
+  async saveHighlightsAndGenerateFlashcards(sessionId: string, highlights: string[], sessionData: any, userId: string) {
+    const supabase = createClientComponentClient();
+    
+    // Save highlights
+    const { error } = await supabase
+      .from('sessions')
+      .update({ highlights })
+      .eq('session_id', sessionId);
 
-      if (error) {
-        console.error('Error fetching session:', error);
-        return null;
-      }
+    if (error) throw new Error(`Failed to save highlights: ${error.message}`);
 
-      const rawMessages = data.conversation_json?.messages || [];
-      const transformedMessages = rawMessages.map((msg: any, index: number) => ({
-        id: `${data.session_id}-${index}`,
-        content: msg.text || msg.content || '',
-        sender: msg.sender === 'user' ? 'user' as const : 'bot' as const,
-        timestamp: Date.now() - (rawMessages.length - index) * 1000
-      }));
+    // Generate flashcards
+    const payload = {
+      userId,
+      title: `Roleplay: ${sessionData.scenario_name}`,
+      content: sessionData.feedback,
+      journalDate: new Date().toISOString().split('T')[0],
+      highlights,
+    };
 
-      return {
-        session_id: data.session_id,
-        scenario_name: (data.roleplays as any)?.name || 'Unknown Scenario',
-        messages: transformedMessages
-      };
-    } catch (error) {
-      console.error('Error in getSessionById:', error);
-      return null;
-    }
+    const response = await fetch('https://automain.elyandas.com/webhook/save-process-highlight-v1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Failed to generate flashcards: ${response.status}`);
+    return response.json();
   }
 
-  /**
-   * Save feedback assessment for a session
-   */
-  async saveFeedback(sessionId: string, feedback: string): Promise<void> {
-    try {
-      const supabase = createClientComponentClient();
-      
-      const { error } = await supabase
-        .from('sessions')
-        .update({ feedback })
-        .eq('session_id', sessionId);
+  private async saveFeedback(sessionId: string, feedback: string): Promise<void> {
+    const supabase = createClientComponentClient();
+    
+    const { error } = await supabase
+      .from('sessions')
+      .update({ feedback })
+      .eq('session_id', sessionId);
 
-      if (error) {
-        console.error('Error saving feedback:', error);
-        throw new Error('Failed to save feedback to database');
-      }
-    } catch (error) {
-      console.error('Error in saveFeedback:', error);
-      throw error;
-    }
+    if (error) throw new Error(`Failed to save feedback: ${error.message}`);
   }
 }
 

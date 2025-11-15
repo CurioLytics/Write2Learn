@@ -13,41 +13,29 @@ export async function POST(request: Request) {
     // Get the JSON body from the request
     const body = await request.json();
     
-    // Validate the request body for new nested query structure
-    let requestData;
+    // Validate the request body for new body.query structure
+    if (!body.body?.query || !Array.isArray(body.messages) || body.messages.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid request format. body.query and messages array are required.' },
+        { status: 400 }
+      );
+    }
     
-    if (body.query) {
-      // Check if we received the query-wrapped format from the client
-      if (!body.query.scenario_context?.scenario_context || 
-          !body.query.convo_id || 
-          !Array.isArray(body.query.messages) || 
-          body.query.messages.length === 0) {
-        return NextResponse.json(
-          { error: 'Invalid request format. query.scenario_context, query.convo_id and query.messages are required.' },
-          { status: 400 }
-        );
-      }
-      // Use the query-wrapped body directly
-      requestData = body.query;
-    } else {
-      // For backward compatibility, check the old structure
-      if (!body.scenario_context?.scenario_context || 
-          !body.convo_id || 
-          !Array.isArray(body.messages) || 
-          body.messages.length === 0) {
-        return NextResponse.json(
-          { error: 'Invalid request format. scenario_context, convo_id and messages are required.' },
-          { status: 400 }
-        );
-      }
-      requestData = body;
+    const { query } = body.body;
+    
+    // Validate required fields in query
+    if (!query.title || !query.level || !query.ai_role) {
+      return NextResponse.json(
+        { error: 'Invalid query format. title, level, and ai_role are required.' },
+        { status: 400 }
+      );
     }
     
     // Extract request ID from headers or generate a new one
     const requestId = request.headers.get('X-Request-ID') || 
                      `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
-    console.log(`[${requestId}] Proxying request to webhook:`, requestData);
+    console.log(`[${requestId}] Proxying request to webhook:`, requestId);
     
     // Set up timeout for the webhook request
     const controller = new AbortController();
@@ -55,33 +43,32 @@ export async function POST(request: Request) {
     
     // Validate and log the payload structure for debugging
     console.log(`[${requestId}] Received payload structure:`, {
-      convo_id: requestData.convo_id,
-      scenario_context: {
-        title: requestData.scenario_context.title,
-        difficulty: requestData.scenario_context.difficulty,
-        context_length: requestData.scenario_context.scenario_context.length // Log length instead of full context
+      query: {
+        title: query.title,
+        level: query.level,
+        ai_role: query.ai_role,
+        partner_prompt: query.partner_prompt ? 'present' : 'missing'
       },
-      message_count: requestData.messages.length
+      message_count: body.messages.length
     });
     
     // Since we're passing structured data that shouldn't be flattened into URL parameters,
     // we'll need to either maintain the POST approach or encode the whole payload
     
-    // For GET requests, create a properly structured query with the nested format
+    // For GET requests, create a properly structured query with the body.query format
     const formattedQuery = {
-      query: {
-        scenario_context: {
-          scenario_context: requestData.scenario_context.scenario_context,
-          title: requestData.scenario_context.title,
-          difficulty: requestData.scenario_context.difficulty,
-          role1: requestData.scenario_context.role1 || "" // Add role1 field
-        },
-        convo_id: requestData.convo_id,
-        messages: requestData.messages.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content
-        }))
-      }
+      body: {
+        query: {
+          title: query.title,
+          level: query.level,
+          ai_role: query.ai_role,
+          partner_prompt: query.partner_prompt
+        }
+      },
+      messages: body.messages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content
+      }))
     };
     
     // Encode the entire structured payload as a single parameter
@@ -101,21 +88,20 @@ export async function POST(request: Request) {
     try {
       console.log(`[${requestId}] Sending POST request to webhook`);
       
-      // Format the payload according to the required structure with 'query' at the top level
+      // Format the payload according to the required structure with body.query format
       const formattedPayload = {
-        query: {
-          scenario_context: {
-            scenario_context: requestData.scenario_context.scenario_context,
-            title: requestData.scenario_context.title,
-            difficulty: requestData.scenario_context.difficulty,
-            role1: requestData.scenario_context.role1 || "" // Add role1 field
-          },
-          convo_id: requestData.convo_id,
-          messages: requestData.messages.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        }
+        body: {
+          query: {
+            title: query.title,
+            level: query.level,
+            ai_role: query.ai_role,
+            partner_prompt: query.partner_prompt
+          }
+        },
+        messages: body.messages.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content
+        }))
       };
       
       console.log(`[${requestId}] Formatted payload:`, formattedPayload);

@@ -23,7 +23,7 @@ class RoleplayWebhookService {
       context: scenario.context,
       level: scenario.level || 'Beginner',
       topic: scenario.topic || 'General',
-      ai_role: scenario.role1 || 'Assistant',
+      ai_role: scenario.ai_role || 'Assistant',
       messages: messages
     };
 

@@ -168,7 +168,7 @@ make the set has image of multiple cards, like a stack of cards -->
 ->
 
 start writing -> sign up
-remove the guide: "clear selection, click to select,..)
+remove the task: "clear selection, click to select,..)
 The wrting screen should be clean. the content CONTAINER now is too small ( should be in same size as the page "creat falshcard"
 )
 
@@ -186,29 +186,7 @@ profile page:
 each group is under a collapsible section
 
 
-----------------------------ROLEPLAY-------------------------------
-when fisnihs roleplay, save the session to supabase table "roleplay_sessions" with correct columns where in 
-column messages: store the interaction_logs as jsonb
-example of interaction_logs:
-{
-  scenario_id: string;
-  scenario_name: string;
-  messages: [{role_name(role1/ "user"), message}];
-} 
-------------PAYLOAD---------
--
-adjust the payload send to webhook roleplay
-send theses data as json:
-{
-  context: string;
-  level: string;
-  topic: string;
-  ai_role: string; (this is the role1)
-  messages: RoleplayMessage[];
-}
-
-
-
+----------------------------flashcard------------------------------tee
 
 
 
