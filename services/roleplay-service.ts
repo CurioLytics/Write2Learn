@@ -22,7 +22,7 @@ class RoleplayService {
       
       const { data, error } = await supabase
         .from('roleplays')
-        .select('*');
+        .select('id, name, context, starter_message, task, level, topic, ai_role, partner_prompt, image');
         
       clearTimeout(timeoutId);
       
@@ -61,7 +61,7 @@ class RoleplayService {
       
       const { data, error } = await supabase
         .from('roleplays')
-        .select('*')
+        .select('id, name, context, starter_message, task, level, topic, ai_role, partner_prompt, image')
         .eq('id', id)
         .single();
         
@@ -73,6 +73,14 @@ class RoleplayService {
       if (!data) {
         throw new Error('Scenario not found');
       }
+      
+      // Debug: Log the raw data from database
+      console.log('Raw data from database:', {
+        id: data.id,
+        name: data.name,
+        partner_prompt: data.partner_prompt,
+        partner_prompt_type: typeof data.partner_prompt
+      });
       
       // Biến đổi dữ liệu để đảm bảo tuân thủ RoleplayScenario interface
       const scenario: RoleplayScenario = {
@@ -87,6 +95,14 @@ class RoleplayService {
         partner_prompt: data.partner_prompt,
         image: data.image 
       };
+      
+      // Debug: Log the processed scenario
+      console.log('Processed scenario:', {
+        id: scenario.id,
+        name: scenario.name,
+        partner_prompt: scenario.partner_prompt,
+        partner_prompt_type: typeof scenario.partner_prompt
+      });
       
       return scenario;
     } catch (error) {

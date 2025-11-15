@@ -24,9 +24,9 @@ export async function POST(request: Request) {
     const { query } = body.body;
     
     // Validate required fields in query
-    if (!query.title || !query.level || !query.ai_role) {
+    if (!query.title || !query.level || !query.ai_role || !('partner_prompt' in query)) {
       return NextResponse.json(
-        { error: 'Invalid query format. title, level, and ai_role are required.' },
+        { error: 'Invalid query format. title, level, ai_role, and partner_prompt are required.' },
         { status: 400 }
       );
     }

@@ -39,6 +39,14 @@ class RoleplaySessionService {
   }
 
   private async generateFeedback(scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
+    // Debug: Log scenario data before creating payload
+    console.log('Session service - received scenario for feedback:', {
+      id: scenario.id,
+      name: scenario.name,
+      partner_prompt: scenario.partner_prompt,
+      partner_prompt_type: typeof scenario.partner_prompt
+    });
+    
     const payload = {
       body: {
         query: {
@@ -53,6 +61,9 @@ class RoleplaySessionService {
         content: msg.content
       }))
     };
+    
+    // Debug: Log the complete payload for feedback
+    console.log('Session service - sending payload for feedback:', JSON.stringify(payload, null, 2));
 
     const response = await fetch('https://automain.elyandas.com/webhook/roleplay-assesment', {
       method: 'POST',
