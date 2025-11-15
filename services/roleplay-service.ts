@@ -22,7 +22,7 @@ class RoleplayService {
       
       const { data, error } = await supabase
         .from('roleplays')
-        .select('id, name, context, starter_message, task, level, topic, ai_role, partner_prompt, image');
+        .select('*');
         
       clearTimeout(timeoutId);
       
@@ -41,7 +41,7 @@ class RoleplayService {
         level: scenario.level,
         topic: scenario.topic,
         ai_role: scenario.ai_role,
-        partner_prompt: scenario.partner_prompt,
+        partner_prompt: scenario.partner_prompt ? scenario.partner_prompt.trim() : null,
         image: scenario.image 
       }));
       
@@ -61,7 +61,7 @@ class RoleplayService {
       
       const { data, error } = await supabase
         .from('roleplays')
-        .select('id, name, context, starter_message, task, level, topic, ai_role, partner_prompt, image')
+        .select('*')
         .eq('id', id)
         .single();
         
@@ -75,11 +75,12 @@ class RoleplayService {
       }
       
       // Debug: Log the raw data from database
-      console.log('Raw data from database:', {
-        id: data.id,
-        name: data.name,
+      console.log('Raw data from database:', data);
+      console.log('Raw data partner_prompt specifically:', {
         partner_prompt: data.partner_prompt,
-        partner_prompt_type: typeof data.partner_prompt
+        partner_prompt_type: typeof data.partner_prompt,
+        partner_prompt_length: data.partner_prompt ? data.partner_prompt.length : 'N/A',
+        all_keys: Object.keys(data)
       });
       
       // Biến đổi dữ liệu để đảm bảo tuân thủ RoleplayScenario interface
@@ -92,7 +93,7 @@ class RoleplayService {
         level: data.level,
         topic: data.topic,
         ai_role: data.ai_role,
-        partner_prompt: data.partner_prompt,
+        partner_prompt: data.partner_prompt ? data.partner_prompt.trim() : null,
         image: data.image 
       };
       

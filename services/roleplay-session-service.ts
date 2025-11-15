@@ -28,8 +28,18 @@ class RoleplaySessionService {
     
     // Generate feedback
     try {
+      console.log('Starting feedback generation for session:', sessionId);
       const feedback = await this.generateFeedback(scenario, messages);
-      await this.saveFeedback(sessionId, feedback);
+      console.log('Generated feedback:', feedback);
+      console.log('Feedback type:', typeof feedback);
+      console.log('Feedback length:', feedback?.length);
+      
+      if (feedback && feedback !== 'Feedback processing error') {
+        await this.saveFeedback(sessionId, feedback);
+        console.log('Feedback saved successfully to database');
+      } else {
+        console.warn('Invalid feedback received, skipping save');
+      }
     } catch (feedbackError) {
       // Continue even if feedback fails - user can still access summary
       console.error('Feedback generation failed:', feedbackError);
@@ -76,7 +86,26 @@ class RoleplaySessionService {
     }
 
     const data = await response.json();
-    return Array.isArray(data) ? data[0]?.text : data.feedback;
+    console.log('Raw feedback response:', data);
+    console.log('Response is array:', Array.isArray(data));
+    
+    let processedFeedback;
+    if (Array.isArray(data) && data.length > 0 && data[0]?.text) {
+      processedFeedback = data[0].text;
+    } else if (data?.feedback) {
+      processedFeedback = data.feedback;
+    } else if (data?.text) {
+      processedFeedback = data.text;
+    } else if (typeof data === 'string') {
+      processedFeedback = data;
+    } else {
+      console.error('Unexpected feedback format:', data);
+      processedFeedback = 'Feedback processing error';
+    }
+    
+    console.log('Processed feedback:', processedFeedback);
+    
+    return processedFeedback;
   }
 
   /**
@@ -98,6 +127,13 @@ class RoleplaySessionService {
       .single();
 
     if (error || !data) throw new Error(`Session not found: ${error?.message}`);
+    
+    console.log('Retrieved session data:', {
+      session_id: data.session_id,
+      has_feedback: !!data.feedback,
+      feedback_length: data.feedback?.length,
+      feedback_preview: data.feedback?.substring(0, 100)
+    });
 
     return {
       session_id: data.session_id,
@@ -143,6 +179,12 @@ class RoleplaySessionService {
   }
 
   private async saveFeedback(sessionId: string, feedback: string): Promise<void> {
+    console.log('Saving feedback to database:', {
+      sessionId,
+      feedback: feedback?.substring(0, 100) + '...', // Show first 100 chars
+      feedbackLength: feedback?.length
+    });
+    
     const supabase = createClientComponentClient();
     
     const { error } = await supabase
@@ -150,7 +192,12 @@ class RoleplaySessionService {
       .update({ feedback })
       .eq('session_id', sessionId);
 
-    if (error) throw new Error(`Failed to save feedback: ${error.message}`);
+    if (error) {
+      console.error('Database error saving feedback:', error);
+      throw new Error(`Failed to save feedback: ${error.message}`);
+    }
+    
+    console.log('Feedback successfully saved to database');
   }
 }
 
