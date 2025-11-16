@@ -1,7 +1,7 @@
 # 📊 Comprehensive Database Structure Analysis
 
-> **Last Updated**: November 14, 2025  
-> **Data Source**: Supabase Live Database Analysis  
+> **Last Updated**: November 16, 2025  
+> **Data Source**: Supabase Live Database Analysis via MCP  
 > **Project**: CurioLytics W2L v1.0  
 
 ---
@@ -9,8 +9,8 @@
 ## 📈 Database Statistics
 
 - **Project**: eqhldzwiymtcyxyxezos (S2L - Active)
-- **Total Tables**: 18 tables
-- **Total Records**: 445+ records across all tables
+- **Total Tables**: 18 public tables
+- **Total Records**: 620+ records across public tables
 - **Postgres Version**: 17.6.1.005
 - **Region**: us-east-2
 
@@ -25,16 +25,16 @@
 | **profiles** | 1 | User profiles and settings | ✅ Yes |
 | **journals** | 55 | Journal entries | ✅ Yes |
 | **flashcard_set** | 3 | Flashcard collections | ✅ Yes |
-| **flashcard** | 104 | Individual flashcards | ❌ No |
-| **sessions** | 3 | Roleplay conversation sessions | ❌ No |
+| **flashcard** | 108 | Individual flashcards | ❌ No |
+| **sessions** | 31 | Roleplay conversation sessions | ❌ No |
 | **roleplays** | 3 | Roleplay scenarios | ❌ No |
 
 ### 📊 Supporting Tables
 
 | Table | Records | Purpose |
 |-------|---------|---------|
-| **flashcard_status** | 104 | FSRS learning algorithm data |
-| **fsrs_review_logs** | 140 | Review history tracking |
+| **flashcard_status** | 108 | FSRS learning algorithm data |
+| **fsrs_review_logs** | 144 | Review history tracking |
 | **feedback_logs** | 6 | Learning feedback analytics |
 | **grammar_topics** | 25 | Grammar learning topics |
 | **vocab_topics** | 31 | Vocabulary learning topics |
@@ -87,7 +87,7 @@ Table: flashcard_set (RLS: ✅ ON) - 3 records
 
 ### 🔤 **flashcard** (Individual Cards)
 ```sql
-Table: flashcard (RLS: ❌ OFF) - 104 records
+Table: flashcard (RLS: ❌ OFF) - 108 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
@@ -104,7 +104,7 @@ Table: flashcard (RLS: ❌ OFF) - 104 records
 
 ### 📈 **flashcard_status** (Learning Progress)
 ```sql
-Table: flashcard_status (RLS: ❌ OFF) - 104 records
+Table: flashcard_status (RLS: ❌ OFF) - 108 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
@@ -122,7 +122,7 @@ Table: flashcard_status (RLS: ❌ OFF) - 104 records
 | learning_steps | integer | 0 | nullable | Learning phase steps |
 | lapses | integer | 0 | nullable | Number of lapses |
 | state | text | 'new' | CHECK: new/learning/review/relearning | Learning state |
-| updated_at | timestamptz | now() | nullable | Status update time |
+| updated_at | timestamptz | now() AT TIME ZONE 'utc+7' | nullable | Status update time |
 
 ### 🎭 **roleplays** (Conversation Scenarios)
 ```sql
@@ -140,10 +140,11 @@ Table: roleplays (RLS: ❌ OFF) - 3 records
 | created_at | timestamp | now() | nullable | Creation time |
 | ai_role | text | null | nullable | User's role description |
 | image | text | null | nullable | Scenario image URL |
+| partner_prompt | text | null | nullable | Partner interaction prompt |
 
 ### 💬 **sessions** (Roleplay Conversations)
 ```sql
-Table: sessions (RLS: ❌ OFF) - 3 records
+Table: sessions (RLS: ❌ OFF) - 31 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
@@ -151,23 +152,15 @@ Table: sessions (RLS: ❌ OFF) - 3 records
 | profile_id | uuid | - | FK → profiles.id | Participant |
 | conversation_json | jsonb | null | nullable | Chat messages & metadata |
 | roleplay_id | uuid | - | FK → roleplays.id | Scenario reference |
+| feedback | text | null | nullable | Session feedback |
+| created_at | timestamptz | now() AT TIME ZONE 'utc+7' | nullable | Creation timestamp |
+| highlights | text[] | null | nullable | Key conversation highlights |
 
-**conversation_json Structure:**
-```json
-{
-  "messages": [
-    {
-      "text": "message content",
-      "sender": "user|tourist"
-    }
-  ],
-  "scenario": "scenario title"
-}
-```
+
 
 ### 📚 **fsrs_review_logs** (Review Analytics)
 ```sql
-Table: fsrs_review_logs (RLS: ❌ OFF) - 140 records
+Table: fsrs_review_logs (RLS: ❌ OFF) - 144 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
@@ -239,13 +232,15 @@ Table: learning_progress (RLS: ❌ OFF) - 2 records
 
 ### 📝 **journal_template** (Template Library)
 ```sql
-Table: journal_template (RLS: ❌ OFF) - 0 records
+Table: journal_template (RLS: ❌ OFF) - 0 records (4 updates applied)
 ```
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | **id** | uuid | PK | Template identifier |
 | name | text | required | Template name |
+| other | text | nullable | Other template data |
 | content | text | nullable | Template content |
+| tag | text[] | nullable | Template tags array |
 | category | text | CHECK enum | Template category |
 
 **Category Values**: Journaling, Productivity, Wellness, Decision Making, Problem Solving, Business
@@ -355,12 +350,22 @@ graph TD
 
 | Feature Area | Tables | Records | Percentage |
 |-------------|--------|---------|-----------|
-| **Flashcard System** | 4 | 251 | 56.4% |
-| **Journal System** | 4 | 64 | 14.4% |
-| **Learning Analytics** | 3 | 171 | 38.4% |
-| **Roleplay System** | 3 | 13 | 2.9% |
-| **User Management** | 2 | 3 | 0.7% |
-| **Content Framework** | 4 | 13 | 2.9% |
+| **Flashcard System** | 4 | 259 | 41.8% |
+| **Learning Analytics** | 3 | 175 | 28.2% |
+| **Journal System** | 4 | 64 | 10.3% |
+| **Roleplay System** | 3 | 41 | 6.6% |
+| **Content Framework** | 4 | 13 | 2.1% |
+| **User Management** | 2 | 3 | 0.5% |
+
+---
+
+## 🚀 Recent Changes & Migrations
+
+### Latest Migrations Applied:
+- **20251115044429**: Added `highlights` column to sessions table
+- **20251114164742**: Added `feedback` column to sessions table
+
+These recent updates enhance the roleplay conversation system with better feedback tracking and highlight extraction capabilities.
 
 ---
 
@@ -375,11 +380,11 @@ graph TD
 
 ## 📅 Maintenance Schedule
 
-- **Daily**: Review FSRS algorithm performance
-- **Weekly**: Analyze user engagement patterns
+- **Daily**: Review FSRS algorithm performance and user engagement
+- **Weekly**: Analyze learning patterns and session analytics  
 - **Monthly**: Optimize query performance, clean up orphaned data
-- **Quarterly**: Database schema evolution planning
+- **Quarterly**: Database schema evolution planning and capacity review
 
 ---
 
-*This structure supports a comprehensive language learning platform with spaced repetition, journaling, roleplay conversations, and progress tracking capabilities.*
+*Last comprehensive analysis completed November 16, 2025. This structure supports a comprehensive language learning platform with spaced repetition, journaling, roleplay conversations, and progress tracking capabilities.*

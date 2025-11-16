@@ -4,6 +4,20 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 import { rootTaskDispose } from 'next/dist/build/swc/generated-native';
 
+export interface RoleplaySessionData {
+  session_id: string;
+  scenario_name: string;
+  scenario: {
+    name: string;
+    context: string;
+    ai_role: string;
+  };
+  feedback: string | null;
+  messages: RoleplayMessage[];
+  highlights: string[];
+  created_at: string;
+}
+
 class RoleplaySessionService {
   /**
    * Complete session workflow: Save + Generate feedback
@@ -143,6 +157,43 @@ class RoleplaySessionService {
       messages: data.conversation_json?.messages || [],
       highlights: data.highlights || []
     };
+  }
+
+  /**
+   * Get user's roleplay session history
+   */
+  async getSessions(userId: string): Promise<RoleplaySessionData[]> {
+    const supabase = createClientComponentClient();
+    
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        session_id,
+        conversation_json,
+        feedback,
+        highlights,
+        created_at,
+        roleplays(name, context, ai_role)
+      `)
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching sessions:', error);
+      throw new Error(`Failed to load sessions: ${error.message}`);
+    }
+
+    if (!data) return [];
+
+    return data.map(session => ({
+      session_id: session.session_id,
+      scenario_name: (session.roleplays as any)?.name || 'Unknown Scenario',
+      scenario: session.roleplays as any,
+      feedback: session.feedback,
+      messages: session.conversation_json?.messages || [],
+      highlights: session.highlights || [],
+      created_at: session.created_at
+    }));
   }
 
   /**
