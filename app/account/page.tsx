@@ -27,6 +27,7 @@ export default function AccountPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isNameLoading, setIsNameLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -141,6 +142,28 @@ export default function AccountPage() {
       toast.error("Có lỗi xảy ra khi thay đổi mật khẩu.");
     } finally {
       setIsPasswordLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setIsDeleteLoading(true);
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Tài khoản đã được xóa thành công.");
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error("Có lỗi xảy ra khi xóa tài khoản.");
+    } finally {
+      setIsDeleteLoading(false);
     }
   };
 
@@ -273,6 +296,49 @@ export default function AccountPage() {
               >
                 {isPasswordLoading ? 'Đang lưu...' : 'Save'}
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-red-600">Vùng nguy hiểm</h2>
+          
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600">Xóa tài khoản</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Hành động này sẽ xóa vĩnh viễn tài khoản của bạn và tất cả dữ liệu liên quan. 
+                Bạn sẽ không thể khôi phục lại sau khi xóa.
+              </p>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
+                    Xóa tài khoản
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Bạn có chắc chắn muốn xóa tài khoản?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Hành động này không thể hoàn tác. Tài khoản và tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleteLoading}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isDeleteLoading ? 'Đang xóa...' : 'Xóa tài khoản'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </div>
