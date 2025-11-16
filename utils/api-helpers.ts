@@ -7,8 +7,7 @@ import { NextResponse } from 'next/server';
  * Throws error if user is not authenticated
  */
 export async function authenticateUser() {
-  const cookieStore = await cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  const supabase = createRouteHandlerClient({ cookies });
   
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
