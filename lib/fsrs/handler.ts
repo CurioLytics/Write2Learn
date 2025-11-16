@@ -99,12 +99,12 @@ function reverseMapState(state: number) {
 }
 
 /** 🔸 Convert user rating (1–4) to FSRS Rating enum */
-function mapRating(value: number) {
+function mapRating(value: string) {
   switch (value) {
-    case 1: return Rating.Again;
-    case 2: return Rating.Hard;
-    case 3: return Rating.Good;
-    case 4: return Rating.Easy;
+    case 'again': return Rating.Again;
+    case 'hard': return Rating.Hard;
+    case 'good': return Rating.Good;
+    case 'easy': return Rating.Easy;
     default: throw new Error("Invalid rating");
   }
 }
