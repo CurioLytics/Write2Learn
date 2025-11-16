@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -19,7 +20,13 @@ import {
   BarChart3,
   LogIn,
   LogOut,
+  User,
+  Settings,
+  MessageSquare,
+  ChevronDown,
 } from 'lucide-react';
+
+import { UserProfileDisplay } from './user-profile-display';
 
 import styles from './sidebar.module.css';
 
@@ -41,6 +48,22 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
   const { user } = useAuth();
   const { useBottomNav } = useResponsive();
   const { sidebarOpen } = useSidebar();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isProfileOpen]);
 
   if (isDesktopSidebar && useBottomNav) return null;
   if (!isDesktopSidebar && !useBottomNav) return null;
@@ -104,18 +127,60 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
           {/* User section */}
           <div className="mt-auto pt-4 border-t border-gray-200 w-full flex flex-col items-center">
             {user ? (
-              <button
-                onClick={async () => {
-                  await signOut();
-                  router.push('/');
-                }}
-                className={cn(styles.navItem, styles.inactive)}
-              >
-                <LogOut
-                  size={22}
-                  className="stroke-gray-500 hover:stroke-primary transition-colors duration-200"
-                />
-              </button>
+              <div className="relative group" ref={profileRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className={cn(styles.navItem, styles.inactive)}
+                >
+                  <User
+                    size={22}
+                    className="stroke-gray-500 hover:stroke-primary transition-colors duration-200"
+                  />
+                </button>
+                
+                {/* Profile dropdown */}
+                {isProfileOpen && (
+                  <div className="absolute left-14 bottom-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-3 py-2 border-b border-gray-100">
+                      <UserProfileDisplay />
+                    </div>
+                    
+                    <div className="py-1">
+                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <Settings size={16} />
+                        Cá nhân hóa
+                      </button>
+                      
+                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <User size={16} />
+                        Tài khoản
+                      </button>
+                      
+                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <MessageSquare size={16} />
+                        Feedback
+                      </button>
+                      
+                      <div className="border-t border-gray-100 mt-1 pt-1">
+                        <button
+                          onClick={async () => {
+                            setIsProfileOpen(false);
+                            await signOut();
+                            router.push('/');
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <LogOut size={16} />
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Tooltip label */}
+                <span className={styles.tooltip}>Profile</span>
+              </div>
             ) : (
               <Link
                 href="/auth"
