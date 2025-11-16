@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/hooks/auth/use-auth';
 import useCachedFetch from '@/hooks/common/use-cached-fetch';
+import { journalTemplateService } from '@/services/journal-template-service';
 
 export interface PinnedTemplate {
   id: string;
@@ -10,84 +11,50 @@ export interface PinnedTemplate {
   content?: string;
 }
 
-interface ApiTemplateResponse {
-  data?: {
-    id: string;
-    name: string;
-    content: string;
-    category?: string;
-  }[];
-}
-
-export async function fetchPinnedTemplates(profileId: string): Promise<PinnedTemplate[]> {
+export async function fetchDefaultTemplates(): Promise<PinnedTemplate[]> {
   try {
-    // Use webhook URL from env or fallback to hardcoded URL
-    const webhookUrl = typeof process !== 'undefined' && process.env.GET_PINNED_TEMPLATE_WEBHOOK_URL 
-      ? process.env.GET_PINNED_TEMPLATE_WEBHOOK_URL
-      : 'https://n8n.elyandas.com/webhook/get-pinned-template';
-      
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profileId }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch pinned templates: ${response.status}`);
-    }
-
-    const responseData = await response.json();
-
-    if (Array.isArray(responseData) && responseData.length > 0 && responseData[0].data) {
-      return responseData[0].data.map((t: any) => ({
-        id: t.id,
-        title: t.name,
-        category: t.category || determineCategory(t.name),
-        content: t.content,
-      }));
-    }
-
-    if (responseData.data && Array.isArray(responseData.data)) {
-      return responseData.data.map((t: any) => ({
-        id: t.id,
-        title: t.name,
-        category: t.category || determineCategory(t.name),
-        content: t.content,
-      }));
-    }
-
-    if (responseData.templates && Array.isArray(responseData.templates)) {
-      return responseData.templates;
-    }
-
-    return [];
+    const templates = await journalTemplateService.getDefaultTemplates();
+    
+    return templates.map(template => ({
+      id: template.id || template.name,
+      title: template.name,
+      category: template.category || 'Daily Reflection',
+      content: template.content,
+    }));
   } catch (error) {
-    console.error('Error fetching pinned templates:', error);
-    throw error;
+    console.error('Error fetching default templates:', error);
+    
+    // Return fallback templates if database query fails
+    return [
+      { 
+        id: 'default-morning-checkin', 
+        title: 'Morning Check-in', 
+        category: 'Daily Reflection',
+        content: '🌅 **Morning Reflection**\n\n**How are you feeling this morning?**\n\n\n**What are you most excited about today?**\n\n\n**What\'s one thing you want to accomplish?**\n\n\n**Gratitude moment - what are you grateful for right now?**\n\n\n---\n*Take a deep breath and set your intention for the day ahead.*'
+      },
+      { 
+        id: 'default-evening-shutdown', 
+        title: 'Evening Shutdown', 
+        category: 'Daily Reflection',
+        content: '🌙 **Evening Wind Down**\n\n**How did your day go overall?**\n\n\n**What was the highlight of your day?**\n\n\n**What challenged you today and how did you handle it?**\n\n\n**What are you grateful for from today?**\n\n\n**What\'s one thing you learned about yourself?**\n\n\n**Tomorrow, I want to focus on:**\n\n\n---\n*Time to rest and recharge for tomorrow.*'
+      },
+    ];
   }
-}
-
-function determineCategory(name: string): string {
-  const lower = name.toLowerCase();
-  if (lower.includes('reflection') || lower.includes('journal')) return 'Journaling';
-  if (lower.includes('goal') || lower.includes('task')) return 'Productivity';
-  if (lower.includes('learn') || lower.includes('study')) return 'Learning';
-  return 'General';
 }
 
 export function usePinnedTemplates() {
   const { user } = useAuth();
 
   const fallback: PinnedTemplate[] = [
-    { id: '1', title: 'Morning Check-in', category: 'Journaling' },
-    { id: '2', title: 'Minimalism Prompt', category: 'Productivity' },
+    { id: 'default-morning-checkin', title: 'Morning Check-in', category: 'Daily Reflection' },
+    { id: 'default-evening-shutdown', title: 'Evening Shutdown', category: 'Daily Reflection' },
   ];
 
   const { data, loading, error, refresh, clearCache } = useCachedFetch<PinnedTemplate[]>({
-    key: `pinned-templates-${user?.id || 'anonymous'}`,
-    duration: 5 * 60 * 1000,
-    dependencyArray: [user?.id],
-    fetcher: async () => (!user?.id ? fallback : fetchPinnedTemplates(user.id)),
+    key: `default-templates`,
+    duration: 10 * 60 * 1000, // Cache for 10 minutes since these don't change often
+    dependencyArray: [], // No dependencies since these are global defaults
+    fetcher: fetchDefaultTemplates,
     fallback,
   });
 

@@ -66,6 +66,44 @@ class JournalTemplateService {
   }
 
   /**
+   * Get default templates available to all users
+   * @returns Promise with default templates
+   */
+  async getDefaultTemplates(): Promise<JournalTemplate[]> {
+    try {
+      const supabase = createSupabaseClient();
+      
+      const { data, error } = await supabase
+        .from('journal_template')
+        .select('id, name, content, category, tag, other')
+        .eq('is_default', true)
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching default journal templates:', error);
+        throw error;
+      }
+      
+      // Transform to match JournalTemplate interface
+      const defaultTemplates: JournalTemplate[] = (data || []).map(template => ({
+        profile_id: '', // Default templates don't belong to specific users
+        name: template.name,
+        content: template.content || '',
+        cover_image: null,
+        id: template.id,
+        category: template.category,
+        tag: template.tag,
+        other: template.other
+      }));
+      
+      return defaultTemplates;
+    } catch (error) {
+      console.error('Error in getDefaultTemplates:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Fetch all available journal templates
    * @returns Promise with all templates
    */

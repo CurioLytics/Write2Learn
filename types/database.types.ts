@@ -237,6 +237,7 @@ export type Database = {
           category: string | null
           content: string | null
           id: string
+          is_default: boolean | null
           name: string
           other: string | null
           tag: string[] | null
@@ -245,6 +246,7 @@ export type Database = {
           category?: string | null
           content?: string | null
           id?: string
+          is_default?: boolean | null
           name: string
           other?: string | null
           tag?: string[] | null
@@ -253,6 +255,7 @@ export type Database = {
           category?: string | null
           content?: string | null
           id?: string
+          is_default?: boolean | null
           name?: string
           other?: string | null
           tag?: string[] | null
@@ -333,7 +336,6 @@ export type Database = {
           id: string
           name: string | null
           onboarding_completed: boolean | null
-          pinned_template_ids: string[] | null
           updated_at: string | null
           writing_types: string[] | null
         }
@@ -343,7 +345,6 @@ export type Database = {
           id: string
           name?: string | null
           onboarding_completed?: boolean | null
-          pinned_template_ids?: string[] | null
           updated_at?: string | null
           writing_types?: string[] | null
         }
@@ -353,7 +354,6 @@ export type Database = {
           id?: string
           name?: string | null
           onboarding_completed?: boolean | null
-          pinned_template_ids?: string[] | null
           updated_at?: string | null
           writing_types?: string[] | null
         }

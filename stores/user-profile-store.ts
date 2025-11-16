@@ -13,7 +13,6 @@ export interface UserProfileData {
   writing_types: string[] | null;
   updated_at: string | null;
   onboarding_completed: boolean;
-  pinned_template_ids: string[] | null;
 }
 
 interface UserProfileState {
@@ -41,7 +40,7 @@ export const useUserProfileStore = create<UserProfileState>()(
           const supabase = createClientComponentClient();
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, english_level, goals, writing_types, updated_at, onboarding_completed, pinned_template_ids')
+            .select('id, name, english_level, goals, writing_types, updated_at, onboarding_completed')
             .eq('id', userId)
             .single();
             

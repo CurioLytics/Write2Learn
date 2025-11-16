@@ -333,7 +333,7 @@ export type Database = {
           id: string
           name: string | null
           onboarding_completed: boolean | null
-          pinned_template_ids: string[] | null
+          _ids: string[] | null
           updated_at: string | null
           writing_types: string[] | null
         }

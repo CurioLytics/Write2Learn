@@ -2,17 +2,26 @@ export type JournalTemplateCategory = 'Journaling' | 'Productivity' | 'Wellness'
 
 /**
  * Interface for the templates table
- * - profile_id: UUID of the user who owns the template
+ * - profile_id: UUID of the user who owns the template (empty for default templates)
  * - name: Title or name of the journal template
  * - content: The actual prompt or body of the journal entry
  * - cover_image: URL or path to the template's cover image
+ * - id: Unique identifier for the template
+ * - category: Template category
+ * - tag: Array of tags associated with the template
+ * - other: Additional template metadata
+ * - is_default: Whether this is a default template available to all users (for journal_template table)
  */
 export interface JournalTemplate {
-  id?: string; // Optional for backwards compatibility
+  id?: string;
   profile_id?: string;
   name: string;
   content: string;
-  cover_image?: string;
+  cover_image?: string | null;
+  category?: string | null;
+  tag?: string[] | null;
+  other?: string | null;
+  is_default?: boolean | null;
 }
 
 /**
