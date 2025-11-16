@@ -147,3 +147,27 @@ export async function resendVerificationEmail(email: string) {
 
   return { error: null };
 }
+
+export async function sendPasswordResetEmail(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+  });
+
+  if (error) {
+    return { error: { message: error.message } as AuthError };
+  }
+
+  return { error: null };
+}
+
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    return { error: { message: error.message } as AuthError };
+  }
+
+  return { error: null };
+}

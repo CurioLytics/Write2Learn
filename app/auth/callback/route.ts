@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
     const error = searchParams.get('error');
     const error_description = searchParams.get('error_description');
     const provider = searchParams.get('provider') || 'unknown';
+    const type = searchParams.get('type'); // Check if this is a password reset
 
     // Handle error from OAuth provider
     if (error) {
@@ -71,6 +72,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(
         new URL(`/auth?error=${encodeURIComponent(error_description || 'Authentication failed')}&provider=${provider}`, req.url)
       );
+    }
+
+    // Handle password reset callback
+    if (type === 'recovery') {
+      if (code) {
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          console.error('Password reset session exchange error:', exchangeError);
+          return NextResponse.redirect(
+            new URL(`/auth/reset-password?error=${encodeURIComponent('Invalid reset link')}`, req.url)
+          );
+        }
+        // Redirect to reset password page with the session
+        return NextResponse.redirect(new URL('/auth/reset-password', req.url));
+      } else {
+        return NextResponse.redirect(
+          new URL(`/auth/reset-password?error=${encodeURIComponent('Invalid reset link')}`, req.url)
+        );
+      }
     }
 
     // Exchange code for session

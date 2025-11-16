@@ -149,9 +149,20 @@ export function AuthForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
+          <div className="flex justify-between items-center">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            {mode === 'signin' && (
+              <button
+                type="button"
+                onClick={() => router.push('/auth/forgot-password')}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Quên mật khẩu?
+              </button>
+            )}
+          </div>
           <input
             id="password"
             type="password"
