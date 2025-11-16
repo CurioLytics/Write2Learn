@@ -3,6 +3,7 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/stores/auth-store";
 import { UserProvider } from "@/components/providers/user-provider";
+import { Toaster } from "sonner";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <AuthProvider>
           <UserProvider>
             {children}
+            <Toaster />
           </UserProvider>
         </AuthProvider>
       </body>
