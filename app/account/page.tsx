@@ -14,18 +14,16 @@ import { supabase } from '@/services/supabase/client';
 
 interface UserData {
   email: string;
-  name: string;
 }
 
 export default function AccountPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [userData, setUserData] = useState<UserData>({ email: '', name: '' });
-  const [originalData, setOriginalData] = useState<UserData>({ email: '', name: '' });
+  const [userData, setUserData] = useState<UserData>({ email: '' });
+  const [originalData, setOriginalData] = useState<UserData>({ email: '' });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isNameLoading, setIsNameLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
@@ -37,32 +35,13 @@ export default function AccountPage() {
       return;
     }
 
-    // Fetch user profile data
-    const fetchUserData = async () => {
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching profile:', error);
-        }
-
-        const userData = {
-          email: user.email || '',
-          name: (profile as any)?.name || ''
-        };
-        
-        setUserData(userData);
-        setOriginalData(userData);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
+    // Set user email data
+    const userData = {
+      email: user.email || ''
     };
-
-    fetchUserData();
+    
+    setUserData(userData);
+    setOriginalData(userData);
   }, [user, loading, router]);
 
   const handleLogout = async () => {
@@ -71,35 +50,6 @@ export default function AccountPage() {
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
-    }
-  };
-
-  const handleSaveName = async () => {
-    if (!user) return;
-    
-    if (userData.name === originalData.name) return;
-
-    setIsNameLoading(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          name: userData.name,
-          updated_at: new Date().toISOString()
-        } as any);
-
-      if (error) {
-        throw error;
-      }
-
-      setOriginalData(prev => ({ ...prev, name: userData.name }));
-      toast.success("Tên của bạn đã được cập nhật.");
-    } catch (error) {
-      console.error('Error updating name:', error);
-      toast.error("Có lỗi xảy ra khi cập nhật tên.");
-    } finally {
-      setIsNameLoading(false);
     }
   };
 
@@ -215,30 +165,6 @@ export default function AccountPage() {
         <div className="space-y-6">
           <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
 
-          {/* Name Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Name:</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-3">
-                <Input
-                  value={userData.name}
-                  onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Nhập tên của bạn"
-                  className="flex-1"
-                />
-                <Button 
-                  onClick={handleSaveName}
-                  disabled={isNameLoading || userData.name === originalData.name}
-                  className="bg-gray-800 hover:bg-gray-900 text-white px-6"
-                >
-                  {isNameLoading ? 'Đang lưu...' : 'Save'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Email Settings */}
           <Card>
             <CardHeader>
@@ -301,9 +227,7 @@ export default function AccountPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-red-600">Vùng nguy hiểm</h2>
-          
+        <div className="space-y-4">          
           <Card className="border-red-200">
             <CardHeader>
               <CardTitle className="text-red-600">Xóa tài khoản</CardTitle>
