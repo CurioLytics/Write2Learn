@@ -45,7 +45,7 @@
 │   │   │   └── verification-step.tsx
 │   │   └── page.tsx
 │   ├── globals.css
-│   ├── homepage
+│   ├── home
 │   │   ├── components
 │   │   │   └── quick-review.tsx
 │   │   ├── layout.tsx

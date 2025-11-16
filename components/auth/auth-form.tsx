@@ -63,7 +63,7 @@ export function AuthForm() {
               router.push('/onboarding');
             } else {
               // Redirect based on onboarding status
-              router.push(profile?.onboarding_completed ? '/homepage' : '/onboarding');
+              router.push(profile?.onboarding_completed ? '/home' : '/onboarding');
             }
           } catch (dbError) {
             console.error('Database error:', dbError);

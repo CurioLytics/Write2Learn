@@ -114,7 +114,7 @@ export default function JournalPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Compact Header - Center aligned like homepage */}
+      {/* Compact Header - Center aligned like home */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Journal Hub</h1>
         <p className="text-gray-600 mb-6">
@@ -149,9 +149,9 @@ export default function JournalPage() {
         </div>
       </div>
 
-      {/* Single Column Layout like Homepage */}
+      {/* Single Column Layout like home */}
       <div className="space-y-8">
-        {/* Templates Section - Like homepage */}
+        {/* Templates Section - Like home */}
         <div className="max-w-4xl mx-auto">
           <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">Your Templates</h2>
           <p className="text-center text-gray-600 mb-6">Click and drag to create entries or customize templates</p>
