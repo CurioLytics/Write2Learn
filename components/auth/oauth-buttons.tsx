@@ -12,33 +12,22 @@ export function OAuthButtons() {
   const [provider, setProvider] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
-  // Check for error from redirect
+  // Handle redirect state
   useEffect(() => {
+    // Always clear stale loading flag on mount
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_in_progress');
+    }
+
     const errorMsg = searchParams?.get('error');
     if (errorMsg) {
       setError(decodeURIComponent(errorMsg));
+      setIsLoading(false);
     }
-    
-    // Check if we're returning from an OAuth attempt
+
     const oauthProvider = searchParams?.get('provider');
     if (oauthProvider) {
       setProvider(oauthProvider);
-    }
-    
-    // Check if we have an in-progress auth from localStorage
-    // This helps with maintaining state during redirects
-    if (typeof window !== 'undefined') {
-      const inProgressAuth = localStorage.getItem('auth_in_progress');
-      if (inProgressAuth) {
-        setProvider(inProgressAuth);
-        // Only set loading if we don't have an error
-        if (!errorMsg) {
-          setIsLoading(true);
-        } else {
-          // Clear the in-progress flag if we have an error
-          localStorage.removeItem('auth_in_progress');
-        }
-      }
     }
   }, [searchParams]);
 
@@ -47,23 +36,15 @@ export function OAuthButtons() {
       setIsLoading(true);
       setError(null);
       setProvider('google');
-      
-      const result = await signInWithProvider('google');
-      
-      if (result.error) {
-        setError(result.error.message);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_in_progress');
-        }
-        setIsLoading(false);
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_in_progress', 'google');
       }
-      
-      // The successful OAuth flow will redirect away from this page
-      // so we don't need to handle success here
-      
+
+      await signInWithProvider('google'); // Redirects away
+
     } catch (err) {
       setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
-      console.error('OAuth error:', err);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_in_progress');
       }
@@ -82,9 +63,9 @@ export function OAuthButtons() {
       <Button
         onClick={handleGoogleSignIn}
         variant="outline"
-        className="w-full flex items-center justify-center gap-3 py-6 sm:py-3 mobile-btn tap-highlight-none transition-all duration-200"
+        className="w-full flex items-center justify-center gap-3 py-6 sm:py-3 mobile-btn transition-all duration-200"
         style={{ 
-          minHeight: '52px', // Larger touch target for mobile
+          minHeight: '52px',
           position: 'relative',
           overflow: 'hidden',
         }} 
