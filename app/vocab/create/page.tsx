@@ -31,6 +31,8 @@ export default function CreateVocabSetPage() {
     }
   }, [authLoading, user, router]);
 
+
+
   const addVocabularyWord = () => {
     setVocabularyWords([...vocabularyWords, { word: '', meaning: '' }]);
   };
@@ -65,8 +67,14 @@ export default function CreateVocabSetPage() {
   };
 
   const handleSave = async () => {
-    if (!user?.id || !title.trim()) {
-      setError('Title is required');
+    if (!user?.id) {
+      setError('User not authenticated');
+      return;
+    }
+
+    // Creating new set - need title
+    if (!title.trim()) {
+      setError('Title is required for new vocabulary set');
       return;
     }
 
@@ -74,7 +82,7 @@ export default function CreateVocabSetPage() {
     setError(null);
 
     try {
-      // Create vocabulary set
+      // Create new vocabulary set
       const { data: setData, error: setError } = await supabase
         .from('vocabulary_set')
         .insert({
@@ -109,8 +117,14 @@ export default function CreateVocabSetPage() {
       // Navigate back to vocab page
       router.push('/vocab');
     } catch (err: any) {
-      console.error('Error creating vocabulary set:', err);
-      setError(err.message || 'Failed to create vocabulary set');
+      console.error('Error saving vocabulary:', err);
+      
+      // Handle specific error cases
+      if (err.code === '23505' && err.message?.includes('unique_profile_setname')) {
+        setError('Đặt tên khác nhé - tên này đã được sử dụng rồi');
+      } else {
+        setError(err.message || 'Failed to save vocabulary');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +142,9 @@ export default function CreateVocabSetPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Vocabulary Set</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Create Vocabulary Set
+        </h1>
         <p className="text-gray-600">
           Tạo bộ từ vựng mới để học và ôn tập
         </p>
@@ -169,28 +185,20 @@ export default function CreateVocabSetPage() {
 
           {/* Vocabulary Words Section */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center mb-4">
               <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addVocabularyWord}
-                className="text-sm"
-              >
-                + Add Word
-              </Button>
             </div>
 
             <div className="space-y-4">
               {vocabularyWords.map((word, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-700">Word #{index + 1}</h4>
+                    <h4 className="font-medium text-gray-700">Term</h4>
                     {vocabularyWords.length > 1 && (
                       <button
                         onClick={() => removeVocabularyWord(index)}
                         className="text-gray-500 hover:text-red-600 transition-colors"
-                        aria-label={`Remove word ${index + 1}`}
+                        aria-label={`Remove term ${index + 1}`}
                       >
                         🗑️
                       </button>
@@ -200,32 +208,44 @@ export default function CreateVocabSetPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Word/Term
+                        Term
                       </label>
-                      <Input
-                        type="text"
+                      <textarea
                         value={word.word}
                         onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
-                        placeholder="Enter word or term..."
-                        className="w-full"
+                        rows={2}
+                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Enter term..."
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Definition/Meaning
+                        Meaning
                       </label>
-                      <Input
-                        type="text"
+                      <textarea
                         value={word.meaning}
                         onChange={(e) => updateVocabularyWord(index, 'meaning', e.target.value)}
-                        placeholder="Enter definition or meaning..."
-                        className="w-full"
+                        rows={2}
+                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Enter meaning..."
                       />
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Add Word Button at the end */}
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addVocabularyWord}
+                className="text-sm w-full"
+              >
+                + Add Word
+              </Button>
             </div>
           </div>
 

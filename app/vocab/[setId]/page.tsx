@@ -31,6 +31,7 @@ export default function VocabularySetPage() {
   const [vocabularySet, setVocabularySet] = useState<VocabularySet | null>(null);
   const [vocabularyWords, setVocabularyWords] = useState<VocabularyWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,11 @@ export default function VocabularySetPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editWords, setEditWords] = useState<VocabularyWord[]>([]);
+  const [originalEditData, setOriginalEditData] = useState({
+    title: '',
+    description: '',
+    words: [] as VocabularyWord[]
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -46,12 +52,14 @@ export default function VocabularySetPage() {
       return;
     }
 
-    if (setId && user) {
+    if (setId && user?.id && !hasLoaded) {
       loadVocabularySet();
     }
-  }, [setId, user, authLoading, router]);
+  }, [setId, user?.id, authLoading, hasLoaded]);
 
   const loadVocabularySet = async () => {
+    if (hasLoaded && vocabularySet) return; // Prevent duplicate loads
+    
     setIsLoading(true);
     setError(null);
 
@@ -77,7 +85,8 @@ export default function VocabularySetPage() {
 
       if (wordsError) throw wordsError;
       setVocabularyWords(wordsData || []);
-      setEditWords(wordsData || []);
+      setEditWords([...wordsData || []]);
+      setHasLoaded(true); // Mark as loaded
 
     } catch (err: any) {
       console.error('Error loading vocabulary set:', err);
@@ -89,8 +98,14 @@ export default function VocabularySetPage() {
 
   const handleStartEdit = () => {
     setIsEditing(true);
-    setEditTitle(vocabularySet?.title || '');
-    setEditDescription(vocabularySet?.description || '');
+    const originalData = {
+      title: vocabularySet?.title || '',
+      description: vocabularySet?.description || '',
+      words: JSON.parse(JSON.stringify(vocabularyWords)) // Deep copy
+    };
+    setOriginalEditData(originalData);
+    setEditTitle(originalData.title);
+    setEditDescription(originalData.description);
     setEditWords([...vocabularyWords]);
   };
 
@@ -116,6 +131,32 @@ export default function VocabularySetPage() {
     setEditWords(editWords.filter((_, i) => i !== index));
   };
 
+  // Change detection functions
+  const hasMetadataChanged = () => {
+    return editTitle.trim() !== originalEditData.title ||
+           (editDescription.trim() || '') !== (originalEditData.description || '');
+  };
+
+  const getChangedWords = () => {
+    return editWords.filter(editWord => {
+      if (!editWord.id) return false; // Skip new words
+      const originalWord = originalEditData.words.find(w => w.id === editWord.id);
+      if (!originalWord) return false;
+      
+      return editWord.word.trim() !== originalWord.word ||
+             editWord.meaning.trim() !== originalWord.meaning;
+    });
+  };
+
+  const getNewWords = () => {
+    return editWords.filter(word => !word.id && word.word.trim() && word.meaning.trim());
+  };
+
+  const getDeletedWordIds = () => {
+    const editWordIds = new Set(editWords.filter(w => w.id).map(w => w.id));
+    return originalEditData.words.map(w => w.id).filter(id => !editWordIds.has(id));
+  };
+
   const handleSave = async () => {
     if (!vocabularySet || !editTitle.trim()) {
       setError('Title is required');
@@ -126,36 +167,37 @@ export default function VocabularySetPage() {
     setError(null);
 
     try {
-      // Update vocabulary set
-      const { error: setError } = await (supabase as any)
-        .from('vocabulary_set')
-        .update({
-          title: editTitle.trim(),
-          description: editDescription.trim() || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', setId);
+      // Only update metadata if changed
+      if (hasMetadataChanged()) {
+        const { error: setError } = await (supabase as any)
+          .from('vocabulary_set')
+          .update({
+            title: editTitle.trim(),
+            description: editDescription.trim() || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', setId);
 
-      if (setError) throw setError;
+        if (setError) throw setError;
+      }
 
-      // Handle vocabulary words
-      const existingWords = editWords.filter(word => word.id);
-      const newWords = editWords.filter(word => !word.id && word.word.trim() && word.meaning.trim());
-      
-      // Update existing words
-      for (const word of existingWords) {
-        if (word.word.trim() && word.meaning.trim()) {
-          const { error: updateError } = await (supabase as any)
-            .from('vocabulary')
-            .update({
-              word: word.word.trim(),
-              meaning: word.meaning.trim(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', word.id);
-          
-          if (error) throw error;
-        }
+      // Get changes
+      const changedWords = getChangedWords();
+      const newWords = getNewWords();
+      const deletedWordIds = getDeletedWordIds();
+
+      // Only update changed words
+      for (const word of changedWords) {
+        const { error: updateError } = await (supabase as any)
+          .from('vocabulary')
+          .update({
+            word: word.word.trim(),
+            meaning: word.meaning.trim(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', word.id);
+        
+        if (updateError) throw updateError;
       }
 
       // Insert new words
@@ -173,21 +215,26 @@ export default function VocabularySetPage() {
         if (insertError) throw insertError;
       }
 
-      // Remove deleted words
-      const existingWordIds = vocabularyWords.map(w => w.id);
-      const editWordIds = editWords.filter(w => w.id).map(w => w.id);
-      const deletedWordIds = existingWordIds.filter(id => !editWordIds.includes(id));
-
+      // Delete removed words
       if (deletedWordIds.length > 0) {
-        const { error } = await supabase
+        const { error: deleteError } = await supabase
           .from('vocabulary')
           .delete()
           .in('id', deletedWordIds);
 
-        if (error) throw error;
+        if (deleteError) throw deleteError;
       }
 
+      // Performance logging
+      console.log('🚀 Save Performance:', {
+        metadataChanged: hasMetadataChanged(),
+        wordsChanged: changedWords.length,
+        wordsAdded: newWords.length,
+        wordsDeleted: deletedWordIds.length
+      });
+
       // Reload data
+      setHasLoaded(false); // Reset to allow fresh data
       await loadVocabularySet();
       setIsEditing(false);
 
@@ -203,10 +250,18 @@ export default function VocabularySetPage() {
     router.push(`/vocab/${setId}/review`);
   };
 
-  if (authLoading || isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">Authenticating...</div>
+      </div>
+    );
+  }
+
+  if (isLoading && !vocabularySet) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500">Loading vocabulary...</div>
       </div>
     );
   }

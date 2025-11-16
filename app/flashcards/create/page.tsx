@@ -8,11 +8,19 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+interface VocabularySetOption {
+  id: string;
+  title: string;
+  is_default: boolean;
+}
+
 export default function FlashcardCreationPage() {
   const router = useRouter();
   const { user } = useAuth();
 
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [vocabularySets, setVocabularySets] = useState<VocabularySetOption[]>([]);
+  const [selectedSetId, setSelectedSetId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,41 +28,77 @@ export default function FlashcardCreationPage() {
 
   // Load flashcards from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('flashcardData');
-      if (!raw) {
-        setFlashcards([]);
+    const loadData = async () => {
+      try {
+        // Load flashcards
+        const raw = localStorage.getItem('flashcardData');
+        if (!raw) {
+          setFlashcards([]);
+        } else {
+          const parsed = JSON.parse(raw);
+          let list: any[] = [];
+
+          if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0].output)) {
+            list = parsed[0].output;
+          } else if (parsed && Array.isArray(parsed.output)) {
+            list = parsed.output;
+          } else if (Array.isArray(parsed)) {
+            list = parsed;
+          }
+
+          const valid = list.filter(
+            (c: any) =>
+              c &&
+              typeof c.word === 'string' &&
+              c.back &&
+              typeof c.back.definition === 'string' &&
+              typeof c.back.example === 'string'
+          );
+
+          setFlashcards(valid as Flashcard[]);
+        }
+
+        // Load vocabulary sets if user is authenticated
+        if (user?.id) {
+          await loadVocabularySets();
+        }
+      } catch (err) {
+        setError('Không thể tải dữ liệu. Vui lòng thử lại.');
+      } finally {
         setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [user?.id]);
+
+  const loadVocabularySets = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const supabase = createClientComponentClient();
+      const { data, error } = await supabase
+        .from('vocabulary_set')
+        .select('id, title, is_default')
+        .eq('profile_id', user.id)
+        .order('is_default', { ascending: false })
+        .order('title', { ascending: true });
+
+      if (error) {
+        console.error('Error loading vocabulary sets:', error);
         return;
       }
 
-      const parsed = JSON.parse(raw);
-      let list: any[] = [];
-
-      if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0].output)) {
-        list = parsed[0].output;
-      } else if (parsed && Array.isArray(parsed.output)) {
-        list = parsed.output;
-      } else if (Array.isArray(parsed)) {
-        list = parsed;
+      setVocabularySets(data || []);
+      // Set default selection to "Tổng hợp" if exists
+      const defaultSet = data?.find(set => set.is_default);
+      if (defaultSet) {
+        setSelectedSetId(defaultSet.id);
       }
-
-      const valid = list.filter(
-        (c: any) =>
-          c &&
-          typeof c.word === 'string' &&
-          c.back &&
-          typeof c.back.definition === 'string' &&
-          typeof c.back.example === 'string'
-      );
-
-      setFlashcards(valid as Flashcard[]);
     } catch (err) {
-      setError('Không thể tải flashcard từ bộ nhớ. Vui lòng thử lại.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading vocabulary sets:', err);
     }
-  }, []);
+  };
 
   // simple editors
   const updateFlashcard = (index: number, patch: Partial<Flashcard>) => {
@@ -67,6 +111,16 @@ export default function FlashcardCreationPage() {
     setFlashcards((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addFlashcard = () => {
+    setFlashcards((prev) => [...prev, {
+      word: '',
+      back: {
+        definition: '',
+        example: ''
+      }
+    }]);
+  };
+
   const validate = (cards: Flashcard[]) => {
     if (!cards || cards.length === 0) {
       setError('Không có flashcard để lưu.');
@@ -74,8 +128,8 @@ export default function FlashcardCreationPage() {
     }
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i];
-      if (!c.word || !c.back?.definition || !c.back?.example) {
-        setError(`Flashcard #${i + 1} chưa đầy đủ. Vui lòng kiểm tra.`);
+      if (!c.word || !c.back?.definition) {
+        setError(`Flashcard #${i + 1} chưa đầy đủ. Vui lòng kiểm tra Term và Meaning.`);
         return false;
       }
     }
@@ -83,7 +137,7 @@ export default function FlashcardCreationPage() {
   };
 
   // --------------------------
-  // ✅ Save flashcards via Supabase RPC
+  // ✅ Save flashcards via Supabase RPC or direct insert
   // --------------------------
   const handleSaveFlashcards = async () => {
     setError(null);
@@ -93,55 +147,50 @@ export default function FlashcardCreationPage() {
       return;
     }
 
+    if (!selectedSetId) {
+      setError('Vui lòng chọn bộ từ vựng để lưu flashcards.');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-  const supabase = createClientComponentClient();
+      const supabase = createClientComponentClient();
 
-  const flashcardsPayload = flashcards.map((card) => ({
-    word: card.word,
-    meaning: card.back.definition,
-    example: card.back.example,
-  }));
+      // Save flashcards directly to vocabulary table
+      const vocabularyData = flashcards.map((card) => ({
+        set_id: selectedSetId,
+        word: card.word,
+        meaning: card.back.definition,
+        example: card.back.example || null,
+      }));
 
-  const { data, error } = await supabase.rpc('insert_flashcards_into_journal_vocab', {
-    p_user_id: user.id,
-    p_flashcards: flashcardsPayload,
-  });
+      const { error } = await supabase
+        .from('vocabulary')
+        .insert(vocabularyData);
 
-  if (error) {
-    console.error('Supabase RPC Error:', error);
-    // Hiển thị toàn bộ thông tin lỗi ra giao diện
-    setError(
-      `RPC Error:
-Code: ${error.code ?? 'N/A'}
-Message: ${error.message ?? 'No message'}
-Details: ${error.details ?? 'No details'}
-Hint: ${error.hint ?? 'No hint'}`
-    );
-    return; // Dừng ở đây, không tiếp tục
-  }
+      if (error) {
+        console.error('Supabase Insert Error:', error);
+        setError(
+          `Lỗi khi lưu: ${error.message || 'Không thể lưu flashcards'}`
+        );
+        return;
+      }
 
-  console.log('RPC Success:', data);
+      console.log('Save Success: Flashcards saved to vocabulary set');
 
-  localStorage.removeItem('flashcardData');
-  setSaveSuccess(true);
+      localStorage.removeItem('flashcardData');
+      setSaveSuccess(true);
 
-  setTimeout(() => {
-    router.push('/vocab');
-  }, 800);
-} catch (err: any) {
-  console.error('Unexpected Error:', err);
-  // Hiển thị rõ ràng cả object err nếu không phải lỗi chuẩn của Supabase
-  setError(
-    `Unexpected Error:
-Name: ${err.name ?? 'N/A'}
-Message: ${err.message ?? 'No message'}
-Stack: ${err.stack ?? 'No stack'}`
-  );
-} finally {
-  setIsSaving(false);
-}
+      setTimeout(() => {
+        router.push('/vocab');
+      }, 800);
+    } catch (err: any) {
+      console.error('Unexpected Error:', err);
+      setError(`Lỗi không mong đợi: ${err.message || 'Vui lòng thử lại'}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // --------------------------
@@ -184,22 +233,51 @@ Stack: ${err.stack ?? 'No stack'}`
             <div className="text-sm text-gray-600">{flashcards.length} mục</div>
           </div>
 
+          {/* Vocabulary Set Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Lưu vào bộ từ vựng
+            </label>
+            <select
+              value={selectedSetId}
+              onChange={(e) => setSelectedSetId(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              <option value="">Chọn bộ từ vựng...</option>
+              {vocabularySets.map(set => (
+                <option key={set.id} value={set.id}>
+                  {set.title} {set.is_default ? '(Mặc định)' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-1">
+              Chọn bộ từ vựng để lưu các flashcard này
+            </p>
+          </div>
+
           {error && (
             <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">{error}</div>
           )}
 
           <div className="space-y-6">
-            {flashcards.length === 0 && (
-              <div className="text-center py-12 text-gray-500">Không có flashcard để hiển thị.</div>
-            )}
+            {/* Vocabulary Words Section */}
+            <div>
+              <div className="flex items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
+              </div>
 
-            {flashcards.map((card, idx) => (
-              <div key={idx} className="border border-gray-100 rounded-lg p-4 bg-white">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-medium">Vocabulary #{idx + 1}</h3>
+              <div className="space-y-4">
+                {flashcards.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">Không có flashcard để hiển thị.</div>
+                )}
+
+                {flashcards.map((card, idx) => (
+              <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-700">Term</h4>
                   <button
                     onClick={() => deleteFlashcard(idx)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="text-gray-500 hover:text-red-600 transition-colors"
                     aria-label={`Xóa flashcard ${idx + 1}`}
                   >
                     🗑️
@@ -208,51 +286,60 @@ Stack: ${err.stack ?? 'No stack'}`
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Term
+                    </label>
                     <textarea
                       value={card.word}
                       onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
                       rows={2}
-                      className="w-full p-3 border border-gray-200 rounded focus:outline-none"
-                      placeholder="Từ / cụm từ"
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Enter term..."
                     />
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Meaning
+                    </label>
                     <textarea
                       value={card.back.definition}
                       onChange={(e) =>
                         updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })
                       }
                       rows={2}
-                      className="w-full p-3 border border-gray-200 rounded focus:outline-none"
-                      placeholder="Định nghĩa"
-                    />
-                    <textarea
-                      value={card.back.example}
-                      onChange={(e) =>
-                        updateFlashcard(idx, { back: { ...card.back, example: e.target.value } })
-                      }
-                      rows={2}
-                      className="w-full p-3 border border-gray-200 rounded focus:outline-none mt-2"
-                      placeholder="Ví dụ với ___ cho chỗ trống"
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Enter meaning..."
                     />
                   </div>
                 </div>
+                </div>
+              ))}
               </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center mt-6 pt-4 border-t">
+              
+              {/* Add Word Button at the end */}
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addFlashcard}
+                  className="text-sm w-full"
+                >
+                  + Add Word
+                </Button>
+              </div>
+            </div>
+          </div>          <div className="flex justify-between items-center mt-6 pt-4 border-t">
             <Button variant="outline" onClick={() => router.back()}>
               Quay về
             </Button>
 
             <Button
               onClick={handleSaveFlashcards}
-              disabled={isSaving || flashcards.length === 0}
+              disabled={isSaving || flashcards.length === 0 || !selectedSetId}
               className="bg-gray-900 hover:bg-gray-800 text-white"
             >
-              {isSaving ? 'Đang lưu...' : 'Lưu từ vựng'}
+              {isSaving ? 'Đang lưu...' : selectedSetId ? 'Lưu vào bộ từ vựng' : 'Chọn bộ từ vựng'}
             </Button>
           </div>
         </div>
