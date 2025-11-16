@@ -197,7 +197,7 @@ class RoleplaySessionService {
   }
 
   /**
-   * Save highlights and generate flashcards
+   * Save highlights and generate vocabulary
    */
   async saveHighlightsAndGenerateFlashcards(sessionId: string, highlights: string[], sessionData: any, userId: string) {
     const supabase = createClientComponentClient();
@@ -210,7 +210,7 @@ class RoleplaySessionService {
 
     if (error) throw new Error(`Failed to save highlights: ${error.message}`);
 
-    // Generate flashcards
+    // Generate vocabulary from highlights
     const payload = {
       userId,
       title: `Roleplay: ${sessionData.scenario_name}`,
@@ -225,7 +225,7 @@ class RoleplaySessionService {
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error(`Failed to generate flashcards: ${response.status}`);
+    if (!response.ok) throw new Error(`Failed to generate vocabulary: ${response.status}`);
     return response.json();
   }
 

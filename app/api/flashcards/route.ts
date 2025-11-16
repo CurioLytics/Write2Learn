@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser, handleApiError, parseRequestBody, createSuccessResponse } from '@/utils/api-helpers';
-import { flashcardService } from '@/services/flashcard-service';
+import { vocabularyService } from '@/services/vocabulary-service';
 
 /**
- * GET /api/flashcards
- * Get flashcard sets for the authenticated user
+ * GET /api/flashcards (legacy endpoint - will be migrated to /api/vocabulary)
+ * Get vocabulary sets for the authenticated user
  */
 export async function GET() {
   try {
     const user = await authenticateUser();
-    const flashcardSets = await flashcardService.getFlashcardSets(user.id);
+    const vocabularySets = await vocabularyService.getVocabularySets(user.id);
     
-    return createSuccessResponse({ flashcardSets });
+    return createSuccessResponse({ vocabularySets });
   } catch (error) {
     return handleApiError(error);
   }

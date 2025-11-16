@@ -3,24 +3,29 @@ import { useRouter } from 'next/navigation';
 
 import React from 'react';
 import { FlashcardSetStats } from '@/types/flashcardSetStats';
-import { FlashcardSetCard } from './flashcard-set-card';
+import { VocabularySetCard } from './vocabulary-set-card';
 
-interface FlashcardSetListProps {
-  flashcardSets: FlashcardSetStats[];
+interface VocabularySetListProps {
+  vocabularySets: FlashcardSetStats[];
   isLoading?: boolean;
   error?: string | null;
-  onSelectSet?: (setId: string) => void;  // ← ADD THIS
+  onSelectSet?: (setId: string) => void;
 }
 
-export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
-  flashcardSets,
+// Legacy alias for backward compatibility
+export interface FlashcardSetListProps extends VocabularySetListProps {
+  flashcardSets: FlashcardSetStats[];
+}
+
+export const VocabularySetList: React.FC<VocabularySetListProps> = ({
+  vocabularySets,
   isLoading = false,
   error = null
 }) => {
   if (isLoading) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Flashcard Sets</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-4">Vocabulary Sets</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
@@ -47,41 +52,57 @@ export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
   if (error) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-2">Flashcard Sets</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-2">Vocabulary Sets</h2>
         <div className="bg-red-50 text-red-700 p-3 rounded-md">
-          Error loading flashcard sets: {error}
+          Error loading vocabulary sets: {error}
         </div>
       </div>
     );
   }
 
-  if (flashcardSets.length === 0) {
+  if (vocabularySets.length === 0) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-2">Flashcard Sets</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-2">Vocabulary Sets</h2>
         <div className="bg-gray-50 border border-gray-200 border-dashed rounded-md p-6 text-center">
-          <div className="text-4xl mb-2">🃏</div>
-          <h3 className="text-base font-medium text-gray-700 mb-1">No flashcard sets yet</h3>
+          <div className="text-4xl mb-2">📚</div>
+          <h3 className="text-base font-medium text-gray-700 mb-1">No vocabulary sets yet</h3>
           <p className="text-sm text-gray-500">
-            Create your first flashcard set to start learning vocabulary.
+            Create your first vocabulary set to start learning new words.
           </p>
         </div>
       </div>
     );
   }
-const router = useRouter();
+  
+  const router = useRouter();
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-800 mb-4">Flashcard Sets</h2>
+      <h2 className="text-lg font-medium text-gray-800 mb-4">Vocabulary Sets</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {flashcardSets.map((set) => (
-          <FlashcardSetCard
+        {vocabularySets.map((set) => (
+          <VocabularySetCard
             key={set.set_id}
-            flashcardSet={set}
+            vocabularySet={set}
             onClick={() => router.push(`/vocab/${set.set_id}`)}
           />
         ))}
       </div>
     </div>
   );
+};
+
+// Legacy alias for backward compatibility
+export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
+  flashcardSets,
+  isLoading,
+  error,
+  onSelectSet
+}) => {
+  return <VocabularySetList 
+    vocabularySets={flashcardSets} 
+    isLoading={isLoading}
+    error={error}
+    onSelectSet={onSelectSet}
+  />;
 };

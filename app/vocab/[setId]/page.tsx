@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Flashcard } from "../types";
-import { getFlashcardsForReview } from "../lib/vocabApi";
+import { Vocabulary } from "@/types/vocabulary";
 import { FlashcardCard } from "../components/Flashcard";
 import { ReviewControls } from "../components/ReviewControls";
 import { ProgressBar } from "../components/ProgressBar";
@@ -12,7 +11,7 @@ export default function ReviewPage() {
   const router = useRouter();
   const setId = params.setId;
 
-  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [cards, setCards] = useState<Vocabulary[]>([]);
   const [current, setCurrent] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -20,15 +19,17 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!setId) return;
 
-    console.log("[🔹 ReviewPage] Loading flashcards for set:", setId);
+    console.log("[🔹 ReviewPage] Loading vocabulary for set:", setId);
 
-    getFlashcardsForReview("14d2b7a0-04f0-4017-815e-90acca2a4413", setId)
+    // Use the vocabulary API endpoint
+    fetch(`/api/vocabulary/${setId}/review`)
+      .then(res => res.json())
       .then((data) => {
-        console.log("[✅ RPC Success] getFlashcardsForReview returned:", data);
-        setCards(data);
+        console.log("[✅ API Success] vocabulary review returned:", data);
+        setCards(data.vocabulary || []);
       })
       .catch((error) => {
-        console.error("[❌ RPC Error] getFlashcardsForReview failed:", error);
+        console.error("[❌ API Error] vocabulary review failed:", error);
       });
   }, [setId]);
 
@@ -38,17 +39,33 @@ export default function ReviewPage() {
   async function handleRating(rating: string) {
     if (!currentCard) return;
 
-    console.log(`[⭐ Rating] ${rating} for card:`, currentCard.flashcard_id);
+    // Convert string rating to number for FSRS
+    const ratingMap: Record<string, number> = {
+      'again': 1,
+      'hard': 2,
+      'good': 3,
+      'easy': 4
+    };
+
+    const numericRating = ratingMap[rating];
+    if (!numericRating) {
+      console.error('Invalid rating:', rating);
+      return;
+    }
 
     try {
-      const res = await fetch("/api/review_flashcard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flashcard_id: currentCard.flashcard_id, rating }),
+      const response = await fetch('/api/vocabulary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vocabulary_id: currentCard.vocabulary_id, rating: numericRating }),
       });
 
-      const result = await res.json().catch(() => ({}));
-      console.log("[📤 Review API Response]", result);
+      const result = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        console.error('Review API Error:', response.status, result);
+        return;
+      }
     } catch (err) {
       console.error("[❌ Review API Error]", err);
     }

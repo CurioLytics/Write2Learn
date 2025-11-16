@@ -4,14 +4,22 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/database.types';
-type FlashcardRow = Database['public']['Tables']['flashcard']['Row'];
+// Note: Database types need to be regenerated after table rename
+// For now, using a generic type until types are updated
+type VocabularyRow = {
+  id: string;
+  word: string;
+  meaning: string;
+  example?: string | null;
+  set_id: string;
+};
 
 const supabase = createClientComponentClient<Database>();
 
 type CardRow = {
-  flashcard_id: string;
+  vocabulary_id: string;
   next_review_at: string | null;
-  flashcard?: {
+  vocabulary?: {
     id: string;
     word: string;
     meaning: string;
@@ -29,7 +37,7 @@ type FlatCard = {
 };
 
 type ReviewResult = {
-  flashcard_id: string;
+  vocabulary_id: string;
   next_review_at: string;
   stability: number;
   difficulty: number;
@@ -62,35 +70,35 @@ export default function FlashcardsPage() {
     const now = new Date().toISOString();
     console.log('[DEBUG] Fetching cards for setId:', setId, 'at', now);
 
-    // 1️⃣ Get all flashcard IDs in that set
-    const { data: flashcards, error: fcErr } = await supabase
-      .from('flashcard')
+    // 1️⃣ Get all vocabulary IDs in that set
+    const { data: vocabularyWords, error: fcErr } = await supabase
+      .from('vocabulary')
       .select('id')
       .eq('set_id', setId);
 
     if (fcErr) {
-      console.error('🔴 Supabase flashcard fetch failed:', fcErr);
+      console.error('🔴 Supabase vocabulary fetch failed:', fcErr);
       setError(`Supabase error: ${fcErr.message}`);
       setFetching(false);
       return;
     }
 
-    if (!flashcards?.length) {
-      setError(`No flashcards found for set ${setId}`);
+    if (!vocabularyWords?.length) {
+      setError(`No vocabulary words found for set ${setId}`);
       setFetching(false);
       return;
     }
 
-    // ✅ Use proper Database type for inference
-    const flashcardIds = (flashcards as FlashcardRow[]).map((f) => f.id);
+    // ✅ Map vocabulary IDs for querying status
+    const vocabularyIds = vocabularyWords.map((v: {id: string}) => v.id);
 
-    // 2️⃣ Get their statuses (joined with card info)
+    // 2️⃣ Get their statuses (joined with vocabulary info)
     const { data, error: supaErr } = await supabase
-      .from('flashcard_status')
+      .from('vocabulary_status')
       .select(`
-        flashcard_id,
+        vocabulary_id,
         next_review_at,
-        flashcard (
+        vocabulary (
           id,
           word,
           meaning,
@@ -98,7 +106,7 @@ export default function FlashcardsPage() {
           set_id
         )
       `)
-      .in('flashcard_id', flashcardIds)
+      .in('vocabulary_id', vocabularyIds)
       .lte('next_review_at', now)
       .order('next_review_at', { ascending: true })
       .limit(50);
@@ -120,16 +128,15 @@ ${supaErr.message}
 
     console.log('[DEBUG] Supabase data returned:', data);
 
-    // ✅ Safe cast using known structure
+    // ✅ Convert data to flat structure
     const formatted: FlatCard[] =
-      (data ?? []).map((d) => {
-        const row = d as CardRow;
-        const f = row.flashcard;
+      (data ?? []).map((row: any) => {
+        const v = row.vocabulary;
         return {
-          id: f?.id ?? row.flashcard_id,
-          word: f?.word ?? '',
-          meaning: f?.meaning ?? '',
-          example: f?.example ?? null,
+          id: v?.id ?? row.vocabulary_id,
+          word: v?.word ?? '',
+          meaning: v?.meaning ?? '',
+          example: v?.example ?? null,
           next_review_at: row.next_review_at ?? null,
         };
       }) ?? [];
@@ -155,10 +162,10 @@ ${supaErr.message}
     setError(null);
 
     try {
-      const res = await fetch('/api/review_flashcard', {
+      const res = await fetch('/api/vocabulary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flashcard_id: card.id, rating }),
+        body: JSON.stringify({ vocabulary_id: card.id, rating }),
       });
 
       if (!res.ok) {

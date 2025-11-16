@@ -1,16 +1,16 @@
 'use client';
 
 import React from 'react';
-import { VocabularySetStats } from '@/types/vocabulary';
+import { FlashcardSetStats } from '@/types/flashcardSetStats';
 
 interface VocabularySetCardProps {
-  vocabularySet: VocabularySetStats;
+  vocabularySet: FlashcardSetStats;
   onClick?: () => void;
 }
 
 // Legacy alias for backward compatibility
 export interface FlashcardSetCardProps extends VocabularySetCardProps {
-  flashcardSet: VocabularySetStats;
+  flashcardSet: FlashcardSetStats;
 }
 
 export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
@@ -18,8 +18,8 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
   onClick
 }) => {
   const duePercentage =
-    vocabularySet.total_vocabulary > 0
-      ? Math.round((vocabularySet.vocabulary_due / vocabularySet.total_vocabulary) * 100)
+    vocabularySet.total_flashcards > 0
+      ? Math.round((vocabularySet.flashcards_due / vocabularySet.total_flashcards) * 100)
       : 0;
 
   return (
@@ -27,10 +27,10 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
       className="bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       onClick={onClick}
       role="button"
-      aria-label={`Open ${vocabularySet.set_title} vocabulary set`}
+      aria-label={`Open ${vocabularySet.title} vocabulary set`}
     >
       <div className="flex justify-between items-start mb-2">
-        <h3 className="font-medium text-gray-900">{vocabularySet.set_title}</h3>
+        <h3 className="font-medium text-gray-900">{vocabularySet.title}</h3>
       </div>
 
       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
@@ -70,18 +70,18 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
       <div className="mt-auto flex justify-between items-center">
         <div className="flex items-center gap-1 text-sm">
-          <span className="text-blue-500 font-medium">{vocabularySet.vocabulary_due}</span>
+          <span className="text-blue-500 font-medium">{vocabularySet.flashcards_due}</span>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-500">{vocabularySet.total_vocabulary}</span>
+          <span className="text-gray-500">{vocabularySet.total_flashcards}</span>
           <span className="text-gray-400 text-xs ml-1">words due</span>
         </div>
 
-        {vocabularySet.vocabulary_due > 0 && (
+        {vocabularySet.flashcards_due > 0 && (
           <button
             className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              console.log(`Review ${vocabularySet.set_title} vocabulary`);
+              console.log(`Review ${vocabularySet.title} vocabulary`);
             }}
           >
             Review
@@ -95,7 +95,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 // Legacy alias for backward compatibility
 export const FlashcardSetCard: React.FC<FlashcardSetCardProps> = ({
   flashcardSet,
-  onClick
+  ...props
 }) => {
-  return <VocabularySetCard vocabularySet={flashcardSet} onClick={onClick} />;
+  return <VocabularySetCard vocabularySet={flashcardSet} {...props} />;
 };

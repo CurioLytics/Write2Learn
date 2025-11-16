@@ -25,16 +25,22 @@ export interface VocabCollection {
 }
 
 /**
- * Represents a flashcard set as returned by the Supabase function
+ * Represents a vocabulary set as returned by the Supabase function
  */
-export type FlashcardSet = {
+export type VocabularySet = {
   id: string;                // required for navigation
   title: string;             // name or title of the set
   description: string | null;
   created_at: string;
 };
 
-/**s
+/**
+ * Legacy flashcard set interface for backward compatibility
+ * @deprecated Use VocabularySet instead
+ */
+export type FlashcardSet = VocabularySet;
+
+/**
  * Statistics for a vocabulary collection
  */
 export interface VocabStats {
@@ -47,5 +53,6 @@ export interface VocabStats {
  */
 export interface VocabHubData {
   collections: VocabCollection[];
-  flashcardSets?: FlashcardSet[];
+  vocabularySets?: VocabularySet[];
+  flashcardSets?: FlashcardSet[]; // Legacy alias
 }

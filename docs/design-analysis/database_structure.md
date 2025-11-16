@@ -24,17 +24,17 @@
 |-------|---------|------------------|-------------|
 | **profiles** | 1 | User profiles and settings | ✅ Yes |
 | **journals** | 55 | Journal entries | ✅ Yes |
-| **flashcard_set** | 3 | Flashcard collections | ✅ Yes |
-| **flashcard** | 108 | Individual flashcards | ❌ No |
+| **vocabulary_set** | 3 | Vocabulary collections | ✅ Yes |
+| **vocabulary** | 108 | Individual vocabulary words | ❌ No |
 | **sessions** | 31 | Roleplay conversation sessions | ❌ No |
 | **roleplays** | 3 | Roleplay scenarios | ❌ No |
 
-### 📊 Supporting Tables
+### 📈 Supporting Tables
 
 | Table | Records | Purpose |
-|-------|---------|---------|
-| **flashcard_status** | 108 | FSRS learning algorithm data |
-| **fsrs_review_logs** | 144 | Review history tracking |
+|-------|---------|---------||
+| **vocabulary_status** | 108 | FSRS learning algorithm data |
+| **fsrs_review_logs** | 186 | Review history tracking |
 | **feedback_logs** | 6 | Learning feedback analytics |
 | **grammar_topics** | 25 | Grammar learning topics |
 | **vocab_topics** | 31 | Vocabulary learning topics |
@@ -71,9 +71,9 @@ Table: journals (RLS: ✅ ON) - 55 records
 | title | text | null | nullable | Entry title |
 | enhanced_version | text | null | nullable | AI-improved version |
 
-### 🃏 **flashcard_set** (Flashcard Collections)
+### 🃏 **vocabulary_set** (Vocabulary Collections)
 ```sql
-Table: flashcard_set (RLS: ✅ ON) - 3 records
+Table: vocabulary_set (RLS: ✅ ON) - 3 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
@@ -82,34 +82,32 @@ Table: flashcard_set (RLS: ✅ ON) - 3 records
 | created_at | timestamptz | now() | nullable | Creation timestamp |
 | profile_id | uuid | null | FK → profiles.id | Owner reference |
 | description | text | null | nullable | Set description |
-| source_type | text | 'manual' | CHECK: manual/journal | Creation method |
+| is_default | boolean | false | nullable | System-provided set |
 | updated_at | timestamptz | now() | nullable | Last modification |
 
-### 🔤 **flashcard** (Individual Cards)
+### 🔤 **vocabulary** (Individual Words)
 ```sql
-Table: flashcard (RLS: ❌ OFF) - 108 records
+Table: vocabulary (RLS: ❌ OFF) - 108 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
-| **id** | uuid | gen_random_uuid() | PK | Card identifier |
-| set_id | uuid | - | FK → flashcard_set.id | Parent collection |
+| **id** | uuid | gen_random_uuid() | PK | Word identifier |
+| set_id | uuid | - | FK → vocabulary_set.id | Parent collection |
 | word | text | - | required | Target vocabulary |
 | meaning | text | - | required | Definition/translation |
 | created_at | timestamptz | now() | nullable | Creation time |
 | example | text | null | nullable | Usage example |
-| context_sentence | text | null | nullable | Contextual sentence |
-| journal_entry_id | uuid | null | nullable | Source journal entry |
-| source | text | 'manual' | CHECK: manual/journal | Creation source |
+| source_id | uuid | null | nullable | Source reference |
 | updated_at | timestamptz | now() | nullable | Last update |
 
-### 📈 **flashcard_status** (Learning Progress)
+### 📈 **vocabulary_status** (Learning Progress)
 ```sql
-Table: flashcard_status (RLS: ❌ OFF) - 108 records
+Table: vocabulary_status (RLS: ❌ OFF) - 108 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
 | **id** | uuid | gen_random_uuid() | PK | Status identifier |
-| flashcard_id | uuid | - | FK → flashcard.id | Target flashcard |
+| vocabulary_id | uuid | - | FK → vocabulary.id | Target vocabulary |
 | interval | integer | 1 | - | Review interval (days) |
 | repetitions | integer | 0 | - | Times reviewed |
 | ease_factor | float8 | 2.5 | - | FSRS ease factor |
@@ -160,12 +158,12 @@ Table: sessions (RLS: ❌ OFF) - 31 records
 
 ### 📚 **fsrs_review_logs** (Review Analytics)
 ```sql
-Table: fsrs_review_logs (RLS: ❌ OFF) - 144 records
+Table: fsrs_review_logs (RLS: ❌ OFF) - 186 records
 ```
 | Column | Type | Default | Constraints | Description |
 |--------|------|---------|-------------|-------------|
 | **id** | uuid | gen_random_uuid() | PK | Log identifier |
-| card_id | uuid | null | FK → flashcard_status.id | Review target |
+| card_id | uuid | null | FK → vocabulary_status.id | Review target |
 | rating | text | null | CHECK: again/hard/good/easy | User rating |
 | state | text | null | CHECK: new/learning/review/relearning | Card state |
 | review_date | timestamptz | now() | nullable | Review timestamp |
@@ -314,7 +312,7 @@ Table: roleplay_topics (RLS: ❌ OFF) - 7 records
 ### **Row Level Security (RLS) Status**
 - ✅ **journals**: User can only access their own entries
 - ✅ **profiles**: Users can only modify their own profile
-- ✅ **flashcard_set**: Users can only access their own sets
+- ✅ **vocabulary_set**: Users can only access their own sets
 - ❌ **Other tables**: No RLS (application-level security)
 
 ### **Foreign Key Relationships**
@@ -346,12 +344,12 @@ graph TD
 
 ---
 
-## 📊 Data Distribution Analysis
+## 📈 Data Distribution Analysis
 
 | Feature Area | Tables | Records | Percentage |
 |-------------|--------|---------|-----------|
-| **Flashcard System** | 4 | 259 | 41.8% |
-| **Learning Analytics** | 3 | 175 | 28.2% |
+| **Vocabulary System** | 4 | 305 | 49.2% |
+| **Learning Analytics** | 3 | 217 | 35.0% |
 | **Journal System** | 4 | 64 | 10.3% |
 | **Roleplay System** | 3 | 41 | 6.6% |
 | **Content Framework** | 4 | 13 | 2.1% |
@@ -362,18 +360,19 @@ graph TD
 ## 🚀 Recent Changes & Migrations
 
 ### Latest Migrations Applied:
+- **20251116072447**: Renamed flashcard tables to vocabulary (flashcard_set → vocabulary_set, flashcard → vocabulary, flashcard_status → vocabulary_status)
 - **20251115044429**: Added `highlights` column to sessions table
 - **20251114164742**: Added `feedback` column to sessions table
 
-These recent updates enhance the roleplay conversation system with better feedback tracking and highlight extraction capabilities.
+These recent updates rename the flashcard system to vocabulary-focused terminology and enhance the roleplay conversation system with better feedback tracking.
 
 ---
 
 ## 🚀 Optimization Notes
 
-1. **High Activity Tables**: flashcard_status, fsrs_review_logs (frequent updates)
-2. **Search-Heavy Tables**: journals, flashcard (text content)
-3. **Join-Intensive**: flashcard ecosystem, feedback system
+1. **High Activity Tables**: vocabulary_status, fsrs_review_logs (frequent updates)
+2. **Search-Heavy Tables**: journals, vocabulary (text content)
+3. **Join-Intensive**: vocabulary ecosystem, feedback system
 4. **JSON Storage**: sessions.conversation_json (flexible but query-limited)
 
 ---

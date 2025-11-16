@@ -4,18 +4,18 @@ import { db } from "../database/db"; // your singleton client
 const scheduler = fsrs();
 
 /**
- * Handles a user review for a given flashcard.
+ * Handles a user review for a given vocabulary word.
  * Fetches, updates, and logs using Supabase.
  */
-export async function handleReview(flashcard_id: string, ratingValue: number) {
+export async function handleReview(vocabulary_id: string, ratingValue: number) {
   // 1️⃣ Fetch current status
   const { data: status, error: fetchError } = await db
-    .from("flashcard_status")
+    .from("vocabulary_status")
     .select("*")
-    .eq("flashcard_id", flashcard_id)
+    .eq("vocabulary_id", vocabulary_id)
     .single();
 
-  if (fetchError || !status) throw new Error("Flashcard status not found");
+  if (fetchError || !status) throw new Error("Vocabulary status not found");
 
   // 2️⃣ Build FSRS card object
   const card = {
@@ -36,9 +36,9 @@ export async function handleReview(flashcard_id: string, ratingValue: number) {
   const rating = mapRating(ratingValue);
   const { card: updated, log } = scheduler.next(card, now, rating);
 
-  // 4️⃣ Update flashcard_status
+  // 4️⃣ Update vocabulary_status
   const { error: updateError } = await db
-    .from("flashcard_status")
+    .from("vocabulary_status")
     .update({
       next_review_at: updated.due.toISOString(),
       stability: updated.stability,
@@ -52,7 +52,7 @@ export async function handleReview(flashcard_id: string, ratingValue: number) {
       last_review_at: now.toISOString(),
       updated_at: now.toISOString(),
     })
-    .eq("flashcard_id", flashcard_id);
+    .eq("vocabulary_id", vocabulary_id);
 
   if (updateError) throw updateError;
 
@@ -75,7 +75,7 @@ export async function handleReview(flashcard_id: string, ratingValue: number) {
 
   // ✅ Return summary
   return {
-    flashcard_id,
+    vocabulary_id,
     next_review_at: updated.due,
     stability: updated.stability,
     difficulty: updated.difficulty,
@@ -99,12 +99,12 @@ function reverseMapState(state: number) {
 }
 
 /** 🔸 Convert user rating (1–4) to FSRS Rating enum */
-function mapRating(value: string) {
+function mapRating(value: number) {
   switch (value) {
-    case 'again': return Rating.Again;
-    case 'hard': return Rating.Hard;
-    case 'good': return Rating.Good;
-    case 'easy': return Rating.Easy;
+    case 1: return Rating.Again;
+    case 2: return Rating.Hard;
+    case 3: return Rating.Good;
+    case 4: return Rating.Easy;
     default: throw new Error("Invalid rating");
   }
 }

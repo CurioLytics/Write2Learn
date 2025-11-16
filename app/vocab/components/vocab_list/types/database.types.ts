@@ -674,19 +674,15 @@ export type Database = {
           total_flashcards: number
         }[]
       }
-      get_flashcard_sets:
-        | {
-            Args: { profile: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_flashcard_sets(profile => text), public.get_flashcard_sets(profile => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
-          }
-        | {
-            Args: { profile: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_flashcard_sets(profile => text), public.get_flashcard_sets(profile => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
-          }
+      get_flashcard_sets: {
+        Args: { profile: string }
+        Returns: {
+          flashcards_due: number
+          set_id: string
+          set_title: string
+          total_flashcards: number
+        }[]
+      }
       get_flashcards_for_review: {
         Args: { set_uuid: string; user_uuid: string }
         Returns: {
@@ -716,37 +712,6 @@ export type Database = {
           title: string
         }[]
       }
-      get_vocabulary_for_review: {
-        Args: { set_uuid: string; user_uuid: string }
-        Returns: {
-          ease_factor: number
-          example: string
-          interval: number
-          meaning: string
-          next_review_at: string
-          state: string
-          vocabulary_id: string
-          word: string
-        }[]
-      }
-      get_vocabulary_set_stats: {
-        Args: { user_uuid: string }
-        Returns: {
-          set_id: string
-          title: string
-          total_vocabulary: number
-          vocabulary_due: number
-        }[]
-      }
-      get_vocabulary_sets: {
-        Args: { profile: string }
-        Returns: {
-          set_id: string
-          set_title: string
-          total_vocabulary: number
-          vocabulary_due: number
-        }[]
-      }
       insert_flashcards_into_journal_vocab: {
         Args: { p_flashcards: Json; p_user_id: string }
         Returns: {
@@ -756,33 +721,11 @@ export type Database = {
           word: string
         }[]
       }
-      insert_vocabulary_into_journal_vocab: {
-        Args: { p_user_id: string; p_vocabulary: Json }
-        Returns: {
-          example: string
-          meaning: string
-          vocabulary_id: string
-          word: string
-        }[]
-      }
       test_get_journal_vocab_set_id: {
         Args: { p_user_id: string }
         Returns: string
       }
       update_flashcard_review: {
-        Args: {
-          card_id: string
-          difficulty: number
-          ease_factor: number
-          interval: number
-          next_review: string
-          rating: string
-          stability: number
-          user_uuid: string
-        }
-        Returns: undefined
-      }
-      update_vocabulary_review: {
         Args: {
           card_id: string
           difficulty: number
