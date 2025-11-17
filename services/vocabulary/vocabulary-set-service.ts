@@ -20,6 +20,7 @@ export interface VocabularySetResponse {
   created_at: string;
   updated_at: string;
   vocabulary_count: number;
+  is_starred?: boolean;
 }
 
 /**
@@ -142,8 +143,81 @@ export class VocabularySetService {
       is_default: setData.is_default,
       created_at: setData.created_at,
       updated_at: setData.updated_at,
-      vocabulary_count: count || 0
+      vocabulary_count: count || 0,
+      is_starred: setData.is_starred
     };
+  }
+
+  /**
+   * Toggle star status for a vocabulary set
+   */
+  async toggleVocabularySetStar(setId: string, userId: string): Promise<boolean> {
+    // First get current star status
+    const { data: currentData, error: fetchError } = await this.supabase
+      .from('vocabulary_set')
+      .select('is_starred')
+      .eq('id', setId)
+      .eq('profile_id', userId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to get vocabulary set: ${fetchError.message}`);
+    }
+
+    const newStarredStatus = !currentData.is_starred;
+
+    // Update star status
+    const { error: updateError } = await this.supabase
+      .from('vocabulary_set')
+      .update({ is_starred: newStarredStatus })
+      .eq('id', setId)
+      .eq('profile_id', userId);
+
+    if (updateError) {
+      throw new Error(`Failed to update star status: ${updateError.message}`);
+    }
+
+    return newStarredStatus;
+  }
+
+  /**
+   * Get all starred vocabulary sets for a user
+   */
+  async getStarredVocabularySets(userId: string): Promise<VocabularySetResponse[]> {
+    const { data: setsData, error: setsError } = await this.supabase
+      .from('vocabulary_set')
+      .select('*')
+      .eq('profile_id', userId)
+      .eq('is_starred', true)
+      .order('updated_at', { ascending: false });
+
+    if (setsError) {
+      throw new Error(`Failed to get starred vocabulary sets: ${setsError.message}`);
+    }
+
+    // Get vocabulary counts for each set
+    const setsWithCounts = await Promise.all(
+      setsData.map(async (set) => {
+        const { count } = await this.supabase
+          .from('vocabulary')
+          .select('*', { count: 'exact', head: true })
+          .eq('set_id', set.id);
+
+        return {
+          id: set.id,
+          title: set.title,
+          description: set.description,
+          profile_id: set.profile_id,
+          is_default: set.is_default,
+          created_at: set.created_at,
+          updated_at: set.updated_at,
+          vocabulary_count: count || 0,
+          is_starred: set.is_starred
+        };
+      })
+    );
+
+    return setsWithCounts;
   }
 }
 

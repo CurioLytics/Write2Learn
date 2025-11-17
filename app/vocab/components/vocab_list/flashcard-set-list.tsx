@@ -10,6 +10,7 @@ interface VocabularySetListProps {
   isLoading?: boolean;
   error?: string | null;
   onSelectSet?: (setId: string) => void;
+  onStarToggle?: (setId: string, newStarredStatus: boolean) => void;
 }
 
 // Legacy alias for backward compatibility
@@ -20,7 +21,9 @@ export interface FlashcardSetListProps extends VocabularySetListProps {
 export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   vocabularySets,
   isLoading = false,
-  error = null
+  error = null,
+  onSelectSet,
+  onStarToggle
 }) => {
   if (isLoading) {
     return (
@@ -84,7 +87,14 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
           <VocabularySetCard
             key={set.set_id}
             vocabularySet={set}
-            onClick={() => router.push(`/vocab/${set.set_id}`)}
+            onClick={() => {
+              if (onSelectSet) {
+                onSelectSet(set.set_id);
+              } else {
+                router.push(`/vocab/${set.set_id}`);
+              }
+            }}
+            onStarToggle={onStarToggle}
           />
         ))}
       </div>

@@ -1,161 +1,203 @@
-# Tasks
 
-## In Progress
+# 🌟 **STAR FEATURE IMPLEMENTATION PLAN**
 
-- Optimize Google Authentication Flow [October 9, 2025]
-  - Fix OAuth sign-in with Google implementation
-  - Add proper error handling for failed OAuth attempts
-  - Implement automatic profile creation after Google sign-in
-  - Enhance OAuth button with better loading states and feedback
-  - Add comprehensive unit tests for OAuth authentication flow
-  - Document Google OAuth setup and configuration process
-  - Ensure mobile-friendly OAuth buttons and login experience
+## 📋 **Overview**
+Add star/favorite functionality to vocabulary system allowing users to:
+- Star/unstar individual vocabulary words
+- Star/unstar vocabulary sets  
+- Star words directly in flashcard review mode
+- Filter and view starred items
 
-- Implement onboarding to journaling transition [September 21, 2025]
-  - Fetch journal templates from API after profile creation
-  - Group templates by tags/categories
-  - Display template selection interface
-  - Implement template selection and journal creation flow
-  - Add navigation from onboarding completion to journal creation
+## 🗄️ **1. Database Migrations**
 
-- Create breathing animation for loading states [September 21, 2025]
-  - Design a reusable component with alternating "breathe in"/"breathe out" text
-  - Implement bubble animation with zoom in/out effect
-  - Add 5-second timing for state transitions
-  - Replace standard loading spinners to reduce user irritation during waits
-  - Move text outside of bubble while maintaining container dimensions [September 22, 2025]
-  - Set initial state to small bubble that grows larger
-  - Ensure only the bubble resizes while container remains intact
+### **1.1 Add `is_starred` column to `vocabulary_set` table**
+```sql
+ALTER TABLE public.vocabulary_set 
+ADD COLUMN is_starred boolean DEFAULT false;
 
-- Improve dashboard homepage layout [September 22, 2025]
-  - Add down arrow at the bottom of the first section (journal + quote)
-  - Implement smooth scrolling to second section (roleplay + vocab hub) when arrow is clicked
-  - Allow deselection of templates to enable writing with a blank page
-  
+COMMENT ON COLUMN public.vocabulary_set.is_starred IS 'User has starred this vocabulary set';
+```
+
+### **1.2 Add `is_starred` column to `vocabulary` table**
+```sql
+ALTER TABLE public.vocabulary 
+ADD COLUMN is_starred boolean DEFAULT false;
+
+COMMENT ON COLUMN public.vocabulary.is_starred IS 'User has starred this vocabulary word';
+```
+
+### **1.3 Update existing records (optional)**
+```sql
+-- Set all existing records to not starred (default)
+UPDATE public.vocabulary_set SET is_starred = false WHERE is_starred IS NULL;
+UPDATE public.vocabulary SET is_starred = false WHERE is_starred IS NULL;
+```
+
+## 🔧 **2. Code Updates**
+
+### **2.1 Update Type Definitions**
+📁 `/types/vocabulary.ts`
+- Add `is_starred?: boolean` to `Vocabulary` interface
+- Add `is_starred?: boolean` to `VocabularySet` interface
+
+### **2.2 Database Services Updates**
+📁 `/services/vocabulary/vocabulary-set-service.ts`
+- Update `getAllVocabularySets()` to include `is_starred` field
+- Add `toggleVocabularySetStar(setId: string): Promise<boolean>` 
+- Add `getStarredVocabularySets(): Promise<VocabularySet[]>`
+
+📁 `/services/vocabulary/vocabulary-management-service.ts`  
+- Update `getVocabularyBySetId()` to include `is_starred` field
+- Add `toggleVocabularyStar(vocabularyId: string): Promise<boolean>`
+- Add `getStarredVocabulary(setId?: string): Promise<Vocabulary[]>`
+
+### **2.3 API Endpoints**
+📁 `/app/api/vocabulary/star/route.ts` *(new)*
+```typescript
+// POST /api/vocabulary/star - Toggle vocabulary word star
+// Body: { vocabularyId: string, isStarred: boolean }
+```
+
+📁 `/app/api/vocabulary-set/star/route.ts` *(new)*
+```typescript  
+// POST /api/vocabulary-set/star - Toggle vocabulary set star
+// Body: { setId: string, isStarred: boolean }
+```
+
+### **2.4 UI Components Updates**
+
+#### **Vocabulary Set Card**
+📁 `/app/vocab/components/vocab_list/vocabulary-set-card.tsx`
+- Add star icon button (⭐/☆) in top-right corner
+- Handle star toggle click event
+- Update visual state when starred
+
+#### **Vocabulary Word Card** 
+📁 `/components/vocab/vocab-card.tsx`
+- Add star icon button in word card header
+- Handle star toggle functionality
+- Show visual feedback for starred state
+
+#### **Flashcard Review Mode**
+📁 `/app/review_flashcard/page.tsx`
+- Add floating star button during card review
+- Allow users to star/unstar current word
+- Persist star state to database
+- Show star indicator on already starred words
+
+### **2.5 New UI Features**
+
+#### **Starred Filter Options**
+📁 `/app/vocab/page.tsx`
+- Add "Starred Sets" filter toggle
+- Add "Show Starred Words Only" filter
+- Update vocabulary list based on filters
+
+#### **Starred Collections View** *(optional)*
+📁 `/app/vocab/starred/page.tsx` *(new)*
+- Dedicated page showing all starred vocabulary sets
+- Dedicated page showing all starred vocabulary words
+- Quick access via navigation or tab
+
+## 🎨 **3. UI/UX Design Specifications**
+
+### **3.1 Star Icon States**
+- **Unstarred**: `☆` (outline star) - gray color (`text-gray-400`)
+- **Starred**: `⭐` (filled star) - gold/yellow color (`text-yellow-500`)
+- **Hover**: Slight scale animation (`hover:scale-110`)
+- **Loading**: Spinner animation while toggling
+
+### **3.2 Component Positioning**
+- **Vocabulary Set Cards**: Top-right corner, absolute position
+- **Vocabulary Word Cards**: Next to word title in header
+- **Flashcard Mode**: Floating action button (bottom-right of card)
+
+### **3.3 Visual Feedback**
+- Immediate visual state change on click
+- Toast notification: "Added to favorites" / "Removed from favorites"
+- Subtle animation when toggling star state
+
+## 📱 **4. Implementation Order**
+
+### **Phase 1: Database & Types** 
+1. ✅ Run database migrations
+2. ✅ Update TypeScript interfaces
+3. ✅ Test database changes
+
+### **Phase 2: Services & API**
+1. ✅ Update vocabulary services  
+2. ✅ Create star toggle API endpoints
+3. ✅ Add filtering methods
+4. ✅ Test service layer
+
+### **Phase 3: UI Components**
+1. ✅ Update vocabulary set card component
+2. ✅ Update vocabulary word card component  
+3. ✅ Add star toggle functionality
+4. ✅ Test component interactions
+
+### **Phase 4: Flashcard Integration**
+1. ✅ Add star button to flashcard review
+2. ✅ Implement star toggle in review mode
+3. ✅ Add visual indicators for starred words
+4. ✅ Test review mode functionality
+
+### **Phase 5: Filtering & Views**
+1. ✅ Add filter options to vocabulary list
+2. ✅ Implement starred-only views
+3. ✅ Add navigation/access points
+4. ✅ Test filtering functionality
+
+## 🧪 **5. Testing Strategy**
+
+### **5.1 Database Testing**
+- Verify column additions don't break existing queries
+- Test star toggle operations
+- Validate data consistency
+
+### **5.2 API Testing**
+- Test star toggle endpoints  
+- Verify authentication/authorization
+- Test error handling scenarios
+
+### **5.3 UI Testing**
+- Test star toggle in all contexts
+- Verify visual state consistency
+- Test keyboard accessibility
+- Test mobile responsiveness
+
+### **5.4 Integration Testing**
+- Test star persistence across sessions
+- Verify filtering functionality
+- Test flashcard mode integration
+
+## 📊 **6. Success Metrics**
+
+### **6.1 Functionality**
+- ✅ Users can star/unstar vocabulary sets
+- ✅ Users can star/unstar individual words
+- ✅ Star state persists across sessions
+- ✅ Starred items can be filtered/viewed
+- ✅ Flashcard mode supports starring
+
+### **6.2 Performance**
+- Star toggle operations complete within 500ms
+- No impact on vocabulary loading performance  
+- Efficient filtering of starred items
+
+### **6.3 User Experience**
+- Intuitive star icon placement and behavior
+- Clear visual feedback for starred state
+- Seamless integration with existing workflows
+
+---
+
+<!-- EXISTING CONTENT BELOW -->
 
 
-- Implement text highlighting and processing in feedback [September 21, 2025]
-  - Add text highlighting functionality using window.getSelection()
-  - Show a floating "Save" button directly above highlighted text
-  - Store selected highlights in local state
-  - Add a "Process Highlight" button to send highlights to webhook
-  - Send saved highlights to the webhook for processing
-  - Apply yellow background to saved highlights in the UI
-  - Restrict highlighting to only the 'Improved Version' section
-  - Ensure error handling keeps users on the feedback page
-  - Fix highlight saving functionality to properly add to highlights list
-  - Improve DOM manipulation for reliable text highlighting
-  - Add debugging to track highlight state changes
-
-- Implement mobile-friendly text highlighting [September 22, 2025]
-  - Research best practices for text selection on mobile devices
-  - Create touch-friendly highlight selection interface
-  - Implement touch event handlers for mobile text selection
-  - Design mobile-optimized floating action menu
-  - Ensure visual feedback is clear on mobile screens
-  - Test across different mobile browsers and devices
-  - Optimize performance for mobile devices
-  - Add responsive design adjustments for different screen sizes
-
-## Completed
-- Implement global user profile management [October 9, 2025]
-  - Created user profile store with Zustand
-  - Implemented profile data fetching after sign-in
-  - Stored user profile in global state with sessionStorage persistence
-  - Created UserProvider component for app-wide profile access
-  - Updated navigation component to display user profile information
-  - Added profile state clearing on logout
-  - Integrated profile display in sidebar navigation
-
-- Implement Simplified Vocab Hub with Flashcard Sets [September 23, 2025]
-  - Removed all vocabulary collections-related components and code
-  - Simplified UI to focus exclusively on flashcard sets
-  - Integrated API calls with real Supabase functions
-  - Implemented proper loading states and error handling
-  - Removed mock data in favor of real data from backend
-  - Created vocabService for future vocabulary collection needs
-  - Streamlined user interface for better focus and clarity
-
-- Update navigation icons with Lucide React components [September 22, 2025]
-  - Replaced image-based icons with Lucide React components
-  - Updated icons for journal (Book), vocab hub (FlashCard), dashboard (House), roleplay (MessageCircle), and authentication (LogIn/LogOut)
-  - Enhanced navigation styling for better visual consistency
-  - Improved responsiveness of the navigation component
-
-- Implement comprehensive Journal Page [September 22, 2025]
-  - Created Journal List UI component to display entries with timestamps
-  - Developed Calendar View component to browse journal entries by date
-  - Added Journal Stats section to display total entries and streaks
-  - Implemented Wake-up Call section for users who need writing prompts
-  - Created Template Selection interface similar to onboarding
-  - Integrated components with smooth scrolling and state management
-  - Implemented Supabase function calls for journal data and statistics
-  - Enhanced date utilities with consistent formatting functions
-
-- Refactor project structure according to global-rules.md [September 21, 2025]
-  - Reorganized code by feature and responsibility
-  - Fixed redundant file structure
-  - Updated import paths
-  - Fixed build errors
-  
-- Implement journal feedback feature [September 21, 2025]
-  - Added "Get Feedback" button to journal entry creation page
-  - Created feedback page to display response (title, summary, improved version)
-  - Implemented webhook call to external API for journal feedback
-  - Added vocabulary suggestions with checkboxes for selection
-  - Added navigation between journal creation and feedback pages
-  - Fixed API response handling with robust error recovery
-  - Added server-side proxy with timeout and data validation
-  - Implemented user-friendly error messages and fallback content
-  - Updated code to handle nested webhook response structure [array[0].output]
-  - Added comprehensive validation and graceful fallback for malformed responses
-  - Created unit tests to verify webhook response parsing logic
-  - Improved timeout handling with increased duration (60s) and retry logic
-  - Enhanced user experience with progressive loading indicators
-  - Implemented exponential backoff retry mechanism for resilience
-  - Added original version field to display the unmodified journal content [September 21, 2025]
-  - Added "Get Feedback" button to journal entry creation page
-  - Created feedback page to display response (title, summary, improved version)
-  - Implemented webhook call to external API for journal feedback
-  - Added vocabulary suggestions with checkboxes for selection
-  - Added navigation between journal creation and feedback pages
-  - Fixed API response handling with robust error recovery
-  - Added server-side proxy with timeout and data validation
-  - Implemented user-friendly error messages and fallback content
-  - Updated code to handle nested webhook response structure [array[0].output]
-  - Added comprehensive validation and graceful fallback for malformed responses
-  - Created unit tests to verify webhook response parsing logic
-  - Improved timeout handling with increased duration (60s) and retry logic
-  - Enhanced user experience with progressive loading indicators
-  - Implemented exponential backoff retry mechanism for resilience
-
-## Discovered During Work
-
-- Implement flashcard saving with webhook integration [September 22, 2025]
-  - Update flashcard creation page to send data to webhook at https://auto.zephyrastyle.com/webhook/save-flashcards
-  - Send profileId and flashcards data (front, back with definition and example)
-  - Show breathing animation loader during the API call
-  - Display success message upon successful save
-  - Implement error handling with user-friendly error messages
-  - Add unit tests to validate webhook integration
-  - Update API response handling for robust error recovery
-  - Add validation for required flashcard fields before submission
-
-- Rename and update "Flashcards" to "Vocab Hub" throughout the application [September 22, 2025]
-  - Updated navigation component to use "Vocab Hub" instead of "Flashcards"
-  - Added "Home" link to navigation
-  - Updated references in dashboard page to point to /vocab instead of /flashcards
-  - Updated vocabulary review button text and links
-  - Ensured consistent terminology throughout the application
-  - Fixed journal feedback redirects to maintain flashcard creation flow
-  - Added layout to vocab page to ensure navigation appears
 
 
-
-
-
-
-<!-- Once profile createed -> create a jouranl_set in supavase for that user, name: Journal Voca. in table: flashcard_set"  -->
+<!-- Once profile createed -> create a jouranl_set in supavase for that user, name: "Tổng hợp". in table: vocabulary_set"  -->
 <!-- UI
 make the set has image of multiple cards, like a stack of cards -->
 
@@ -175,18 +217,15 @@ The wrting screen should be clean. the content CONTAINER now is too small ( shou
 
 return to journal -> return to feedback page 
 
-----------------------------------FEATURES--------------------------
-profile page: 
-- Grop of setting: 
-  - log out
-  - Account settings (change email, password)
-  - Notification preferences (email reminders)
-  - Personalized preferences : goals, current level
-  - Delete account option
-each group is under a collapsible section
 
+----[VOCAB AND FLASHCARD HIGHLIGHT--------------
 
-----------------------------flashcard------------------------------tee
+- add starred for vocab set and vocab, and inside flashcard mode
+-style of vocan infomation of vocab/id  should similar to vocab/create
+- the Pen in vocab/[id] (in readonly mode) and  save changes + add word  sshould be float. and the button vocab/create on the 
+
+---------------------TEMPLATE--------
+CRUD template
 
 
 

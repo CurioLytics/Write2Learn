@@ -19,6 +19,7 @@ export interface Vocabulary {
   example?: string;
   source_id?: string;
   updated_at?: string;
+  is_starred?: boolean;
 }
 
 /**
@@ -42,6 +43,7 @@ export interface VocabularySet {
   description?: string;
   is_default?: boolean;
   updated_at?: string;
+  is_starred?: boolean;
 }
 
 /**

@@ -5,11 +5,15 @@ import { Vocabulary } from "@/types/vocabulary";
 import { FlashcardCard } from "../../components/Flashcard";
 import { ReviewControls } from "../../components/ReviewControls";
 import { ProgressBar } from "../../components/ProgressBar";
+import { toggleVocabularyStar } from '@/utils/star-helpers';
+import { useAuth } from '@/hooks/auth/use-auth';
+import { toast } from 'sonner';
 
 export default function ReviewPage() {
   const params = useParams<{ setId: string }>();
   const router = useRouter();
   const setId = params.setId;
+  const { user } = useAuth();
 
   const [cards, setCards] = useState<Vocabulary[]>([]);
   const [current, setCurrent] = useState(0);
@@ -45,6 +49,30 @@ export default function ReviewPage() {
   // Get the front and back content based on shuffle state
   const getFrontContent = (card: Vocabulary) => isShuffled ? card.meaning : card.word;
   const getBackContent = (card: Vocabulary) => isShuffled ? card.word : card.meaning;
+
+  // Star toggle function
+  const handleStarToggle = async () => {
+    if (!user || !currentCard) {
+      toast.error('Please log in to star vocabulary');
+      return;
+    }
+
+    try {
+      const newStarredStatus = await toggleVocabularyStar(currentCard.id);
+      
+      // Update local state
+      setCards(prev => prev.map(card => 
+        card.id === currentCard.id 
+          ? { ...card, is_starred: newStarredStatus }
+          : card
+      ));
+      
+      toast.success(newStarredStatus ? 'Starred' : 'Unstarred');
+    } catch (error: any) {
+      console.error('Error toggling star:', error);
+      toast.error(error.message);
+    }
+  };
 
   async function handleRating(rating: string) {
     if (!currentCard) return;
@@ -134,8 +162,8 @@ export default function ReviewPage() {
       <div className="w-full max-w-md space-y-4">
         <ProgressBar value={progress} />
 
-        {/* Shuffle button */}
-        <div className="flex justify-center">
+        {/* Shuffle and Star buttons */}
+        <div className="flex justify-center items-center gap-4">
           <button
             onClick={handleShuffle}
             className="p-3 text-gray-600 hover:text-blue-600 transition-colors"
@@ -144,6 +172,22 @@ export default function ReviewPage() {
           >
             🔀
           </button>
+          
+          {/* Star button */}
+          {currentCard && (
+            <button
+              onClick={handleStarToggle}
+              className={`p-3 transition-colors ${
+                currentCard.is_starred 
+                  ? 'text-yellow-500 hover:text-yellow-600' 
+                  : 'text-gray-400 hover:text-yellow-500'
+              }`}
+              aria-label={currentCard.is_starred ? 'Unstar word' : 'Star word'}
+              title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {currentCard.is_starred ? '⭐' : '☆'}
+            </button>
+          )}
         </div>
 
         <FlashcardCard

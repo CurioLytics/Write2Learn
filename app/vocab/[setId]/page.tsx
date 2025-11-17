@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { supabase } from '@/services/supabase/client';
+import { toggleVocabularyStar } from '@/utils/star-helpers';
+import { toast } from 'sonner';
 
 interface VocabularyWord {
   id: string;
   word: string;
   meaning: string;
   example?: string;
+  is_starred?: boolean;
 }
 
 interface VocabularySet {
@@ -79,7 +82,7 @@ export default function VocabularySetPage() {
       // Load vocabulary words
       const { data: wordsData, error: wordsError } = await supabase
         .from('vocabulary')
-        .select('id, word, meaning, example')
+        .select('id, word, meaning, example, is_starred')
         .eq('set_id', setId)
         .order('created_at');
 
@@ -129,6 +132,39 @@ export default function VocabularySetPage() {
 
   const removeWord = (index: number) => {
     setEditWords(editWords.filter((_, i) => i !== index));
+  };
+
+  // Star toggle function for vocabulary words
+  const handleStarToggle = async (wordId: string) => {
+    if (!user) {
+      toast.error('Please log in to star vocabulary');
+      return;
+    }
+
+    try {
+      const newStarredStatus = await toggleVocabularyStar(wordId);
+      
+      // Update local state
+      setVocabularyWords(prev => prev.map(word => 
+        word.id === wordId 
+          ? { ...word, is_starred: newStarredStatus }
+          : word
+      ));
+      
+      // Also update edit state if in editing mode
+      if (isEditing) {
+        setEditWords(prev => prev.map(word => 
+          word.id === wordId 
+            ? { ...word, is_starred: newStarredStatus }
+            : word
+        ));
+      }
+      
+      toast.success(newStarredStatus ? 'Starred' : 'Unstarred');
+    } catch (error: any) {
+      console.error('Error toggling star:', error);
+      toast.error(error.message || 'Failed to update star status');
+    }
   };
 
   // Change detection functions
@@ -404,15 +440,32 @@ export default function VocabularySetPage() {
                 <div key={word.id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-gray-700">Word #{index + 1}</h4>
-                    {isEditing && (
-                      <button
-                        onClick={() => removeWord(index)}
-                        className="text-gray-500 hover:text-red-600 transition-colors"
-                        aria-label={`Remove word ${index + 1}`}
-                      >
-                        🗑️
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {/* Star Button - only show for existing words with IDs */}
+                      {word.id && !isEditing && (
+                        <button
+                          onClick={() => handleStarToggle(word.id)}
+                          className={`p-1 rounded transition-colors ${
+                            word.is_starred 
+                              ? 'text-yellow-500 hover:text-yellow-600' 
+                              : 'text-gray-400 hover:text-yellow-500'
+                          }`}
+                          aria-label={word.is_starred ? 'Unstar word' : 'Star word'}
+                          title={word.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          {word.is_starred ? '⭐' : '☆'}
+                        </button>
+                      )}
+                      {isEditing && (
+                        <button
+                          onClick={() => removeWord(index)}
+                          className="text-gray-500 hover:text-red-600 transition-colors"
+                          aria-label={`Remove word ${index + 1}`}
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -5,6 +5,7 @@ export interface VocabularyWord {
   word: string;
   meaning: string;
   example?: string;
+  is_starred?: boolean;
 }
 
 export interface VocabularySetDetail {
@@ -57,7 +58,7 @@ export class VocabularyManagementService {
     // Get vocabulary words
     const { data: wordsData, error: wordsError } = await this.supabase
       .from('vocabulary')
-      .select('*')
+      .select('id, word, meaning, example, is_starred')
       .eq('set_id', setId)
       .order('created_at', { ascending: true });
 
@@ -216,6 +217,59 @@ export class VocabularyManagementService {
     if (setError) {
       throw new Error(`Failed to delete vocabulary set: ${setError.message}`);
     }
+  }
+
+  /**
+   * Toggle star status for a vocabulary word
+   */
+  async toggleVocabularyStar(vocabularyId: string): Promise<boolean> {
+    // First get current star status
+    const { data: currentData, error: fetchError } = await this.supabase
+      .from('vocabulary')
+      .select('is_starred')
+      .eq('id', vocabularyId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to get vocabulary word: ${fetchError.message}`);
+    }
+
+    const newStarredStatus = !currentData.is_starred;
+
+    // Update star status
+    const { error: updateError } = await this.supabase
+      .from('vocabulary')
+      .update({ is_starred: newStarredStatus })
+      .eq('id', vocabularyId);
+
+    if (updateError) {
+      throw new Error(`Failed to update star status: ${updateError.message}`);
+    }
+
+    return newStarredStatus;
+  }
+
+  /**
+   * Get starred vocabulary words (optionally filtered by set)
+   */
+  async getStarredVocabulary(setId?: string): Promise<VocabularyWord[]> {
+    let query = this.supabase
+      .from('vocabulary')
+      .select('id, word, meaning, example, is_starred')
+      .eq('is_starred', true)
+      .order('updated_at', { ascending: false });
+
+    if (setId) {
+      query = query.eq('set_id', setId);
+    }
+
+    const { data: wordsData, error: wordsError } = await query;
+
+    if (wordsError) {
+      throw new Error(`Failed to get starred vocabulary: ${wordsError.message}`);
+    }
+
+    return wordsData || [];
   }
 }
 

@@ -1,5 +1,5 @@
 import { createSupabaseClient } from '@/services/supabase/auth-helpers';
-import { VocabularySet } from '@/types/vocabulary';
+import { VocabularySet, Vocabulary } from '@/types/vocabulary';
 
 /**
  * Service for fetching and managing vocabulary sets
@@ -43,6 +43,104 @@ class VocabularyService {
       }));
     } catch (error) {
       console.error('Error in getVocabularySets:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle star status for a vocabulary word
+   */
+  async toggleVocabularyStar(vocabularyId: string, userId: string): Promise<boolean> {
+    try {
+      const supabase = createSupabaseClient();
+      
+      // First get current star status
+      const { data: currentVocab, error: fetchError } = await supabase
+        .from('vocabulary')
+        .select('is_starred')
+        .eq('id', vocabularyId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching vocabulary for star toggle:', fetchError);
+        throw fetchError;
+      }
+      
+      // Toggle the star status
+      const newStarStatus = !currentVocab.is_starred;
+      
+      const { error: updateError } = await supabase
+        .from('vocabulary')
+        .update({ is_starred: newStarStatus })
+        .eq('id', vocabularyId);
+      
+      if (updateError) {
+        console.error('Error updating vocabulary star:', updateError);
+        throw updateError;
+      }
+      
+      return newStarStatus;
+    } catch (error) {
+      console.error('Error in toggleVocabularyStar:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all starred vocabulary words for a user
+   */
+  async getStarredVocabulary(userId: string): Promise<Vocabulary[]> {
+    try {
+      const supabase = createSupabaseClient();
+      
+      const { data, error } = await supabase
+        .from('vocabulary')
+        .select(`
+          id,
+          word,
+          meaning,
+          example,
+          is_starred,
+          vocabulary_set!inner(profile_id)
+        `)
+        .eq('is_starred', true)
+        .eq('vocabulary_set.profile_id', userId)
+        .order('word');
+      
+      if (error) {
+        console.error('Error fetching starred vocabulary:', error);
+        throw error;
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error in getStarredVocabulary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all starred vocabulary sets for a user
+   */
+  async getStarredVocabularySets(userId: string): Promise<VocabularySet[]> {
+    try {
+      const supabase = createSupabaseClient();
+      
+      const { data, error } = await supabase
+        .from('vocabulary_set')
+        .select('*')
+        .eq('is_starred', true)
+        .eq('profile_id', userId)
+        .order('title');
+      
+      if (error) {
+        console.error('Error fetching starred vocabulary sets:', error);
+        throw error;
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error in getStarredVocabularySets:', error);
       throw error;
     }
   }
