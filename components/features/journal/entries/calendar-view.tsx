@@ -68,24 +68,29 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
             selectedDate.getDate() === day.date.getDate() && 
             selectedDate.getMonth() === day.date.getMonth() && 
             selectedDate.getFullYear() === day.date.getFullYear();
-            
+
+          // Slightly darker style for days with journal, no border
+          const journalDayStyle = day.hasJournal && day.date
+            ? 'bg-neutral-300 text-black font-bold'
+            : '';
+
           return (
             <button
               key={index}
               onClick={() => day.date && onDateSelect(day.date)}
               disabled={!day.date}
               className={`
-                p-2 h-8 w-8 text-xs rounded-full flex items-center justify-center
-                ${!day.date ? 'text-gray-300' : 'hover:bg-blue-50'}
-                ${day.hasJournal && day.date ? 'font-medium' : ''}
+                p-2 h-8 w-8 text-xs rounded-full flex items-center justify-center relative
+                ${!day.date ? 'text-gray-300' : 'hover:bg-neutral-400'}
                 ${day.isToday ? 'border border-blue-500 text-blue-600' : ''}
                 ${isSelected ? 'bg-blue-500 text-white hover:bg-blue-600' : ''}
+                ${journalDayStyle}
               `}
               aria-label={day.date ? formatDate(day.date) : 'Empty day'}
               aria-pressed={isSelected}
             >
               {day.date?.getDate()}
-              {day.hasJournal && <span className="absolute w-1 h-1 bg-blue-500 rounded-full -bottom-0.5"></span>}
+              {day.hasJournal && <span className="absolute w-1 h-1 bg-neutral-400 rounded-full -bottom-0.5"></span>}
             </button>
           )
         })}
@@ -119,7 +124,7 @@ function generateCalendar(date: Date, journals: Journal[]): CalendarDay[] {
   // Convert journal dates to strings for easier comparison
   const journalDates = new Set(
     journals.map(journal => {
-      const journalDate = new Date(journal.created_at);
+      const journalDate = new Date(journal.journal_date);
       return `${journalDate.getFullYear()}-${journalDate.getMonth()}-${journalDate.getDate()}`;
     })
   );

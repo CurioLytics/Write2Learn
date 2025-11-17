@@ -45,21 +45,15 @@ export function JournalStatsDisplay({ stats, isLoading = false }: JournalStatsPr
         </div>
       </div>
       
-      {stats.current_streak > 0 && (
-        <div className="mt-3 text-center text-xs text-gray-600">
-          <span className="font-medium text-green-600">Great job!</span> Keep your writing streak going.
-        </div>
-      )}
-      
       {stats.current_streak === 0 && stats.total_journals > 0 && (
         <div className="mt-3 text-center text-xs text-gray-600">
-          Create a journal entry today to start a new streak!
+          Tạo một mục nhật ký hôm nay để bắt đầu chuỗi mới!
         </div>
       )}
       
       {stats.total_journals === 0 && (
         <div className="mt-3 text-center text-xs text-gray-600">
-          Start your journal journey by creating your first entry!
+          Bắt đầu hành trình viết nhật ký của bạn bằng cách tạo mục nhập đầu tiên!
         </div>
       )}
     </div>

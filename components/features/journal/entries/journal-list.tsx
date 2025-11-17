@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Journal } from '@/types/journal';
-import { formatDistanceToNow } from '@/utils/date-utils';
+import { formatDate } from '@/utils/date-utils';
 
 interface JournalListProps {
   journals: Journal[];
@@ -40,10 +40,9 @@ export function JournalList({ journals, onSelect, selectedJournalId }: JournalLi
               {journal.title || 'Untitled Entry'}
             </h3>
             <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
-              {formatDistanceToNow(new Date(journal.created_at))}
+              {formatDate(new Date(journal.journal_date))}
             </span>
           </div>
-          
           <p className="text-sm text-gray-600 line-clamp-2">
             {journal.content}
           </p>

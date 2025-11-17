@@ -9,6 +9,7 @@ export interface FrameworkCategory {
 export interface Framework {
   name: string;
   content: string;
+  description?: string | null;
   category: string;
   created_at: string | null;
 }
@@ -43,7 +44,7 @@ class FrameworkService {
       
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, category, created_at')
+        .select('name, content, description, category, created_at')
         .order('name');
       
       if (error) throw error;
@@ -63,7 +64,7 @@ class FrameworkService {
       
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, category, created_at')
+        .select('name, content, description, category, created_at')
         .eq('category', category)
         .order('name');
       

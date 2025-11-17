@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle, Search } from 'lucide-react';
 import { JournalList, CalendarView } from '@/components/features/journal/entries';
 import { JournalStatsDisplay } from '@/components/features/journal/stats';
-import { TemplateCards } from '@/components/journal/template-cards';
 import { ExploreFrameworks } from '@/components/journal/explore-frameworks';
 import { TagFilter } from '@/components/journal/tag-filter';
 import { Journal, JournalStats } from '@/types/journal';
@@ -26,7 +25,6 @@ export default function JournalPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  
   // Filter journals based on search query only
   const filteredJournals = useMemo(() => {
     return journals.filter(journal => {
@@ -114,34 +112,30 @@ export default function JournalPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Compact Header - Center aligned like home */}
+      {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Journal Hub</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
         <p className="text-gray-600 mb-6">
-          Your central space for writing, learning, and growing
+          Không gian viết lách, học hỏi và phát triển của bạn
         </p>
-        
         <Button 
           onClick={() => router.push('/journal/new')}
-          className="bg-blue-600 hover:bg-blue-700 mb-6"
+          className="mb-6"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
-          New Entry
+          Viết mới
         </Button>
-        
-        {/* Compact Filter Section */}
+        {/* Search and Filter */}
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search entries..."
+              placeholder="Tìm kiếm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
-          
-          {/* Tag Filter Component */}
           <TagFilter 
             onFilterChange={handleTagFilterChange}
             currentTag={selectedTag}
@@ -149,56 +143,32 @@ export default function JournalPage() {
         </div>
       </div>
 
-      {/* Single Column Layout like home */}
-      <div className="space-y-8">
-        {/* Templates Section - Like home */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">Your Templates</h2>
-          <p className="text-center text-gray-600 mb-6">Click and drag to create entries or customize templates</p>
-          <TemplateCards />
-        </div>
-
-        {/* Stats and Calendar - Horizontal layout */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <JournalStatsDisplay stats={stats} isLoading={isLoading} />
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Calendar</h3>
-            <CalendarView 
-              journals={journals}
-              onDateSelect={handleDateSelect}
-              selectedDate={selectedDate}
-            />
-          </div>
-        </div>
-
-        {/* Journal Entries - Compact */}
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Recent Entries</h2>
+      {/* Content Layout: Journal List & Calendar side by side */}
+      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+        {/* Journal List */}
+        <div className="bg-white shadow rounded-lg p-6 flex flex-col h-full">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Bài viết gần đây</h2>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-1 border-blue-500"></div>
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-center">
               {error}
-              <button onClick={() => window.location.reload()} className="ml-2 underline">
-                Retry
-              </button>
+              <Button 
+                variant="link"
+                onClick={() => window.location.reload()} 
+                className="ml-2"
+              >
+                Thử lại
+              </Button>
             </div>
           ) : filteredJournals.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">
-                {journals.length === 0 ? "Start Your Journal Journey" : "No entries found"}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {journals.length === 0 
-                  ? "Keep track of your language learning progress."
-                  : "Try adjusting your search criteria."
-                }
-              </p>
-              <Button onClick={() => router.push('/journal/new')} className="bg-blue-600 hover:bg-blue-700">
+              <p className="text-gray-600 mb-4"></p>
+              <Button onClick={() => router.push('/journal/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {journals.length === 0 ? "Create Your First Entry" : "New Entry"}
+                {journals.length === 0 ? "Tạo bài viết đầu tiên" : "Viết mới"}
               </Button>
             </div>
           ) : (
@@ -211,13 +181,22 @@ export default function JournalPage() {
             </div>
           )}
         </div>
-
-        {/* Explore Frameworks - Compact */}
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Explore Frameworks</h2>
-          <p className="text-center text-gray-600 mb-6">Discover structured approaches to enhance your journaling</p>
-          <ExploreFrameworks />
+        {/* Calendar */}
+        <div className="bg-white shadow rounded-lg p-6 flex flex-col h-full">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Lịch</h3>
+          <CalendarView 
+            journals={journals}
+            onDateSelect={handleDateSelect}
+            selectedDate={selectedDate}
+          />
         </div>
+      </div>
+
+      {/* Explore Frameworks */}
+      <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6 mt-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
+        <p className="text-center text-gray-600 mb-6">Khám phá các phương pháp có cấu trúc để nâng cao kỹ năng viết</p>
+        <ExploreFrameworks />
       </div>
     </div>
   );

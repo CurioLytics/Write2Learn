@@ -106,18 +106,10 @@ export function ExploreFrameworks() {
             }}
           >
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{framework.name}</CardTitle>
-                  <p className="text-sm text-gray-500">{framework.category}</p>
-                </div>
-              </div>
+              <div className="text-lg text-gray-800">{framework.name}</div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{framework.content}</p>
+              <p className="text-gray-600">{framework.description}</p>
             </CardContent>
           </Card>
         ))}

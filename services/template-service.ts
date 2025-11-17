@@ -34,7 +34,7 @@ export async function fetchDefaultTemplates(): Promise<PinnedTemplate[]> {
       },
       { 
         id: 'default-evening-shutdown', 
-        title: 'Evening Shutdown', 
+        title: 'Evening Wind-Down', 
         category: 'Daily Reflection',
         content: '🌙 **Evening Wind Down**\n\n**How did your day go overall?**\n\n\n**What was the highlight of your day?**\n\n\n**What challenged you today and how did you handle it?**\n\n\n**What are you grateful for from today?**\n\n\n**What\'s one thing you learned about yourself?**\n\n\n**Tomorrow, I want to focus on:**\n\n\n---\n*Time to rest and recharge for tomorrow.*'
       },
@@ -47,7 +47,7 @@ export function usePinnedTemplates() {
 
   const fallback: PinnedTemplate[] = [
     { id: 'default-morning-checkin', title: 'Morning Check-in', category: 'Daily Reflection' },
-    { id: 'default-evening-shutdown', title: 'Evening Shutdown', category: 'Daily Reflection' },
+    { id: 'default-evening-shutdown', title: 'Evening Wind-Down', category: 'Daily Reflection' },
   ];
 
   const { data, loading, error, refresh, clearCache } = useCachedFetch<PinnedTemplate[]>({

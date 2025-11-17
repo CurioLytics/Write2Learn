@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { TemplateCards } from '@/components/journal/template-cards';
@@ -35,6 +35,7 @@ function DueFlashcards() {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isShuffled, setIsShuffled] = useState(false);
 
     useEffect(() => {
         async function fetchDueFlashcards() {
@@ -132,6 +133,17 @@ function DueFlashcards() {
         }
     };
 
+    const handleShuffle = () => {
+        setIsShuffled(!isShuffled);
+        setIsFlipped(false); // Reset flip state when shuffling
+    };
+
+    // Get the front and back content based on shuffle state
+    const getFrontContent = (card: DueFlashcard) => isShuffled ? card.meaning : card.word;
+    const getBackContent = (card: DueFlashcard) => isShuffled ? card.word : `${card.meaning}${
+        card.example ? `\n\n"${card.example}"` : ''
+    }`;
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center py-20">
@@ -146,9 +158,12 @@ function DueFlashcards() {
                 <div className="text-4xl mb-4">🎉</div>
                 <h3 className="text-xl font-semibold mb-2">Tuyệt vời!</h3>
                 <p className="text-gray-600">Không có từ vựng nào cần ôn tập ngay bây giờ.</p>
-                <Link href="/vocab" className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button 
+                    onClick={() => window.location.href = '/vocab'}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
                     Xem tất cả từ vựng
-                </Link>
+                </button>
             </div>
         );
     }
@@ -157,9 +172,9 @@ function DueFlashcards() {
     const progress = ((currentIndex + 1) / flashcards.length) * 100;
 
     return (
-        <div className="flex flex-col items-center space-y-6">
+        <div className="flex flex-col items-center space-y-6 w-full max-w-md mx-auto">
             {/* Progress */}
-            <div className="w-full max-w-md">
+            <div className="w-full">
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-600">Tiến độ</span>
                     <span className="text-sm font-medium">{currentIndex + 1}/{flashcards.length}</span>
@@ -172,12 +187,22 @@ function DueFlashcards() {
                 <p className="text-sm text-gray-500">{currentCard.vocabulary_set.title}</p>
             </div>
 
+            {/* Shuffle button */}
+            <div className="flex justify-center">
+                <button
+                    onClick={handleShuffle}
+                    className="p-3 text-gray-600 hover:text-blue-600 transition-colors"
+                    aria-label="Shuffle front and back"
+                    title="Exchange front and back content"
+                >
+                    🔀
+                </button>
+            </div>
+
             {/* Flashcard */}
             <FlashcardCard
-                front={currentCard.word}
-                back={`${currentCard.meaning}${
-                    currentCard.example ? `\n\n"${currentCard.example}"` : ''
-                }`}
+                front={getFrontContent(currentCard)}
+                back={getBackContent(currentCard)}
                 isFlipped={isFlipped}
                 onFlip={() => setIsFlipped(!isFlipped)}
             />
@@ -185,7 +210,6 @@ function DueFlashcards() {
             {/* Review Controls */}
             {isFlipped && (
                 <div className="flex flex-col items-center">
-                    <p className="text-sm text-gray-600 mb-4">Đánh giá độ khó của từ này:</p>
                     <ReviewControls onRate={handleRating} />
                 </div>
             )}
@@ -193,14 +217,11 @@ function DueFlashcards() {
             {/* Instructions */}
             {!isFlipped && (
                 <p className="text-sm text-gray-500 text-center max-w-md">
-                    Nhấn vào thẻ để xem nghĩa, sau đó đánh giá mức độ ghi nhớ
                 </p>
             )}
         </div>
     );
 }
-
-
 
 export default function DashboardPage() {
     const { user } = useAuth();
@@ -209,10 +230,11 @@ export default function DashboardPage() {
     const [scenarios, setScenarios] = useState<RoleplayScenario[]>([]); 
     const [loading, setLoading] = useState(true);
 
-    // Auto-scroll refs and state
-    const vietSectionRef = useRef<HTMLElement>(null);
-    const hocSectionRef = useRef<HTMLElement>(null);
-    const [currentSection, setCurrentSection] = useState<'viet' | 'hoc'>('viet');
+    // Updated auto-scroll refs and state for 3 sections
+    const journalSectionRef = useRef<HTMLElement>(null);
+    const roleplaySectionRef = useRef<HTMLElement>(null);
+    const vocabSectionRef = useRef<HTMLElement>(null);
+    const [currentSection, setCurrentSection] = useState<'journal' | 'roleplay' | 'vocab'>('journal');
     const [isAutoScrolling, setIsAutoScrolling] = useState(false);
 
     // 🧠 Fetch roleplay từ Supabase
@@ -238,24 +260,26 @@ export default function DashboardPage() {
         fetchScenarios();
     }, []);
 
-    // Auto-scroll behavior with intersection observer
+    // Updated auto-scroll behavior for 3 sections
     useEffect(() => {
         const handleScroll = () => {
             if (isAutoScrolling) return;
 
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
-            const threshold = windowHeight * 0.3; // 30% of viewport height
+            const sectionThreshold = windowHeight * 0.5;
 
-            if (scrollY > threshold && currentSection === 'viet') {
+            if (scrollY < sectionThreshold && currentSection !== 'journal') {
                 setIsAutoScrolling(true);
-                setCurrentSection('hoc');
-                document.getElementById('hoc')?.scrollIntoView({ behavior: 'smooth' });
+                setCurrentSection('journal');
                 setTimeout(() => setIsAutoScrolling(false), 1000);
-            } else if (scrollY < threshold && currentSection === 'hoc') {
+            } else if (scrollY >= sectionThreshold && scrollY < sectionThreshold * 2 && currentSection !== 'roleplay') {
                 setIsAutoScrolling(true);
-                setCurrentSection('viet');
-                document.getElementById('viet')?.scrollIntoView({ behavior: 'smooth' });
+                setCurrentSection('roleplay');
+                setTimeout(() => setIsAutoScrolling(false), 1000);
+            } else if (scrollY >= sectionThreshold * 2 && currentSection !== 'vocab') {
+                setIsAutoScrolling(true);
+                setCurrentSection('vocab');
                 setTimeout(() => setIsAutoScrolling(false), 1000);
             }
         };
@@ -270,14 +294,14 @@ export default function DashboardPage() {
 
     return (
         <div className="scroll-smooth">
-            {/* SECTION 1 – VIẾT */}
-            <section ref={vietSectionRef} id="viet" className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4">
+            {/* SECTION 1 – NHẬT KÝ */}
+            <section ref={journalSectionRef} id="journal" className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4">
                 <div className="w-full max-w-2xl mx-auto">
                     <TemplateCards />
                 </div>
                 <button
-                    aria-label="Cuộn xuống phần học"
-                    onClick={() => scrollTo('hoc')}
+                    aria-label="Cuộn xuống phần hội thoại"
+                    onClick={() => scrollTo('roleplay')}
                     className="mt-6 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
@@ -287,16 +311,12 @@ export default function DashboardPage() {
                 </button>
             </section>
 
-            {/* SECTION 2 – HỌC */}
-            <section ref={hocSectionRef} id="hoc" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-white py-8">
+            {/* SECTION 2 – HỘI THOẠI */}
+            <section ref={roleplaySectionRef} id="roleplay" className="h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-green-50/40 py-8">
                 <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
-                    {/* Roleplay Section */}
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">🎭 Luyện hội thoại hôm nay</h2>
-                            <Link href="/roleplay" className="text-blue-600 text-sm hover:underline self-start sm:self-auto">
-                                Xem tất cả
-                            </Link>
+                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Hôm nay bạn muốn đóng vai ai?</h2>
                         </div>
 
                         <div className="relative">
@@ -365,22 +385,37 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Due Flashcards */}
+                    {/* Single navigation arrow */}
+                    <div className="flex justify-center">
+                        <button
+                            aria-label="Cuộn xuống phần từ vựng"
+                            onClick={() => scrollTo('vocab')}
+                            className="p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                                <path d="M12 5v14" />
+                                <path d="m19 12-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 3 – TỪ VỰNG */}
+            <section ref={vocabSectionRef} id="vocab" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-green-50/40 to-white py-8">
+                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">⚡ Từ vựng cần ôn</h2>
-                            <Link href="/vocab" className="text-blue-600 text-sm hover:underline self-start sm:self-auto">
-                                Tất cả từ vựng
-                            </Link>
+                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900"> 20 từ sắp tuột khỏi não bạ</h2>
                         </div>
                         <DueFlashcards />
                     </div>
 
                     <div className="flex justify-center">
                         <button
-                            aria-label="Cuộn lên phần viết"
-                            onClick={() => scrollTo('viet')}
-                            className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
+                            aria-label="Cuộn lên phần nhật ký"
+                            onClick={() => scrollTo('journal')}
+                            className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600 rotate-180">
                                 <path d="M12 5v14" />
