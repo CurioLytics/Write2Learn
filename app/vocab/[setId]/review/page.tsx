@@ -58,6 +58,11 @@ export default function ReviewPage() {
     }
 
     try {
+      if (!currentCard?.id) {
+        toast.error('No card selected');
+        return;
+      }
+      
       const newStarredStatus = await toggleVocabularyStar(currentCard.id);
       
       // Update local state

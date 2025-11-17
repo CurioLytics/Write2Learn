@@ -5,36 +5,23 @@ import { supabase } from '@/services/supabase/client';
  * Uses direct Supabase client with current user session
  */
 export async function toggleVocabularySetStar(setId: string): Promise<boolean> {
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    throw new Error('User not authenticated');
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  // Get current star status
-  const { data: currentData, error: fetchError } = await supabase
+  const { data } = await supabase
     .from('vocabulary_set')
     .select('is_starred')
     .eq('id', setId)
     .eq('profile_id', user.id)
     .single();
 
-  if (fetchError) {
-    throw fetchError;
-  }
+  const newStarredStatus = !(data as any)?.is_starred;
 
-  const newStarredStatus = !currentData.is_starred;
-
-  // Update star status
-  const { error: updateError } = await supabase
+  await (supabase as any)
     .from('vocabulary_set')
     .update({ is_starred: newStarredStatus })
     .eq('id', setId)
     .eq('profile_id', user.id);
-
-  if (updateError) {
-    throw updateError;
-  }
 
   return newStarredStatus;
 }
@@ -44,34 +31,21 @@ export async function toggleVocabularySetStar(setId: string): Promise<boolean> {
  * Uses direct Supabase client with current user session
  */
 export async function toggleVocabularyStar(wordId: string): Promise<boolean> {
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    throw new Error('User not authenticated');
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  // Get current star status
-  const { data: currentData, error: fetchError } = await supabase
+  const { data } = await supabase
     .from('vocabulary')
     .select('is_starred')
     .eq('id', wordId)
     .single();
 
-  if (fetchError) {
-    throw fetchError;
-  }
+  const newStarredStatus = !(data as any)?.is_starred;
 
-  const newStarredStatus = !currentData.is_starred;
-
-  // Update star status
-  const { error: updateError } = await supabase
+  await (supabase as any)
     .from('vocabulary')
     .update({ is_starred: newStarredStatus })
     .eq('id', wordId);
-
-  if (updateError) {
-    throw updateError;
-  }
 
   return newStarredStatus;
 }

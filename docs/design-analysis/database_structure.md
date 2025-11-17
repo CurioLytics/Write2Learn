@@ -327,7 +327,7 @@ graph TD
     B --> H[templates]
     
     D --> I[flashcard]
-    I --> J[flashcard_status]
+    I --> J[vocabulary_status]
     J --> K[fsrs_review_logs]
     
     L[roleplays] --> E
@@ -360,7 +360,7 @@ graph TD
 ## 🚀 Recent Changes & Migrations
 
 ### Latest Migrations Applied:
-- **20251116072447**: Renamed flashcard tables to vocabulary (flashcard_set → vocabulary_set, flashcard → vocabulary, flashcard_status → vocabulary_status)
+- **20251116072447**: Renamed flashcard tables to vocabulary (flashcard_set → vocabulary_set, flashcard → vocabulary, vocabulary_status → vocabulary_status)
 - **20251115044429**: Added `highlights` column to sessions table
 - **20251114164742**: Added `feedback` column to sessions table
 

@@ -76,11 +76,11 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 w-full max-w-4xl mx-auto">
         {[1, 2].map((index) => (
           <div
             key={index}
-            className="bg-gray-200 animate-pulse rounded-2xl h-64"
+            className="bg-gray-200 animate-pulse rounded-2xl h-40 sm:h-48 lg:h-52"
           />
         ))}
       </div>
@@ -110,15 +110,15 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 w-full max-w-4xl mx-auto">
       {templates.map((template) => (
         <div
           key={template.id}
           onClick={() => handleCardClick(template)}
-          className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg"
+          className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg card-hover"
         >
           {/* Cover Image */}
-          <div className="relative h-64 w-full">
+          <div className="relative h-40 sm:h-48 lg:h-52 w-full">
             {template.cover_image ? (
               <Image
                 src={template.cover_image}
@@ -135,14 +135,14 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             
             {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-xl font-semibold mb-2 group-hover:text-yellow-300 transition-colors">
+            <div className="absolute bottom-0 left-0 right-0 p-3 lg:p-4 text-white">
+              <h3 className="text-base lg:text-lg font-semibold mb-1 group-hover:text-yellow-300 transition-colors">
                 {template.name}
               </h3>
-              <p className="text-sm text-gray-200 opacity-90">
+              <p className="text-xs text-gray-200 opacity-90 line-clamp-2">
                 {template.name === 'Set the Day' 
-                  ? 'Stay focused, get into the right mindset, and make progress with clarity.'
-                  : 'Track your progress, focus on being benevolent, and make tomorrow better.'
+                  ? 'Focus and clarity for today'
+                  : 'Reflect and improve tomorrow'
                 }
               </p>
             </div>
