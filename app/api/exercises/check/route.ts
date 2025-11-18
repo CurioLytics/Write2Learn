@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Exercise check payload:', payloadText);
 
-    const response = await fetch('https://automain.elyandas.com/webhook/exercise-check', {
+    const response = await fetch('https://auto2.elyandas.com/webhook/exercise-check', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',

@@ -89,7 +89,7 @@ class RoleplaySessionService {
     // Debug: Log the complete payload for feedback
     console.log('Session service - sending payload for feedback:', JSON.stringify(payload, null, 2));
 
-    const response = await fetch('https://automain.elyandas.com/webhook/roleplay-assesment', {
+    const response = await fetch('https://auto2.elyandas.com/webhook/roleplay-assesment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -219,7 +219,7 @@ class RoleplaySessionService {
       highlights,
     };
 
-    const response = await fetch('https://automain.elyandas.com/webhook/save-process-highlight-v1', {
+    const response = await fetch('https://auto2.elyandas.com/webhook/save-process-highlight-v1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

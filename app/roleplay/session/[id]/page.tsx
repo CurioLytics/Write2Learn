@@ -52,8 +52,8 @@ export default function ChatSessionPage() {
   
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto h-[80vh] flex items-center justify-center">
-        <div className="text-center">
+      <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center w-full">
           <div className={styles.typingIndicator}>
             <span></span>
             <span></span>
@@ -64,11 +64,11 @@ export default function ChatSessionPage() {
       </div>
     );
   }
-  
+
   if (error || !scenario) {
     return (
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="bg-white rounded-2xl shadow p-6 text-center w-full">
           <h2 className="text-xl font-medium text-gray-800 mb-4">Error</h2>
           <p className="text-gray-600 mb-6">{error || 'Scenario not found'}</p>
           <Button 
@@ -81,10 +81,12 @@ export default function ChatSessionPage() {
       </div>
     );
   }
-  
+
   return (
-    <div className="max-w-5xl mx-auto">
-      <ChatInterface scenario={scenario} />
+    <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col space-y-8">
+      <div className="bg-white shadow rounded-2xl p-6 flex flex-col">
+        <ChatInterface scenario={scenario} />
+      </div>
     </div>
   );
 }

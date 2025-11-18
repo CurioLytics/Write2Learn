@@ -9,13 +9,13 @@ interface SessionCardProps {
 
 export function SessionCard({ session, onClick }: SessionCardProps) {
   return (
-    <div 
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+    <div
       onClick={onClick}
+      className="p-3 rounded-md cursor-pointer hover:bg-gray-100"
     >
-      <h3 className="font-medium text-gray-900 truncate">
+      <p className="text-sm text-gray-800 truncate">
         {session.scenario_name}
-      </h3>
+      </p>
     </div>
   );
 }

@@ -111,89 +111,97 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
-        <p className="text-gray-600 mb-6">
-          Không gian viết lách, học hỏi và phát triển của bạn
-        </p>
-        <Button 
-          onClick={() => router.push('/journal/new')}
-          className="mb-6"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Viết mới
-        </Button>
-        {/* Search and Filter */}
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Tìm kiếm..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+    <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
+      {/* Main Card Container */}
+      <div className="bg-white shadow rounded-2xl p-6">
+        {/* Page Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Không gian viết lách, học hỏi và phát triển của bạn
+            </p>
           </div>
-          <TagFilter 
-            onFilterChange={handleTagFilterChange}
-            currentTag={selectedTag}
-          />
         </div>
-      </div>
 
-      {/* Content Layout: Journal List & Calendar side by side */}
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-        {/* Journal List */}
-        <div className="bg-white shadow rounded-lg p-6 flex flex-col h-full">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Bài viết gần đây</h2>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-1 border-blue-500"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-center">
-              {error}
-              <Button 
-                variant="link"
-                onClick={() => window.location.reload()} 
-                className="ml-2"
-              >
-                Thử lại
-              </Button>
-            </div>
-          ) : filteredJournals.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <p className="text-gray-600 mb-4"></p>
-              <Button onClick={() => router.push('/journal/new')}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {journals.length === 0 ? "Tạo bài viết đầu tiên" : "Viết mới"}
-              </Button>
-            </div>
-          ) : (
-            <div className="max-h-80 overflow-y-auto">
-              <JournalList 
-                journals={filteredJournals}
-                onSelect={handleJournalSelect}
-                selectedJournalId={selectedJournal?.id}
+        {/* Search and Filter */}
+        <div className="mb-6">
+          <Button 
+            onClick={() => router.push('/journal/new')}
+            className="mb-4"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Viết mới
+          </Button>
+          <div className="max-w-2xl mx-auto space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Tìm kiếm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
               />
             </div>
-          )}
+            <TagFilter 
+              onFilterChange={handleTagFilterChange}
+              currentTag={selectedTag}
+            />
+          </div>
         </div>
-        {/* Calendar */}
-        <div className="bg-white shadow rounded-lg p-6 flex flex-col h-full">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Lịch</h3>
-          <CalendarView 
-            journals={journals}
-            onDateSelect={handleDateSelect}
-            selectedDate={selectedDate}
-          />
+
+        {/* Journal & Calendar Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Journal List */}
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col h-full">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Bài viết gần đây</h2>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-center">
+                {error}
+                <Button 
+                  variant="link"
+                  onClick={() => window.location.reload()} 
+                  className="ml-2"
+                >
+                  Thử lại
+                </Button>
+              </div>
+            ) : filteredJournals.length === 0 ? (
+              <div className="text-center py-8 bg-gray-100 rounded-lg border border-dashed border-gray-300">
+                <p className="text-gray-600 mb-4"></p>
+                <Button onClick={() => router.push('/journal/new')}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {journals.length === 0 ? "Tạo bài viết đầu tiên" : "Viết mới"}
+                </Button>
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto">
+                <JournalList 
+                  journals={filteredJournals}
+                  onSelect={handleJournalSelect}
+                  selectedJournalId={selectedJournal?.id}
+                />
+              </div>
+            )}
+          </div>
+          {/* Calendar */}
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col h-full">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
+            <CalendarView 
+              journals={journals}
+              onDateSelect={handleDateSelect}
+              selectedDate={selectedDate}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Explore Frameworks */}
-      <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6 mt-8">
+      {/* Framework Section */}
+      <div className="max-w-4xl mx-auto bg-white shadow rounded-2xl p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
         <p className="text-center text-gray-600 mb-6">Khám phá các phương pháp có cấu trúc để nâng cao kỹ năng viết</p>
         <ExploreFrameworks />

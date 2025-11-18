@@ -81,96 +81,85 @@ export default function RoleplaySummaryPage() {
   };
 
   if (loading || processing) {
-    return <LoadingState message={processing ? 'Processing highlights' : 'Loading session'} />;
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center w-full">
+          {processing ? 'Đang xử lý các đoạn nổi bật...' : 'Đang tải phiên hội thoại...'}
+        </div>
+      </div>
+    );
   }
 
   if (error || !sessionData) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-3xl mx-auto p-6">
-          <ErrorState message={error || 'Session not found'} onRetry={handleBack} />
+      <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center w-full">
+          <div className="text-red-600 mb-2">{error || 'Không tìm thấy phiên hội thoại'}</div>
+          <Button onClick={handleBack} className="mt-2">Quay lại</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Roleplay Summary - {sessionData.scenario_name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              
-              {/* Conversation History */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  Conversation History
-                </h3>
-                <div className="p-4 rounded-lg border-2 border-purple-200 bg-purple-50 min-h-[500px]">
-                  <div id="conversation-content" className="space-y-3 max-h-[450px] overflow-y-auto">
-                    {sessionData.messages?.map((message: any, index: number) => (
-                      <MessageBubble 
-                        key={index}
-                        message={message}
-                        roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'You'}
-                        compact={true}
-                      />
-                    ))}
-                  </div>
-                  <HighlightSelector
-                    containerId="conversation-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
+    <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Xem học được gì nào ^^</h1>
+            <h2 className="text-lg text-gray-700">{sessionData.scenario_name}</h2>
+          </div>
+          <div className="flex flex-col md:flex-row gap-8 w-full mb-8">
+            <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%', background: 'oklch(1 0 0)' }}>
+              <div className="min-h-[300px] p-0">
+                <div id="conversation-content" className="space-y-3 max-h-[350px] overflow-y-auto">
+                  {sessionData.messages?.map((message: any, index: number) => (
+                    <MessageBubble 
+                      key={index}
+                      message={message}
+                      roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
+                      compact={true}
+                    />
+                  ))}
                 </div>
+                <HighlightSelector
+                  containerId="conversation-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
               </div>
-
-              {/* Assessment Feedback */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  Assessment Feedback
-                </h3>
-                <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50 min-h-[500px]">
-                  <div id="feedback-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed max-h-[450px] overflow-y-auto">
-                    {sessionData.feedback || 'Feedback not available'}
-                  </div>
-                  <HighlightSelector
-                    containerId="feedback-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
+            </div>
+            <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%', background: 'oklch(1 0 0)' }}>
+              <div className="min-h-[300px] p-0">
+                <div id="feedback-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed max-h-[350px] overflow-y-auto">
+                  {sessionData.feedback || 'Chưa có phản hồi'}
                 </div>
+                <HighlightSelector
+                  containerId="feedback-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
               </div>
             </div>
-
-            {/* Highlights */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">Saved Highlights</h3>
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <HighlightList highlights={highlights} onRemove={removeHighlight} />
-              </div>
+          </div>
+          {/* Đoạn nổi bật đã lưu */}
+          <div className="w-full mb-8">
+            <h3 className="text-base font-semibold text-gray-800 mb-3">Đoạn nổi bật đã lưu</h3>
+            <div>
+              <HighlightList highlights={highlights} onRemove={removeHighlight} />
             </div>
-
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-
-            {/* Actions */}
-            <div className="flex justify-end gap-4 pt-4 border-t">
-              <Button variant="outline" onClick={handleBack}>
-                Back to Roleplay
-              </Button>
-              <Button onClick={handleSave} disabled={processing}>
-                {highlights.length > 0 ? 'Save and Create Flashcards' : 'Done'}
-              </Button>
-            </div>
-            
-          </CardContent>
-        </Card>
+          </div>
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {/* Hành động */}
+          <div className="flex justify-end gap-4 w-full">
+            <Button variant="outline" onClick={handleBack}>
+              Quay lại hội thoại
+            </Button>
+            <Button onClick={handleSave} disabled={processing}>
+              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' : 'Hoàn tất'}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

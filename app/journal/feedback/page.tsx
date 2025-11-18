@@ -72,7 +72,7 @@ async function saveJournalAndHighlights({
   };
 
   const webhookUrl = process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL || 
-    'https://automain.elyandas.com/webhook/save-process-highlight-v1';
+    'https://auto2.elyandas.com/webhook/save-process-highlight-v1';
 
   const res = await fetch(webhookUrl, {
     method: 'POST',

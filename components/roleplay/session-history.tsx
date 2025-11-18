@@ -1,13 +1,15 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { roleplaySessionService, RoleplaySessionData } from '@/services/roleplay-session-service';
 import { SessionCard } from './session-card';
+import Link from 'next/link';
 import { SessionDetailDialog } from './session-detail-dialog';
 import { History } from 'lucide-react';
 
-export function SessionHistory() {
+export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: boolean } = {}) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<RoleplaySessionData[]>([]);
   const [selectedSession, setSelectedSession] = useState<RoleplaySessionData | null>(null);
@@ -47,7 +49,7 @@ export function SessionHistory() {
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <History className="h-5 w-5 text-gray-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Session History</h2>
+          <h2 className="text-xl font text-gray-900">Roleplay đã chơi</h2>
         </div>
 
         {sessions.length === 0 ? (
@@ -55,6 +57,16 @@ export function SessionHistory() {
             <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>Chưa có phiên hội thoại nào được hoàn thành</p>
           </div>
+        ) : renderAsLinks ? (
+          <ul className="space-y-2">
+            {sessions.map((session) => (
+              <li key={session.session_id}>
+                <Link href={`/roleplay/session/${session.session_id}`} className="text-blue-600 hover:underline">
+                  {session.scenario_name}
+                </Link>
+              </li>
+            ))}
+          </ul>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sessions.map((session) => (

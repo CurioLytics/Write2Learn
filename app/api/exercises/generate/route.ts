@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     console.log('Calling webhook with payload:', payloadText);
 
     // Call webhook with plain text payload
-    const response = await fetch('https://automain.elyandas.com/webhook/gen-exercise', {
+    const response = await fetch('https://auto2.elyandas.com/webhook/gen-exercise', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       `Question: ${ex.question}\nUser Answer: ${ex.userAnswer}`
     ).join('\n\n');
 
-    const response = await fetch('https://automain.elyandas.com/webhook/grade-exercise', {
+    const response = await fetch('https://auto2.elyandas.com/webhook/grade-exercise', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',

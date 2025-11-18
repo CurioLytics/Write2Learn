@@ -9,12 +9,6 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, roleName, compact = false }: MessageBubbleProps) {
-  // Định dạng thời gian tin nhắn
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
   const isUserMessage = message.sender === 'user';
   
   return (
@@ -39,11 +33,6 @@ export function MessageBubble({ message, roleName, compact = false }: MessageBub
       {/* Bong bóng tin nhắn */}
       <div className={`${compact ? 'max-w-[80%]' : 'max-w-[70%]'} ${isUserMessage ? 'bg-blue-600 text-white' : 'bg-white text-gray-800'} rounded-lg px-3 py-2 shadow-sm`}>
         <div className={`${compact ? 'text-xs' : 'text-sm'} break-words`}>{message.content}</div>
-        {!compact && (
-          <div className={`text-xs mt-1 ${isUserMessage ? 'text-blue-200' : 'text-gray-400'} text-right`}>
-            {formatTime(message.timestamp)}
-          </div>
-        )}
       </div>
       
       {/* Avatar và tên - chỉ hiển thị cho tin nhắn người dùng */}
