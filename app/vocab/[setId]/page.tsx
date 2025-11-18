@@ -198,7 +198,6 @@ export default function VocabularySetPage() {
       setError('Title is required');
       return;
     }
-
     setIsSaving(true);
     setError(null);
 
@@ -289,7 +288,7 @@ export default function VocabularySetPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Authenticating...</div>
+        <div className="text-gray-500">Chờ xíu nhé</div>
       </div>
     );
   }
@@ -352,7 +351,7 @@ export default function VocabularySetPage() {
               <Button
                 onClick={handleSave}
                 disabled={isSaving || !editTitle.trim()}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                variant="outline"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -367,7 +366,7 @@ export default function VocabularySetPage() {
               </Button>
               <Button
                 onClick={handleReview}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                variant="default"
                 disabled={vocabularyWords.length === 0}
               >
                 Review Flashcards
@@ -379,9 +378,6 @@ export default function VocabularySetPage() {
 
       <Card className="bg-white shadow rounded-lg">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">
-            {isEditing ? 'Edit Details' : 'Vocabulary Set Details'}
-          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           
@@ -439,7 +435,6 @@ export default function VocabularySetPage() {
               {(isEditing ? editWords : vocabularyWords).map((word, index) => (
                 <div key={word.id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-700">Word #{index + 1}</h4>
                     <div className="flex items-center gap-2">
                       {/* Star Button - only show for existing words with IDs */}
                       {word.id && !isEditing && (

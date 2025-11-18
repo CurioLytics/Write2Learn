@@ -28,7 +28,6 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   if (isLoading) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Vocabulary Sets</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
@@ -55,7 +54,6 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   if (error) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-2">Vocabulary Sets</h2>
         <div className="bg-red-50 text-red-700 p-3 rounded-md">
           Error loading vocabulary sets: {error}
         </div>
@@ -66,7 +64,6 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   if (vocabularySets.length === 0) {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-2">Vocabulary Sets</h2>
         <div className="bg-gray-50 border border-gray-200 border-dashed rounded-md p-6 text-center">
           <div className="text-4xl mb-2">📚</div>
           <h3 className="text-base font-medium text-gray-700 mb-1">No vocabulary sets yet</h3>
@@ -81,7 +78,6 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   const router = useRouter();
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-800 mb-4">Vocabulary Sets</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {vocabularySets.map((set) => (
           <VocabularySetCard

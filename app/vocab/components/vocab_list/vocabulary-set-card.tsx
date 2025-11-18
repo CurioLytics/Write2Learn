@@ -120,7 +120,6 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
           <span className="text-blue-500 font-medium">{vocabularySet.flashcards_due}</span>
           <span className="text-gray-400">/</span>
           <span className="text-gray-500">{vocabularySet.total_flashcards}</span>
-          <span className="text-gray-400 text-xs ml-1">words due</span>
         </div>
 
         {vocabularySet.flashcards_due > 0 && (

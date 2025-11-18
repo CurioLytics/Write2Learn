@@ -51,7 +51,6 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
             <path d="M8 7h8"></path>
             <path d="M8 11h8"></path>
           </svg>
-          Vocabulary Set
         </span>
       </div>
 
@@ -73,7 +72,6 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
           <span className="text-blue-500 font-medium">{vocabularySet.vocabulary_due}</span>
           <span className="text-gray-400">/</span>
           <span className="text-gray-500">{vocabularySet.total_vocabulary}</span>
-          <span className="text-gray-400 text-xs ml-1">words due</span>
         </div>
 
         {vocabularySet.vocabulary_due > 0 && (

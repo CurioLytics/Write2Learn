@@ -268,7 +268,7 @@ export default function CreateVocabSetPage() {
             <Button
               onClick={handleSave}
               disabled={isLoading || !title.trim()}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              variant='default'
             >
               {isLoading ? 'Saving...' : 'Save Vocabulary Set'}
             </Button>
