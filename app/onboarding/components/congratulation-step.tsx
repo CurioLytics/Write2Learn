@@ -28,12 +28,9 @@ export function CongratulationStep({ name }: CongratulationStepProps) {
       </div>
       
       <h2 className="text-2xl font-semibold text-gray-900">
-        Chúc mừng{name ? `, ${name}` : ''}!
+        Welcome{name ? `, ${name}` : ''}!
       </h2>
       
-      <p className="text-gray-600">
-        Giờ hãy bắt đầu việc học của bạn nào! Chọn một mẫu nhật ký phù hợp để bắt đầu viết.
-      </p>
       
       <div className="bg-blue-50 p-4 rounded-lg text-left">
         <h3 className="font-medium text-blue-700">Quy trình học tập</h3>

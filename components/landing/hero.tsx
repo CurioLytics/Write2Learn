@@ -32,7 +32,8 @@ export function Hero({ title, subtitle, description, buttonText, buttonLink }: H
           </p>
           <Button
             onClick={() => router.push(buttonLink)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md"
+            size="sm"
+            variant="outline"
           >
             {buttonText}
           </Button>

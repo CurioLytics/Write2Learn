@@ -60,7 +60,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
       className="bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       onClick={onClick}
       role="button"
-      aria-label={`Open ${vocabularySet.title} vocabulary set`}
+      aria-label={`Open ${vocabularySet.title}`}
     >
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-medium text-gray-900 flex-1 pr-2">{vocabularySet.title}</h3>
@@ -74,7 +74,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
           aria-label={vocabularySet.is_starred ? 'Unstar' : 'Star'}
         >
           <Star 
-            size={20} 
+            size={16} 
             className={vocabularySet.is_starred ? 'fill-current' : ''}
           />
         </button>
@@ -82,23 +82,6 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
         <span className="flex items-center gap-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            <path d="M8 7h8"></path>
-            <path d="M8 11h8"></path>
-          </svg>
-          Vocabulary Set
         </span>
       </div>
 
@@ -111,7 +94,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
               ? 'bg-blue-500'
               : 'bg-emerald-500'
           }`}
-          style={{ width: `${Math.max(duePercentage, 3)}%` }}
+          style={{ width: `${duePercentage}%` }}
         ></div>
       </div>
 
@@ -129,8 +112,8 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
               e.stopPropagation();
               console.log(`Review ${vocabularySet.title} vocabulary`);
             }}
+            aria-label="Review vocabulary set"
           >
-            Review
           </button>
         )}
       </div>

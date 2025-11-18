@@ -137,15 +137,6 @@ export default function JournalViewPage() {
     }
   };
 
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <BreathingLoader message="Đang tải..." />
-      </div>
-    );
-  }
-
   // Show error state
   if (error && !journal) {
     return (
@@ -236,7 +227,6 @@ export default function JournalViewPage() {
           <Button
             onClick={handleGetFeedback}
             disabled={!content || !title || isSaving}
-            className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
           >
             Nhận phản hồi
           </Button>

@@ -120,11 +120,7 @@ export function AuthForm() {
         <h2 className="text-xl sm:text-2xl font-bold">
           {mode === 'signin' ? 'Chào mừng trở lại' : 'Tạo tài khoản'}
         </h2>
-        <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          {mode === 'signin'
-            ? 'Đăng nhập để tiếp tục với tài khoản của bạn'
-            : 'Đăng ký để bắt đầu'}
-        </p>
+
         {onboardingMessage && (
           <div className="mt-4 p-3 bg-green-50 text-green-800 rounded-md text-sm">
             {onboardingMessage}

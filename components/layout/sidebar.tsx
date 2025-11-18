@@ -79,7 +79,7 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
         <div className="flex flex-col items-center h-full py-4 gap-2">
           {/* Logo */}
           <Link
-            href="/dashboard"
+            href="/home"
             className="flex items-center justify-center mb-4"
           >
             <div className="relative w-10 h-10">

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { FlashcardSetList, VocabularySetList } from '@/app/vocab/components/vocab_list/flashcard-set-list';
-import type { FlashcardSetStats } from '@/types/flashcardSetStats';
+import type { VocabularySetStats } from '@/types/flashcardSetStats';
 import { supabase } from '@/services/supabase/client';
 import type { Vocabulary } from '@/types/vocabulary';
 import { getStarredVocabulary } from '@/utils/star-helpers';
@@ -15,7 +15,7 @@ export default function VocabPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [flashcardSets, setFlashcardSets] = useState<FlashcardSetStats[]>([]);
+  const [flashcardSets, setFlashcardSets] = useState<VocabularySetStats[]>([]);
   const [isLoadingFlashcards, setIsLoadingFlashcards] = useState(true);
   const [flashcardError, setFlashcardError] = useState<string | null>(null);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
@@ -230,12 +230,6 @@ export default function VocabPage() {
               onClick={() => router.push('/vocab/create')}
             >
               Thêm bộ
-            </Button>
-            <Button
-              className="px-5 py-2 text-sm rounded-full"
-              onClick={() => router.push('/flashcards/review')}
-            >
-              Ôn tập
             </Button>
           </div>
         </div>

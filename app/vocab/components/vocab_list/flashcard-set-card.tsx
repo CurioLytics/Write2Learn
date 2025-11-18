@@ -27,7 +27,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
       className="bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       onClick={onClick}
       role="button"
-      aria-label={`Open ${vocabularySet.set_title} vocabulary set`}
+      aria-label={`Open ${vocabularySet.set_title}`}
     >
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-medium text-gray-900">{vocabularySet.set_title}</h3>
@@ -63,7 +63,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
               ? 'bg-blue-500'
               : 'bg-emerald-500'
           }`}
-          style={{ width: `${Math.max(duePercentage, 3)}%` }}
+          style={{ width: `${duePercentage}%` }}
         ></div>
       </div>
 
@@ -81,8 +81,21 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
               e.stopPropagation();
               console.log(`Review ${vocabularySet.set_title} vocabulary`);
             }}
+            aria-label="Review vocabulary set"
           >
-            Review
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
           </button>
         )}
       </div>

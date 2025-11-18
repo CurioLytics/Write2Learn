@@ -127,101 +127,88 @@ export default function ReportPage() {
     }
   ];
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
-      {/* Page Header */}
+return (
+  <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
+    
+    {/* Header */}
+    <div className="bg-white shadow rounded-2xl p-6">
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Report</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Báo cáo tiến độ học tập và phân tích lỗi
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="space-y-8">
+
+      {/* Stats Section */}
       <div className="bg-white shadow rounded-2xl p-6">
-        <h1 className="text-3xl font-bold text-gray-900">Report</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Báo cáo tiến độ học tập và phân tích lỗi
-        </p>
+        <h2 className="text-xl font-semibold mb-4">Bạn đã đi bao xa?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {progressCards.map((card) => (
+            <ProgressCard
+              key={card.id}
+              icon={card.icon}
+              value={card.value}
+              label={card.label}
+              color={card.color}
+              isLoading={loading.stats}
+              error={card.error}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-8">
-        {/* Stats Section */}
-        <div className="bg-white shadow rounded-2xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Tổng quan tiến độ</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {progressCards.map((card) => (
-              <ProgressCard
-                key={card.id}
-                icon={card.icon}
-                value={card.value}
-                label={card.label}
-                color={card.color}
-                isLoading={loading.stats}
-                error={card.error}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Error Analysis Section */}
-        <div className="bg-white shadow rounded-2xl p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-            <h2 className="text-xl font-semibold">Phân tích lỗi theo kỹ năng</h2>
-            <div className="flex items-center gap-2">
-              <DateFilter
-                currentPreset={datePreset}
-                onPresetChange={updateDateFilter}
-                className={loading.errorAnalysis ? "opacity-50 pointer-events-none" : ""}
-              />
-              <Button
-                onClick={() => refreshData()}
-                variant="outline"
-                size="sm"
-                disabled={loading.errorAnalysis}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading.errorAnalysis ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </div>
-
-          {errors.errorAnalysis ? (
-            <Card className="border-red-200">
-              <CardContent className="p-6">
-                <p className="text-red-600">Lỗi: {errors.errorAnalysis}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {/* Grammar Error Analysis */}
-              <ErrorAnalysisCard
-                title="Ngữ pháp"
-                errors={errorAnalysis || []}
-                isLoading={loading.errorAnalysis}
-                error={errors.errorAnalysis}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Practice Section */}
-        <div className="bg-white shadow rounded-2xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Ôn tập từ lỗi sai</h2>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 className="font-semibold mb-2">Trò chuyện với AI</h3>
-              <p className="text-gray-600 text-sm">
-                Luyện tập các kỹ năng cần cải thiện thông qua cuộc trò chuyện tương tác
-              </p>
-            </div>
-            <Button 
-              onClick={() => setIsChatbotOpen(true)}
-              className="bg-black hover:bg-gray-800 text-white"
+      {/* Error Analysis Section */}
+      <div className="bg-white shadow rounded-2xl p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+          <h2 className="text-xl font-semibold">Các điểm cần chú ý</h2>
+          <div className="flex items-center gap-2">
+            <DateFilter
+              currentPreset={datePreset}
+              onPresetChange={updateDateFilter}
+              className={loading.errorAnalysis ? "opacity-50 pointer-events-none" : ""}
+            />
+            <Button
+              onClick={() => refreshData()}
+              variant="outline"
+              size="sm"
+              disabled={loading.errorAnalysis}
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Bắt đầu luyện tập
+              <RefreshCw className={`w-4 h-4 ${loading.errorAnalysis ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
+
+        {errors.errorAnalysis ? (
+          <Card className="border-red-200">
+            <CardContent className="p-6">
+              <p className="text-red-600">Lỗi: {errors.errorAnalysis}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            <ErrorAnalysisCard
+              
+              errors={errorAnalysis || []}
+              isLoading={loading.errorAnalysis}
+              error={errors.errorAnalysis}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Chatbot Modal */}
-      <ChatbotModal 
-        isOpen={isChatbotOpen} 
-        onClose={() => setIsChatbotOpen(false)} 
-      />
     </div>
-  );
+
+    {/* Chatbot Modal */}
+    <ChatbotModal
+      isOpen={isChatbotOpen}
+      onClose={() => setIsChatbotOpen(false)}
+    />
+  </div>
+);
+
 }

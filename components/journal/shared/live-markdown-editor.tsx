@@ -33,7 +33,7 @@ export function LiveMarkdownEditor({
 
   return (
     <div className={`live-markdown-editor ${className}`}>
-      <div className="border rounded-md bg-white">
+      <div className="rounded-md bg-white">
         {!isClient ? (
           <div 
             className="prose prose-sm sm:prose-base max-w-none p-4"

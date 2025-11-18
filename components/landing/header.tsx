@@ -39,7 +39,8 @@ export function Header({ logoSrc, logoText, buttonText, buttonLink }: HeaderProp
         </Link>
         <Button 
           onClick={() => router.push(buttonLink)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          size="sm"
+          variant="outline"
         >
           {buttonText}
         </Button>

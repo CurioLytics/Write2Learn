@@ -30,6 +30,8 @@ export default function NewJournalPage() {
   const customContent = searchParams?.get('customContent');
   const isEdit = searchParams?.get('edit') === 'true';
 
+  const DRAFT_KEY = 'journalDraft';
+
   // Redirect unauthenticated users
   useEffect(() => {
     if (!loading && !user && !sessionStorage.getItem('onboardingData')) {
@@ -37,7 +39,7 @@ export default function NewJournalPage() {
     }
   }, [user, loading, router]);
 
-  // Load template or edit data
+  // Load template, edit data, or draft
   useEffect(() => {
     if (isEdit) {
       setTitle(localStorage.getItem('editJournalTitle') || '');
@@ -47,21 +49,56 @@ export default function NewJournalPage() {
       return;
     }
 
-    // If we have custom content from template, use it directly
     if (customContent) {
       setContent(decodeURIComponent(customContent));
-      if (templateName) {
-        setTitle(templateName);
-      }
+      if (templateName) setTitle(templateName);
       return;
     }
 
-    // Legacy support: if only templateName is provided without customContent
-    if (templateName && !customContent) {
-      // Just set a default title, no content loading needed
+    if (templateName) {
       setTitle(templateName);
+      return;
+    }
+
+    // Load draft for new journal
+    const draft = localStorage.getItem(DRAFT_KEY);
+    if (draft) {
+      try {
+        const { title: dTitle, content: dContent, journalDate: dDate, tags: dTags } = JSON.parse(draft);
+        setTitle(dTitle || '');
+        setContent(dContent || '');
+        setJournalDate(dDate || formatDateInput(new Date()));
+        setTags(dTags || []);
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
     }
   }, [templateName, customContent, isEdit]);
+
+  const saveDraft = () => {
+    const draft = { title, content, journalDate, tags };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    saveDraft();
+  };
+
+  const handleContentChange = (value: string) => {
+    setContent(value);
+    saveDraft();
+  };
+
+  const handleDateChange = (newDate: string) => {
+    setJournalDate(newDate);
+    saveDraft();
+  };
+
+  const handleTagsChange = (newTags: string[]) => {
+    setTags(newTags);
+    saveDraft();
+  };
 
   const handleSave = async () => {
     setError(null);
@@ -91,6 +128,7 @@ export default function NewJournalPage() {
           
           setJournalId(result.id);
         }
+        localStorage.removeItem(DRAFT_KEY); // Clear draft on save
         router.push('/journal');
       } else {
         const offlineEntry = {
@@ -134,14 +172,6 @@ export default function NewJournalPage() {
     }
   };
 
-  const handleDateChange = (newDate: string) => {
-    setJournalDate(newDate);
-  };
-
-  const handleTagsChange = (newTags: string[]) => {
-    setTags(newTags);
-  };
-
   const handleDelete = async () => {
     if (!journalId) return;
     
@@ -153,13 +183,7 @@ export default function NewJournalPage() {
     }
   };
 
-  if (loading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <BreathingLoader message="Đang tải..." />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-white px-6 py-8">
@@ -178,11 +202,17 @@ export default function NewJournalPage() {
               onTagsChange={handleTagsChange}
               onDelete={handleDelete}
             />
-            <Button
+                        <Button
               onClick={handleSave}
-              className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6 py-2"
+              variant="outline"
             >
-              {journalId ? 'Update' : 'Save'}
+              Lưu
+            </Button>
+            <Button
+              onClick={handleGetFeedback}
+              disabled={!content || !title}
+            >
+              Nhận phản hồi
             </Button>
           </div>
         </div>
@@ -192,50 +222,21 @@ export default function NewJournalPage() {
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Tiêu đề..."
             className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full"
           />
         </div>
 
-        {/* Date and Tags display */}
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <span>📅</span>
-            <span>{new Date(journalDate).toLocaleDateString('vi-VN')}</span>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span>🏷️</span>
-              <div className="flex flex-wrap gap-1">
-                {tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         <LiveMarkdownEditor
           value={content}
-          onChange={setContent}
+          onChange={handleContentChange}
           placeholder="Bắt đầu viết ở đây..."
           minHeight={400}
         />
 
         {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
 
-        <div className="flex justify-center mt-8">
-          <Button
-            onClick={handleGetFeedback}
-            disabled={!content || !title}
-            className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-          >
-            Nhận phản hồi
-          </Button>
-        </div>
       </main>
     </div>
   );

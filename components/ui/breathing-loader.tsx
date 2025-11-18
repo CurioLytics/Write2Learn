@@ -94,7 +94,7 @@ export function BreathingLoader({
         )}
         aria-live="polite"
       >
-        {isBreathingIn ? 'breathe in' : 'breathe out'}
+        {isBreathingIn ? 'hít vào' : 'thở ra'}
       </p>
       
       {/* Breathing bubble with smooth transition */}

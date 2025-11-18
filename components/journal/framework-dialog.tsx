@@ -59,7 +59,7 @@ export function FrameworkDialog({ framework, isOpen, onClose }: FrameworkDialogP
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button onClick={handleUseTemplate} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={handleUseTemplate} >
             Dùng mẫu này
           </Button>
         </DialogFooter>

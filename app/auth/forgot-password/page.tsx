@@ -96,7 +96,6 @@ export default function ForgotPasswordPage() {
 
           <Button
             type="submit"
-            className="w-full mobile-btn tap-highlight-none py-6 sm:py-4 text-base"
             disabled={loading}
           >
             {loading ? 'Đang gửi...' : 'Gửi link đặt lại mật khẩu'}

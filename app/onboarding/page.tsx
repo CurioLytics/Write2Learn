@@ -47,34 +47,38 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleNext = async () => {
-    if (isSubmitting) return;
+const handleNext = async () => {
+  if (isSubmitting) return;
 
-    // ✅ Nếu chưa đến bước cuối, chỉ tiến step
-    if (step < 6) {
-      nextStep();
-      return;
+  // Step 5: redirect to /auth if user clicks "Đăng nhập để lưu hồ sơ"
+  if (step === 5) {
+    router.push('/auth');
+    return;
+  }
+
+  // ✅ Nếu chưa đến bước cuối, chỉ tiến step
+  if (step < 6) {
+    nextStep();
+    return;
+  }
+
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    // ✅ Lưu lại toàn bộ thông tin (đã có sẵn trong useOnboardingFlow)
+    if (selectedTemplates.length > 0) {
+      router.replace(`/journal/new?templateId=${selectedTemplates[0]}`);
+    } else {
+      router.replace('/journal/new');
     }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // ✅ Lưu lại toàn bộ thông tin (đã có sẵn trong useOnboardingFlow)
-      // → Không cần sessionStorage trực tiếp ở đây
-      // (vì hook đã tự save mỗi khi update)
-      if (selectedTemplates.length > 0) {
-        router.replace(`/journal/new?templateId=${selectedTemplates[0]}`);
-      } else {
-        router.replace('/journal/new');
-      }
-    } catch (err) {
-      console.error('Error saving onboarding:', err);
-      setError('Đã xảy ra lỗi. Vui lòng thử lại.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (err) {
+    console.error('Error saving onboarding:', err);
+    setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
@@ -197,7 +201,7 @@ export default function OnboardingPage() {
             ) : step === 6 ? (
               selectedTemplates.length > 0 ? 'Bắt đầu viết' : 'Viết tự do'
             ) : step === 5 ? (
-              'Chọn mẫu nhật ký'
+              'Đăng nhập để lưu hồ sơ'
             ) : (
               'Tiếp tục'
             )}

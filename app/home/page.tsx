@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { TemplateCards } from '@/components/journal/template-cards';
 import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { FlashcardCard } from '@/app/vocab/components/Flashcard';
@@ -224,6 +226,7 @@ function DueFlashcards() {
 }
 
 export default function DashboardPage() {
+    const router = useRouter();
     const { user } = useAuth();
     
     // Sử dụng kiểu dữ liệu đã định nghĩa
@@ -298,6 +301,14 @@ export default function DashboardPage() {
             <section ref={journalSectionRef} id="journal" className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4">
                 <div className="w-full max-w-2xl mx-auto">
                     <TemplateCards />
+                    <div className="text-center mt-6">
+                        <Button
+                            onClick={() => router.push('/journal/new')}
+                            variant='outline'
+                        >
+                            Viết tự do
+                        </Button>
+                    </div>
                 </div>
                 <button
                     aria-label="Cuộn xuống phần hội thoại"
@@ -406,7 +417,7 @@ export default function DashboardPage() {
                 <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900"> 20 từ sắp tuột khỏi não bạ</h2>
+                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900"> 20 từ sắp quên</h2>
                         </div>
                         <DueFlashcards />
                     </div>
