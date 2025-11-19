@@ -97,42 +97,40 @@ function DueFlashcards() {
         const currentCard = flashcards[currentIndex];
         if (!currentCard || isSubmitting) return;
 
-        setIsSubmitting(true);
-        try {
-            const ratingMap: Record<string, number> = {
-                'again': 1,
-                'hard': 2,
-                'good': 3,
-                'easy': 4
-            };
-
-            const response = await fetch('/api/vocabulary/review', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    vocabulary_id: currentCard.vocabulary_id, 
-                    rating: ratingMap[rating] 
-                }),
-            });
-
-            if (response.ok) {
-                // Move to next card or finish
-                if (currentIndex + 1 < flashcards.length) {
-                    setCurrentIndex(prev => prev + 1);
-                    setIsFlipped(false);
-                } else {
-                    // All cards completed, refresh the list
-                    setCurrentIndex(0);
-                    setIsFlipped(false);
-                    // Refetch to get new due cards
-                    window.location.reload();
-                }
-            }
-        } catch (error) {
-            console.error('Error submitting review:', error);
-        } finally {
-            setIsSubmitting(false);
+        // Immediately move to next card for smooth UX
+        if (currentIndex + 1 < flashcards.length) {
+            setCurrentIndex(prev => prev + 1);
+            setIsFlipped(false);
+        } else {
+            // All cards completed, show completion state immediately
+            setCurrentIndex(0);
+            setIsFlipped(false);
+            // Optionally refresh to get new due cards after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         }
+
+        // Process rating in background (fire-and-forget)
+        const ratingMap: Record<string, number> = {
+            'again': 1,
+            'hard': 2,
+            'good': 3,
+            'easy': 4
+        };
+
+        // Background API call - don't await
+        fetch('/api/vocabulary/review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                vocabulary_id: currentCard.vocabulary_id, 
+                rating: ratingMap[rating] 
+            }),
+        }).catch(error => {
+            console.error('Background review update failed:', error);
+            // Could show a toast notification if needed, but don't block UX
+        });
     };
 
     const handleShuffle = () => {
