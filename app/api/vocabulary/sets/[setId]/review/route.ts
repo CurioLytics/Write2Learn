@@ -3,7 +3,7 @@ import { authenticateUser, handleApiError, createSuccessResponse } from '@/utils
 import { vocabularyReviewService } from '@/services/vocabulary/vocabulary-review-service';
 
 /**
- * GET /api/vocabulary/[setId]/review
+ * GET /api/vocabulary/sets/[setId]/review
  * Get vocabulary words for review from a specific set
  */
 export async function GET(

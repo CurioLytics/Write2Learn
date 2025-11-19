@@ -3,7 +3,7 @@ import { authenticateUser, handleApiError, parseRequestBody, createSuccessRespon
 import { vocabularyManagementService } from '@/services/vocabulary/vocabulary-management-service';
 
 /**
- * GET /api/vocabulary/[setId]
+ * GET /api/vocabulary/sets/[setId]
  * Get vocabulary set details with all words
  */
 export async function GET(
@@ -37,7 +37,7 @@ export async function GET(
 }
 
 /**
- * PUT /api/vocabulary/[setId]
+ * PUT /api/vocabulary/sets/[setId]
  * Update vocabulary set and its words
  */
 export async function PUT(
@@ -64,7 +64,7 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/vocabulary/[setId]
+ * DELETE /api/vocabulary/sets/[setId]
  * Delete vocabulary set and all associated words
  */
 export async function DELETE(

@@ -237,6 +237,16 @@ export default function NewJournalPage() {
 
         {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
 
+        {/* Show breathing loader during feedback processing */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <BreathingLoader 
+              message="Getting personalized feedback..."
+              className="bg-white rounded-lg shadow-lg p-8"
+            />
+          </div>
+        )}
+
       </main>
     </div>
   );

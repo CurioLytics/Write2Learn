@@ -28,7 +28,7 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   if (isLoading) {
     return (
       <div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={`skeleton-${index}`}
@@ -78,7 +78,7 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   const router = useRouter();
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {vocabularySets.map((set) => (
           <VocabularySetCard
             key={set.set_id}

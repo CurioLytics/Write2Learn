@@ -141,7 +141,17 @@ export default function FlashcardCreationPage() {
   // --------------------------
   const handleSaveFlashcards = async () => {
     setError(null);
-    if (!validate(flashcards)) return;
+    
+    // Filter out empty flashcards
+    const validFlashcards = flashcards.filter(card => 
+      card.word.trim() && card.back?.definition.trim()
+    );
+    
+    if (validFlashcards.length === 0) {
+      setError('Không có flashcard hợp lệ để lưu. Vui lòng điền đầy đủ Term và Meaning.');
+      return;
+    }
+    
     if (!user?.id) {
       setError('Bạn cần đăng nhập để lưu flashcards.');
       return;
@@ -157,12 +167,12 @@ export default function FlashcardCreationPage() {
     try {
       const supabase = createClientComponentClient();
 
-      // Save flashcards directly to vocabulary table
-      const vocabularyData = flashcards.map((card) => ({
+      // Save valid flashcards directly to vocabulary table
+      const vocabularyData = validFlashcards.map((card) => ({
         set_id: selectedSetId,
-        word: card.word,
-        meaning: card.back.definition,
-        example: card.back.example || null,
+        word: card.word.trim(),
+        meaning: card.back.definition.trim(),
+        example: card.back.example?.trim() || null,
       }));
 
       const { error } = await supabase
@@ -250,9 +260,7 @@ export default function FlashcardCreationPage() {
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-500 mt-1">
-              Chọn bộ từ vựng để lưu các flashcard này
-            </p>
+
           </div>
 
           {error && (
@@ -272,17 +280,14 @@ export default function FlashcardCreationPage() {
                 )}
 
                 {flashcards.map((card, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-700">Term</h4>
-                  <button
-                    onClick={() => deleteFlashcard(idx)}
-                    className="text-gray-500 hover:text-red-600 transition-colors"
-                    aria-label={`Xóa flashcard ${idx + 1}`}
-                  >
-                    🗑️
-                  </button>
-                </div>
+              <div key={idx} className="relative border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <button
+                  onClick={() => deleteFlashcard(idx)}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition-colors text-lg"
+                  aria-label={`Xóa flashcard ${idx + 1}`}
+                >
+                  ×
+                </button>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -293,7 +298,7 @@ export default function FlashcardCreationPage() {
                       value={card.word}
                       onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
                       rows={2}
-                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
                       placeholder="Enter term..."
                     />
                   </div>
@@ -308,7 +313,7 @@ export default function FlashcardCreationPage() {
                         updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })
                       }
                       rows={2}
-                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
                       placeholder="Enter meaning..."
                     />
                   </div>

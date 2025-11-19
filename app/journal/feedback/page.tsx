@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { journalService } from '@/services/journal-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
 import { HighlightSelector } from '@/components/journal/highlight-selector-new';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
@@ -63,34 +65,68 @@ async function saveJournalAndHighlights({
 }: {
   userId: string; feedback: any; highlights: string[]; title: string;
 }) {
-  const payload = {
-    userId,
-    title,
-    content: feedback.enhanced_version || feedback.improvedVersion || feedback.fixed_typo || feedback.originalVersion || '',
-    journalDate: new Date().toISOString().split('T')[0],
-    highlights,
-  };
-
-  const webhookUrl = process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL || 
-    'https://auto2.elyandas.com/webhook/save-process-highlight-v1';
-
-  const res = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) throw new Error('Webhook request failed');
-  
-  if (feedback.fb_details?.length > 0) {
-    try {
-      await feedbackLogsService.saveFeedbackLogs(userId, feedback.fb_details);
-    } catch (error) {
-      console.error('Failed to save feedback logs:', error);
+  try {
+    // Extract original and enhanced content from feedback
+    const originalContent = feedback.originalVersion || feedback.fixed_typo || '';
+    const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
+    
+    // Use journal service to save both original and enhanced versions
+    const result = await journalService.createJournalFromFeedback(userId, {
+      title,
+      originalContent,
+      enhancedContent,
+      journalDate: new Date().toISOString(),
+      highlights,
+    });
+    
+    // Save feedback details if available
+    if (feedback.fb_details?.length > 0) {
+      try {
+        await feedbackLogsService.saveFeedbackLogs(userId, feedback.fb_details);
+      } catch (error) {
+        console.error('Failed to save feedback logs:', error);
+        // Continue even if feedback logs fail
+      }
     }
+    
+    // Generate flashcards if highlights exist
+    let flashcardData = null;
+    if (highlights && highlights.length > 0) {
+      try {
+        const flashcardResponse = await fetch('/api/flashcards/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            highlights,
+            content: enhancedContent || originalContent,
+            title,
+          }),
+        });
+        
+        if (flashcardResponse.ok) {
+          const flashcardResult = await flashcardResponse.json();
+          flashcardData = flashcardResult.data?.flashcards || flashcardResult.flashcards || [];
+          console.log('Generated flashcards:', flashcardData);
+        } else {
+          console.error('Failed to generate flashcards:', flashcardResponse.statusText);
+        }
+      } catch (error) {
+        console.error('Error generating flashcards:', error);
+        // Continue without flashcards if generation fails
+      }
+    }
+    
+    return { 
+      id: result.id, 
+      success: true,
+      flashcards: flashcardData 
+    };
+  } catch (error) {
+    console.error('Error saving journal from feedback:', error);
+    throw error;
   }
-
-  return res.json();
 }
 
 export default function JournalFeedbackPage() {
@@ -120,7 +156,14 @@ export default function JournalFeedbackPage() {
         title: editableTitle,
       });
 
-      if (redirectToFlashcards && highlights.length) {
+      if (redirectToFlashcards && highlights.length && data.flashcards) {
+        // Store generated flashcards for the creation page
+        localStorage.setItem('flashcardData', JSON.stringify({
+          output: data.flashcards
+        }));
+        router.push('/flashcards/create');
+      } else if (redirectToFlashcards && highlights.length) {
+        // Fallback: redirect with journal data if flashcard generation failed
         localStorage.setItem('flashcardData', JSON.stringify(data));
         router.push('/flashcards/create');
       } else {
@@ -140,28 +183,48 @@ export default function JournalFeedbackPage() {
   };
 
   if (loading || processing) {
-    return <LoadingState message={processing ? 'Processing your highlights' : 'Preparing your feedback'} />;
+    return (
+      <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+        <div className="w-full max-w-3xl mx-auto px-4 py-10">
+          <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+            <CardContent>
+              <BreathingLoader 
+                message={processing ? 
+                  (highlights.length > 0 ? 'Creating flashcards from your highlights...' : 'Processing your highlights...') : 
+                  'Preparing your feedback...'
+                }
+                className="py-8"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   if (error || !feedback) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-3xl mx-auto p-6">
-          <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
+      <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+        <div className="w-full max-w-3xl mx-auto px-4 py-10">
+          <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+            <CardContent>
+              <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-6">
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Journal Feedback</CardTitle>
-          </CardHeader>
+    <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+      <div className="w-full max-w-3xl mx-auto px-4 py-10">
+        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
           <CardContent className="space-y-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Phiên bản xịn xò</h1>
+
+            </div>
             
             {/* Title Input */}
             <div>
@@ -267,13 +330,12 @@ function VersionCard({
         <div className={`w-3 h-3 ${dotColor} rounded-full`}></div>
         <h4 className="text-md font-medium text-gray-800">{title}</h4>
       </div>
-      <div className={`p-4 rounded-lg border-2 min-h-[300px] relative ${className}`}>
         <div id={id} className="whitespace-pre-wrap text-gray-800 leading-relaxed">
           {content}
         </div>
         {children}
       </div>
-    </div>
+
   );
 }
 
@@ -283,7 +345,7 @@ function FeedbackDetailsSection({ details }: { details: any[] }) {
       <h3 className="text-lg font-semibold text-gray-700 mb-4">Chi tiết phản hồi</h3>
       <div className="space-y-4">
         {details.map((detail: any, index: number) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">
             <CardContent className="p-4">
               <div className="text-sm font-medium text-blue-600 mb-2">
                 {(detail.type || detail.type_of_fix)?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}

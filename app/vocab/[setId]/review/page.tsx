@@ -28,7 +28,7 @@ export default function ReviewPage() {
     if (!setId) return;
     setIsLoading(true);
 
-    fetch(`/api/vocabulary/${setId}/review`)
+    fetch(`/api/vocabulary/sets/${setId}/review`)
       .then(res => res.json())
       .then((data) => {
         setCards(data.vocabulary || []);

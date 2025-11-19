@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { 
   JournalFeedbackRequest, 
   JournalFeedbackResponse,
@@ -6,6 +8,7 @@ import {
   WebhookFeedbackResponse,
   FeedbackServiceResult 
 } from '@/types/journal-feedback';
+import { authenticateUser, handleApiError } from '@/utils/api-helpers';
 
 /**
  * Configuration for the feedback service
@@ -21,6 +24,9 @@ const FEEDBACK_CONFIG = {
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    // Authenticate user
+    const user = await authenticateUser();
+    
     const body: JournalFeedbackRequest = await req.json();
     
     // Validate request body
@@ -40,20 +46,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Make the request with timeout and proper error handling
-    const feedback = await requestFeedbackWithRetry(body);
+    // Fetch user's English level from profiles table
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('english_level')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      // Continue without level if profile fetch fails
+    }
+
+    const userLevel = profile?.english_level || null;
+
+    // Make the request with user level included
+    const feedback = await requestFeedbackWithRetry(body, userLevel);
     
     return NextResponse.json(feedback, { status: 200 });
     
   } catch (error) {
-    console.error('Journal feedback API error:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
-    return NextResponse.json(
-      { error: `Failed to get journal feedback: ${errorMessage}` },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -62,6 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
  */
 async function requestFeedbackWithRetry(
   body: JournalFeedbackRequest,
+  userLevel: string | null = null,
   retryCount = 0
 ): Promise<JournalFeedbackResponse> {
   try {
@@ -79,9 +94,8 @@ async function requestFeedbackWithRetry(
       },
       body: JSON.stringify({
         content: body.content,
-        title: body.title,
-        fixed_typo: body.content, // Send original content as fixed_typo baseline
-        enhanced_version: body.content // Will be improved by webhook
+        title: body.title || '',
+        level: userLevel
       }),
       signal: controller.signal,
     });
@@ -107,7 +121,7 @@ async function requestFeedbackWithRetry(
     // Retry once if it's the first attempt and not an abort error
     if (retryCount < FEEDBACK_CONFIG.MAX_RETRIES && !isAbortError(error)) {
       console.log('Retrying request...');
-      return requestFeedbackWithRetry(body, retryCount + 1);
+      return requestFeedbackWithRetry(body, userLevel, retryCount + 1);
     }
     
     // Throw the error instead of returning fallback data

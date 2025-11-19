@@ -231,6 +231,16 @@ export default function JournalViewPage() {
             Nhận phản hồi
           </Button>
         </div>
+
+        {/* Show breathing loader during feedback processing */}
+        {isSaving && (
+          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <BreathingLoader 
+              message="Getting personalized feedback..."
+              className="bg-white rounded-lg shadow-lg p-8"
+            />
+          </div>
+        )}
       </main>
     </div>
   );

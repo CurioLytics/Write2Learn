@@ -240,6 +240,7 @@ class JournalService {
     title: string | null;
     content: string;
     journal_date?: string | null;
+    enhanced_version?: string | null;
   }): Promise<{ id: string }> {
     try {
       console.log('createJournal - Creating new journal entry for user:', userId);
@@ -253,6 +254,7 @@ class JournalService {
           user_id: userId,
           title: data.title,
           content: data.content,
+          enhanced_version: data.enhanced_version || null,
           journal_date: data.journal_date || new Date().toISOString(),
         })
         .select('id')
@@ -356,6 +358,7 @@ class JournalService {
     title?: string | null;
     content?: string;
     journal_date?: string | null;
+    enhanced_version?: string | null;
   }): Promise<{ success: boolean }> {
     try {
       console.log('updateJournal - Updating journal entry:', journalId);
@@ -377,6 +380,48 @@ class JournalService {
       return { success: true };
     } catch (error) {
       console.error('Error in updateJournal:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a journal entry from feedback data
+   * Saves original content to content field and enhanced version to enhanced_version field
+   * 
+   * @param userId The ID of the user creating the journal entry
+   * @param data The feedback and journal data
+   * @returns Promise with the created journal entry
+   */
+  async createJournalFromFeedback(userId: string, data: {
+    title: string;
+    originalContent: string;
+    enhancedContent: string;
+    journalDate: string;
+    highlights?: string[];
+  }): Promise<{ id: string }> {
+    try {
+      console.log('createJournalFromFeedback - Creating journal from feedback for user:', userId);
+      
+      const result = await this.createJournal(userId, {
+        title: data.title,
+        content: data.originalContent,  // Save original content
+        enhanced_version: data.enhancedContent,  // Save enhanced version
+        journal_date: data.journalDate,
+      });
+      
+      // Save highlights as tags if provided
+      if (data.highlights && data.highlights.length > 0) {
+        try {
+          await this.saveJournalTags(result.id, data.highlights);
+        } catch (error) {
+          console.error('Failed to save highlights as tags:', error);
+          // Continue even if tag saving fails
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error in createJournalFromFeedback:', error);
       throw error;
     }
   }

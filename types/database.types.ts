@@ -524,6 +524,7 @@ export type Database = {
           created_at: string | null
           example: string | null
           id: string
+          is_starred: boolean | null
           meaning: string
           set_id: string
           source_id: string | null
@@ -534,6 +535,7 @@ export type Database = {
           created_at?: string | null
           example?: string | null
           id?: string
+          is_starred?: boolean | null
           meaning: string
           set_id: string
           source_id?: string | null
@@ -544,6 +546,7 @@ export type Database = {
           created_at?: string | null
           example?: string | null
           id?: string
+          is_starred?: boolean | null
           meaning?: string
           set_id?: string
           source_id?: string | null
@@ -566,6 +569,7 @@ export type Database = {
           description: string | null
           id: string
           is_default: boolean | null
+          is_starred: boolean | null
           profile_id: string | null
           title: string
           updated_at: string | null
@@ -575,6 +579,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean | null
+          is_starred?: boolean | null
           profile_id?: string | null
           title: string
           updated_at?: string | null
@@ -584,6 +589,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean | null
+          is_starred?: boolean | null
           profile_id?: string | null
           title?: string
           updated_at?: string | null

@@ -50,9 +50,16 @@ export default function VocabPage() {
     loadFlashcardSetStats();
   }, [user?.id]);
 
-  // Load starred words when switching to starred words tab
+  // Load starred words on page load
   useEffect(() => {
-    if (activeTab === 'starred-words' && user?.id) {
+    if (user?.id) {
+      loadStarredWords();
+    }
+  }, [user?.id]);
+
+  // Load starred words when switching to starred words tab (as backup)
+  useEffect(() => {
+    if (activeTab === 'starred-words' && user?.id && starredWords.length === 0) {
       loadStarredWords();
     }
   }, [activeTab, user?.id]);
@@ -74,7 +81,7 @@ export default function VocabPage() {
   const handleStarToggle = async (wordId: string) => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`/api/vocabulary/${wordId}/star`, {
+      const response = await fetch(`/api/vocabulary/words/${wordId}/star`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,21 +113,16 @@ export default function VocabPage() {
   };
 
   return (
-    <div
-      className="flex-1 flex flex-col w-full"
-      style={{ transition: "0.3s ease-in-out" }}
-    >
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Compact Header - Center aligned like home */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Từ vựng</h1>
-          <p className="text-gray-600 mb-6">
-            Quản lý và ôn tập từ vựng tiếng Anh của bạn
-          </p>
-        </div>
-
-        {/* Main Content - Compact */}
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
+    <div className="min-h-screen bg-gray-50 py-8" style={{ fontFamily: 'var(--font-sans)' }}>
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Từ vựng</h1>
+              <p className="text-sm text-gray-600 mt-2">Quản lý và ôn tập từ vựng tiếng Anh của bạn</p>
+            </div>
+            <div className="text-sm text-gray-600">{filteredSets.length} bộ</div>
+          </div>
 
           {/* Tabs */}
           <div className="mb-6 border-b border-gray-200">

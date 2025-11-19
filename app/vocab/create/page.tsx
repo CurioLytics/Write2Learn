@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { supabase } from '@/services/supabase/client';
 
 interface VocabularyWord {
@@ -139,142 +138,133 @@ export default function CreateVocabSetPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Create Vocabulary Set
-        </h1>
-        <p className="text-gray-600">
-          Tạo bộ từ vựng mới để học và ôn tập
-        </p>
-      </div>
-
-      <Card className="bg-white shadow rounded-lg">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">Vocabulary Set Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Title Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title <span className="text-red-500">*</span>
-            </label>
-            <Input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter vocabulary set title..."
-              className="w-full"
-            />
+    <div className="min-h-screen bg-gray-50 py-8" style={{ fontFamily: 'var(--font-sans)' }}>
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Create Vocabulary Set</h1>
+              <p className="text-sm text-gray-600 mt-2">Tạo bộ từ vựng mới để học và ôn tập</p>
+            </div>
+            <div className="text-sm text-gray-600">{vocabularyWords.length} mục</div>
           </div>
 
-          {/* Description Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter description (optional)..."
-            />
-          </div>
-
-          {/* Vocabulary Words Section */}
-          <div>
-            <div className="flex items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
+          {/* Content */}
+          <div className="space-y-6">
+            {/* Title Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter vocabulary set title..."
+                className="w-full bg-gray-50 border border-gray-200"
+              />
             </div>
 
-            <div className="space-y-4">
-              {vocabularyWords.map((word, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-700">Term</h4>
-                    {vocabularyWords.length > 1 && (
-                      <button
-                        onClick={() => removeVocabularyWord(index)}
-                        className="text-gray-500 hover:text-red-600 transition-colors"
-                        aria-label={`Remove term ${index + 1}`}
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Term
-                      </label>
-                      <textarea
-                        value={word.word}
-                        onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
-                        rows={2}
-                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        placeholder="Enter term..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Meaning
-                      </label>
-                      <textarea
-                        value={word.meaning}
-                        onChange={(e) => updateVocabularyWord(index, 'meaning', e.target.value)}
-                        rows={2}
-                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        placeholder="Enter meaning..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            {/* Description Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                placeholder="Enter description (optional)..."
+              />
             </div>
-            
-            {/* Add Word Button at the end */}
-            <div className="mt-4">
+
+            {/* Vocabulary Words Section */}
+            <div>
+              <div className="flex items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
+              </div>
+
+              <div className="space-y-4">
+                {vocabularyWords.map((word, index) => (
+                  <div key={index} className="relative border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <button
+                      onClick={() => removeVocabularyWord(index)}
+                      className="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition-colors text-lg"
+                      aria-label={`Remove term ${index + 1}`}
+                    >
+                      ×
+                    </button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Term
+                        </label>
+                        <textarea
+                          value={word.word}
+                          onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
+                          rows={2}
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          placeholder="Enter term..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Meaning
+                        </label>
+                        <textarea
+                          value={word.meaning}
+                          onChange={(e) => updateVocabularyWord(index, 'meaning', e.target.value)}
+                          rows={2}
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          placeholder="Enter meaning..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Add Word Button at the end */}
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addVocabularyWord}
+                  className="text-sm w-full"
+                >
+                  + Add Word
+                </Button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">{error}</div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center mt-6 pt-4 border-t">
               <Button
                 variant="outline"
-                size="sm"
-                onClick={addVocabularyWord}
-                className="text-sm w-full"
+                onClick={handleCancel}
+                disabled={isLoading}
               >
-                + Add Word
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isLoading || !title.trim()}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
+              >
+                {isLoading ? 'Saving...' : 'Save Vocabulary Set'}
               </Button>
             </div>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="text-sm text-red-700 bg-red-50 p-3 rounded-md border border-red-200">
-              {error}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isLoading || !title.trim()}
-              variant='default'
-            >
-              {isLoading ? 'Saving...' : 'Save Vocabulary Set'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
