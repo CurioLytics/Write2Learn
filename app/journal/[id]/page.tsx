@@ -140,7 +140,7 @@ export default function JournalViewPage() {
   // Show error state
   if (error && !journal) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
+      <div className="flex flex-col items-center justify-center bg-white px-6 py-20">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Không thể tải nhật ký</h1>
           <p className="text-gray-600 mb-6">{error}</p>
@@ -155,8 +155,8 @@ export default function JournalViewPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white px-6 py-8">
-      <main className="max-w-3xl w-full mx-auto flex flex-col flex-grow">
+    <div className="bg-white px-6 py-8">
+      <main className="max-w-3xl w-full mx-auto flex flex-col">
         {/* Header with navigation and actions */}
         <div className="flex items-center justify-between mb-6">
           <Link href="/journal" className="text-blue-600 text-sm hover:underline">

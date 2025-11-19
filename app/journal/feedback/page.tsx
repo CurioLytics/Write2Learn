@@ -195,47 +195,42 @@ export default function JournalFeedbackPage() {
 
   if (loading || processing) {
     return (
-      <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
-        <div className="w-full max-w-3xl mx-auto px-4 py-10">
-          <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
-            <CardContent>
-              <BreathingLoader 
-                message={processing ? 
-                  (highlights.length > 0 ? 'Creating flashcards from your highlights...' : 'Processing your highlights...') : 
-                  'Preparing your feedback...'
-                }
-                className="py-8"
-              />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="w-full max-w-3xl mx-auto px-4 py-10">
+        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+          <CardContent>
+            <BreathingLoader 
+              message={processing ? 
+                (highlights.length > 0 ? 'Creating flashcards from your highlights...' : 'Processing your highlights...') : 
+                'Preparing your feedback...'
+              }
+              className="py-8"
+            />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error || !feedback) {
     return (
-      <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
-        <div className="w-full max-w-3xl mx-auto px-4 py-10">
-          <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
-            <CardContent>
-              <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="w-full max-w-3xl mx-auto px-4 py-10">
+        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+          <CardContent>
+            <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
-      <div className="w-full max-w-3xl mx-auto px-4 py-10">
-        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
-          <CardContent className="space-y-6">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Phiên bản xịn xò</h1>
+    <div className="w-full max-w-3xl mx-auto px-4 py-10">
+      <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+        <CardContent className="space-y-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Phiên bản xịn xò</h1>
 
-            </div>
+          </div>
             
             {/* Title Input */}
             <div>
@@ -309,8 +304,7 @@ export default function JournalFeedbackPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    );
 }
 
 // Reusable Components

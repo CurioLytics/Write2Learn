@@ -146,20 +146,32 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                     </div>
                     
                     <div className="py-1">
-                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                      <Link 
+                        href="/profile"
+                        className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
                         <Settings size={16} />
                         Cá nhân hóa
-                      </button>
+                      </Link>
                       
-                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                      <Link 
+                        href="/account"
+                        className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
                         <User size={16} />
                         Tài khoản
-                      </button>
+                      </Link>
                       
-                      <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                      <Link 
+                        href="/feedback"
+                        className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
                         <MessageSquare size={16} />
                         Feedback
-                      </button>
+                      </Link>
                       
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button

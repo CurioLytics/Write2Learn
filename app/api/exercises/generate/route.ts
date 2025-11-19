@@ -69,7 +69,19 @@ export async function POST(request: NextRequest) {
     // Handle multiple possible response structures
     let questions: string[] = [];
     
-    if (Array.isArray(webhookResponse)) {
+    // New structure: [{"text": "JSON_STRING"}]
+    if (Array.isArray(webhookResponse) && webhookResponse[0]?.text) {
+      try {
+        const innerJson = JSON.parse(webhookResponse[0].text);
+        if (Array.isArray(innerJson) && innerJson[0]?.question && Array.isArray(innerJson[0].question)) {
+          questions = innerJson[0].question;
+        }
+      } catch (innerParseError) {
+        console.log('Failed to parse inner JSON from text field:', innerParseError);
+      }
+    }
+    // Fallback: Previous structures
+    else if (Array.isArray(webhookResponse)) {
       // Case 1: [{"questions": [...]}] or [{"question": [...]}]
       if (webhookResponse[0]?.questions && Array.isArray(webhookResponse[0].questions)) {
         questions = webhookResponse[0].questions;

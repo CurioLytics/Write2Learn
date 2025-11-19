@@ -4,6 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle,
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
 import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
 import { roleplaySessionService } from '@/services/roleplay-session-service';
@@ -109,6 +120,12 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     }
   };
 
+  const handleExit = () => {
+    router.push(`/roleplay/${scenario.id}`);
+  };
+
+  const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm overflow-hidden">
@@ -145,14 +162,45 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
             </Tooltip>
           </div>
 
-          <Button
-            onClick={handleFinish}
-            disabled={finishing || messages.length <= 1}
-            variant="outline"
-            className="text-sm"
-          >
-            {finishing ? 'Finishing...' : 'Done'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Exit button with confirmation if there's content */}
+            {hasUserMessages ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                    Thoát
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Thoát khỏi cuộc trò chuyện?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Bạn đã có tin nhắn trong cuộc trò chuyện này. Nếu thoát bây giờ, cuộc trò chuyện sẽ không được lưu lại.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleExit} className="bg-red-600 hover:bg-red-700">
+                      Thoát
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={handleExit}>
+                Thoát
+              </Button>
+            )}
+
+            <Button
+              onClick={handleFinish}
+              disabled={finishing || messages.length <= 1}
+              variant="outline"
+              size="sm"
+            >
+              {finishing ? 'Finishing...' : 'Done'}
+            </Button>
+          </div>
         </div>
 
         {/* Chat */}

@@ -186,8 +186,8 @@ export default function NewJournalPage() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white px-6 py-8">
-      <main className="max-w-3xl w-full mx-auto flex flex-col flex-grow">
+    <div className="bg-white px-6 py-8">
+      <main className="max-w-3xl w-full mx-auto flex flex-col">
         {/* Header with navigation and actions */}
         <div className="flex items-center justify-between mb-6">
           <Link href="/journal" className="text-blue-600 text-sm hover:underline">
