@@ -172,14 +172,6 @@ return (
               onPresetChange={updateDateFilter}
               className={loading.errorAnalysis ? "opacity-50 pointer-events-none" : ""}
             />
-            <Button
-              onClick={() => refreshData()}
-              variant="outline"
-              size="sm"
-              disabled={loading.errorAnalysis}
-            >
-              <RefreshCw className={`w-4 h-4 ${loading.errorAnalysis ? 'animate-spin' : ''}`} />
-            </Button>
           </div>
         </div>
 

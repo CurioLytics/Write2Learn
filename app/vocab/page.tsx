@@ -195,7 +195,6 @@ export default function VocabPage() {
                 ) : starredWords.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <p className="mb-2">Chưa có từ nào được đánh dấu</p>
-                    <p className="text-sm">Hãy đánh dấu một số từ trong bộ từ vựng để xem tại đây!</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -22,6 +22,9 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
       ? Math.round((vocabularySet.vocabulary_due / vocabularySet.total_vocabulary) * 100)
       : 0;
 
+  // Invert the progress: higher due percentage = less full progress bar
+  const progressPercentage = 100 - duePercentage;
+
   return (
     <div
       className="bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
@@ -58,12 +61,12 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
         <div
           className={`h-1.5 rounded-full ${
             duePercentage > 50
-              ? 'bg-amber-500'
+              ? 'bg-red-500'
               : duePercentage > 0
-              ? 'bg-blue-500'
+              ? 'bg-amber-500'
               : 'bg-emerald-500'
           }`}
-          style={{ width: `${duePercentage}%` }}
+          style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
 

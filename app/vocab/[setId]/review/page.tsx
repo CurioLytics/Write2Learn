@@ -137,14 +137,28 @@ export default function ReviewPage() {
 
   // 2. Check for "No cards to review" ONLY after loading is complete
   if (!cards.length)
-    return <div className="p-8 text-gray-500">No cards to review</div>;
+    return (
+      <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
+        <div className="bg-white shadow rounded-2xl p-6">
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">Chưa có từ đến hạn, bạn đọc qua danh sách nhé</p>
+            <Button
+              onClick={() => router.push("/vocab")}
+              variant="default"
+            >
+              Quay lại vocab
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
 
   if (completed)
     return (
       <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
         <div className="bg-white shadow rounded-2xl p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold">Hoàn thành ôn tập!</h2>
+            <h2 className="text-2xl font-bold">Hết rùi.. Tuyệt cú mèo</h2>
             <button
               className="text-gray-500 hover:text-black text-xl"
               onClick={() => router.push("/vocab")}
@@ -152,12 +166,11 @@ export default function ReviewPage() {
               ✕
             </button>
           </div>
-          <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          <Button
             onClick={() => router.push("/vocab")}
           >
             Quay lại vocab
-          </button>
+          </Button>
         </div>
       </div>
     );

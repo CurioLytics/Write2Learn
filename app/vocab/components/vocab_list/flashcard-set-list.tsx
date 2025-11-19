@@ -65,11 +65,7 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
     return (
       <div>
         <div className="bg-gray-50 border border-gray-200 border-dashed rounded-md p-6 text-center">
-          <div className="text-4xl mb-2">📚</div>
-          <h3 className="text-base font-medium text-gray-700 mb-1">No vocabulary sets yet</h3>
-          <p className="text-sm text-gray-500">
-            Create your first vocabulary set to start learning new words.
-          </p>
+          <h3 className="text-base font-medium text-gray-700 mb-1">Chưa có bộ nào ~~</h3>
         </div>
       </div>
     );

@@ -113,23 +113,27 @@ export function PracticeDialog({ isOpen, onClose, errorData }: PracticeDialogPro
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Ôn tập từ lỗi sai</DialogTitle>
-          <DialogDescription>
-            Điền từ thích hợp vào chỗ trống và nhấn "Xong" để kiểm tra
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {isLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>Đang tạo bài tập...</span>
+              <span>Sắp có cái làm rùii</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-red-700">{error}</span>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <span className="text-red-700 flex-1">{error}</span>
+              </div>
+              <div className="flex justify-center">
+                <Button onClick={loadExercises} variant="outline">
+                  Tải lại
+                </Button>
+              </div>
             </div>
           )}
 
@@ -165,9 +169,6 @@ export function PracticeDialog({ isOpen, onClose, errorData }: PracticeDialogPro
           <div className="flex gap-3 justify-end pt-4">
             {corrections.length === 0 ? (
               <>
-                <Button variant="outline" onClick={handleClose}>
-                  Đóng
-                </Button>
                 <Button
                   onClick={handleCheck}
                   disabled={isChecking || questions.length === 0}
@@ -184,18 +185,18 @@ export function PracticeDialog({ isOpen, onClose, errorData }: PracticeDialogPro
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handleClose}>
-                  Đóng
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setUserAnswers({});
+                    setCorrections([]);
+                    loadExercises();
+                  }}
+                >
+                  Làm lại
                 </Button>
-                <Button variant="outline" onClick={handleRetry}>
-                  Retry
-                </Button>
-                <Button onClick={() => {
-                  setUserAnswers({});
-                  setCorrections([]);
-                  loadExercises();
-                }}>
-                  Làm thêm
+                <Button onClick={handleClose}>
+                  Xong
                 </Button>
               </>
             )}
