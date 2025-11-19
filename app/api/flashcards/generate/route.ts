@@ -92,23 +92,40 @@ export async function POST(request: Request) {
     // Normalize response to expected format
     let flashcards: FlashcardResponse[] = [];
     
+    // Handle various response structures from the webhook
     if (Array.isArray(responseData)) {
-      flashcards = responseData;
-    } else if (responseData.flashcards && Array.isArray(responseData.flashcards)) {
-      flashcards = responseData.flashcards;
+      // If response is an array, check if first item has output property
+      if (responseData.length > 0 && responseData[0].output) {
+        flashcards = responseData[0].output;
+      } else {
+        flashcards = responseData;
+      }
     } else if (responseData.output && Array.isArray(responseData.output)) {
       flashcards = responseData.output;
+    } else if (responseData.flashcards && Array.isArray(responseData.flashcards)) {
+      flashcards = responseData.flashcards;
     } else if (responseData.data && Array.isArray(responseData.data)) {
       flashcards = responseData.data;
     }
     
-    // Validate flashcard format
+    console.log('Webhook response:', JSON.stringify(responseData, null, 2));
+    console.log('Extracted flashcards:', JSON.stringify(flashcards, null, 2));
+    
+    // Validate flashcard format and normalize structure
     const validFlashcards = flashcards.filter((card: any) => 
       card && 
       typeof card.word === 'string' && 
       card.back && 
       typeof card.back.definition === 'string'
-    );
+    ).map((card: any) => ({
+      word: card.word,
+      back: {
+        definition: card.back.definition,
+        example: card.back.example || 
+                (card.back.synonyms ? `Synonyms: ${card.back.synonyms.join(', ')}` : '') || 
+                ''
+      }
+    }));
     
     return createSuccessResponse({
       flashcards: validFlashcards,

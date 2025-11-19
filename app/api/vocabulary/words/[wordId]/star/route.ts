@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser, handleApiError, createSuccessResponse } from '@/utils/api-helpers';
-import { toggleVocabularyStar } from '@/utils/star-helpers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 /**
  * POST /api/vocabulary/words/[wordId]/star
@@ -18,7 +19,27 @@ export async function POST(
       return NextResponse.json({ error: 'Word ID is required' }, { status: 400 });
     }
 
-    const newStarredStatus = await toggleVocabularyStar(wordId);
+    // Use server-side Supabase client with authenticated user
+    const supabase = createRouteHandlerClient({ cookies });
+
+    // Get current starred status
+    const { data: currentData } = await supabase
+      .from('vocabulary')
+      .select('is_starred')
+      .eq('id', wordId)
+      .single();
+
+    const newStarredStatus = !currentData?.is_starred;
+
+    // Update starred status
+    const { error: updateError } = await supabase
+      .from('vocabulary')
+      .update({ is_starred: newStarredStatus })
+      .eq('id', wordId);
+
+    if (updateError) {
+      throw updateError;
+    }
 
     return createSuccessResponse({
       isStarred: newStarredStatus,
