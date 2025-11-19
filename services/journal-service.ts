@@ -409,16 +409,6 @@ class JournalService {
         journal_date: data.journalDate,
       });
       
-      // Save highlights as tags if provided
-      if (data.highlights && data.highlights.length > 0) {
-        try {
-          await this.saveJournalTags(result.id, data.highlights);
-        } catch (error) {
-          console.error('Failed to save highlights as tags:', error);
-          // Continue even if tag saving fails
-        }
-      }
-      
       return result;
     } catch (error) {
       console.error('Error in createJournalFromFeedback:', error);

@@ -61,19 +61,21 @@ export default function ReviewPage() {
     }
 
     try {
-      if (!currentCard?.id) {
+      const vocabularyId = currentCard.vocabulary_id || currentCard.id;
+      if (!vocabularyId) {
         toast.error('No card selected');
         return;
       }
 
-      const newStarredStatus = await toggleVocabularyStar(currentCard.id);
+      const newStarredStatus = await toggleVocabularyStar(vocabularyId);
 
       // Update local state
-      setCards(prev => prev.map(card =>
-        card.id === currentCard.id
+      setCards(prev => prev.map(card => {
+        const cardId = card.vocabulary_id || card.id;
+        return cardId === vocabularyId
           ? { ...card, is_starred: newStarredStatus }
-          : card
-      ));
+          : card;
+      }));
 
       toast.success(newStarredStatus ? 'Starred' : 'Unstarred');
     } catch (error: any) {
@@ -85,7 +87,15 @@ export default function ReviewPage() {
   async function handleRating(rating: string) {
     if (!currentCard) return;
 
-    // Convert string rating to number for FSRS
+    // Immediately move to next card for smooth UX
+    setFlipped(false);
+    if (current + 1 < cards.length) {
+      setCurrent((prev) => prev + 1);
+    } else {
+      setCompleted(true);
+    }
+
+    // Process rating in background (fire-and-forget)
     const ratingMap: Record<string, number> = {
       'again': 1,
       'hard': 2,
@@ -99,32 +109,20 @@ export default function ReviewPage() {
       return;
     }
 
-    setFlipped(false);
-    if (current + 1 < cards.length) {
-      setCurrent((prev) => prev + 1);
-    } else {
-      setCompleted(true);
-    }
-
-    // Fire-and-forget backend update
-    (async () => {
-      try {
-        const payload = {
-          vocabulary_id: (currentCard as any).vocabulary_id,
-          rating: numericRating
-        };
-        const response = await fetch('/api/vocabulary/review', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          console.error('Review API Error:', response.status);
-        }
-      } catch (err) {
-        console.error('[❌ Review API Error]', err);
-      }
-    })();
+    // Background API call - don't await
+    const payload = {
+      vocabulary_id: (currentCard as any).vocabulary_id,
+      rating: numericRating
+    };
+    
+    fetch('/api/vocabulary/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(error => {
+      console.error('Background review update failed:', error);
+      // Could show a toast notification if needed, but don't block UX
+    });
   }
 
   // 1. Check Loading State first

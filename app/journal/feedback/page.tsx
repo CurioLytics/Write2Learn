@@ -107,7 +107,18 @@ async function saveJournalAndHighlights({
         
         if (flashcardResponse.ok) {
           const flashcardResult = await flashcardResponse.json();
-          flashcardData = flashcardResult.data?.flashcards || flashcardResult.flashcards || [];
+          
+          // Extract flashcards from various possible response structures
+          if (flashcardResult.data?.flashcards) {
+            flashcardData = flashcardResult.data.flashcards;
+          } else if (flashcardResult.flashcards) {
+            flashcardData = flashcardResult.flashcards;
+          } else if (flashcardResult.data?.output) {
+            flashcardData = flashcardResult.data.output;
+          } else if (Array.isArray(flashcardResult.data) && flashcardResult.data[0]?.output) {
+            flashcardData = flashcardResult.data[0].output;
+          }
+          
           console.log('Generated flashcards:', flashcardData);
         } else {
           console.error('Failed to generate flashcards:', flashcardResponse.statusText);
