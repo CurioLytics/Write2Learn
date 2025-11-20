@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
 import { journalService } from '@/services/journal-service';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,31 @@ export default function JournalViewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const autoSave = async () => {
+    if (!journalId || !title || !content) return;
+    
+    try {
+      await journalService.updateJournal(journalId, {
+        title,
+        content,
+        journal_date: journalDate,
+      });
+      await journalService.saveJournalTags(journalId, tags);
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  };
+
+  useJournalAutosave({
+    title,
+    content,
+    journalDate,
+    tags,
+    journalId,
+    onSave: autoSave,
+    draftKey: `journal_edit_${journalId}`
+  });
 
   // Redirect unauthenticated users
   useEffect(() => {

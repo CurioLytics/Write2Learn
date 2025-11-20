@@ -21,7 +21,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
   };
 
   const handleBackClick = () => {
-    router.back();
+    router.push('/roleplay');
   };
 
   return (

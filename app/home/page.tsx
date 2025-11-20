@@ -302,7 +302,7 @@ export default function DashboardPage() {
                     <div className="text-center mt-6">
                         <Button
                             onClick={() => router.push('/journal/new')}
-                            variant='outline'
+                            variant='default'
                         >
                             Viết tự do
                         </Button>
@@ -313,7 +313,7 @@ export default function DashboardPage() {
                     onClick={() => scrollTo('roleplay')}
                     className="mt-6 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
                         <path d="M12 5v14" />
                         <path d="m19 12-7 7-7-7" />
                     </svg>
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                 <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Hôm nay bạn muốn đóng vai ai?</h2>
+                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Hôm nay, bạn muốn đóng vai ai?</h2>
                         </div>
 
                         <div className="relative">
@@ -401,7 +401,7 @@ export default function DashboardPage() {
                             onClick={() => scrollTo('vocab')}
                             className="p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
                                 <path d="M12 5v14" />
                                 <path d="m19 12-7 7-7-7" />
                             </svg>
@@ -426,7 +426,7 @@ export default function DashboardPage() {
                             onClick={() => scrollTo('journal')}
                             className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600 rotate-180">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800 rotate-180">
                                 <path d="M12 5v14" />
                                 <path d="m19 12-7 7-7-7" />
                             </svg>

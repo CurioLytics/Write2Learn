@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { roleplayService } from '@/services/roleplay-service';
 import { RoleplayScenario } from '@/types/roleplay';
 import { ChatInterface } from '@/components/roleplay/chat-interface';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import styles from '@/components/roleplay/roleplay.module.css';
 
 export default function ChatSessionPage() {
@@ -17,6 +27,8 @@ export default function ChatSessionPage() {
   const [scenario, setScenario] = useState<RoleplayScenario | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   
   useEffect(() => {
     async function loadScenario() {
@@ -46,8 +58,34 @@ export default function ChatSessionPage() {
     loadScenario();
   }, [id]);
   
-  const handleBack = () => {
-    router.push(`/roleplay/${id}`);
+  // Prevent navigation with confirmation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setPendingNavigation(`/roleplay/${id}`);
+    setShowLeaveDialog(true);
+  }, [id]);
+
+  const confirmLeave = () => {
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+    }
+  };
+
+  const cancelLeave = () => {
+    setShowLeaveDialog(false);
+    setPendingNavigation(null);
   };
   
   if (loading) {
@@ -87,6 +125,21 @@ export default function ChatSessionPage() {
       <div className="bg-white shadow rounded-2xl p-6 flex flex-col">
         <ChatInterface scenario={scenario} />
       </div>
+
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave this roleplay session? Your conversation progress will be saved.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelLeave}>Stay</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave}>Leave</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

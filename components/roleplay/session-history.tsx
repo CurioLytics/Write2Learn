@@ -1,19 +1,23 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { roleplaySessionService, RoleplaySessionData } from '@/services/roleplay-session-service';
 import { SessionCard } from './session-card';
 import Link from 'next/link';
 import { SessionDetailDialog } from './session-detail-dialog';
 import { History } from 'lucide-react';
+import { DateFilter } from '@/app/report/components/DateFilter';
+import { DatePreset } from '@/types/dashboard';
+import { getDateRangeFromPreset } from '@/utils/date-utils';
 
 export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: boolean } = {}) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<RoleplaySessionData[]>([]);
   const [selectedSession, setSelectedSession] = useState<RoleplaySessionData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [datePreset, setDatePreset] = useState<DatePreset>('all-time');
 
   useEffect(() => {
     async function fetchSessions() {
@@ -36,6 +40,21 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
     fetchSessions();
   }, [user?.id]);
 
+  // Filter sessions based on date preset
+  const filteredSessions = useMemo(() => {
+    const dateRange = getDateRangeFromPreset(datePreset);
+    
+    if (!dateRange) return sessions; // all-time
+    
+    const fromDate = new Date(dateRange.from);
+    const toDate = new Date(dateRange.to);
+    
+    return sessions.filter(session => {
+      const sessionDate = new Date(session.created_at);
+      return sessionDate >= fromDate && sessionDate <= toDate;
+    });
+  }, [sessions, datePreset]);
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -47,19 +66,32 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
   return (
     <>
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <History className="h-5 w-5 text-gray-600" />
-          <h2 className="text-xl font text-gray-900">Roleplay đã chơi</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-gray-600" />
+            <h2 className="text-xl font text-gray-900">Roleplay đã chơi</h2>
+          </div>
+          
+          <div className="w-64">
+            <DateFilter
+              currentPreset={datePreset}
+              onPresetChange={setDatePreset}
+            />
+          </div>
         </div>
 
-        {sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>Chưa có phiên hội thoại nào được hoàn thành</p>
+            <p>
+              {sessions.length === 0 
+                ? 'Chưa có phiên hội thoại nào được hoàn thành'
+                : 'Không có phiên hội thoại nào trong khoảng thời gian này'}
+            </p>
           </div>
         ) : renderAsLinks ? (
           <ul className="space-y-2">
-            {sessions.map((session) => (
+            {filteredSessions.map((session) => (
               <li key={session.session_id}>
                 <Link href={`/roleplay/session/${session.session_id}`} className="text-blue-600 hover:underline">
                   {session.scenario_name}
@@ -68,8 +100,8 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
             ))}
           </ul>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sessions.map((session) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredSessions.map((session) => (
               <SessionCard
                 key={session.session_id}
                 session={session}

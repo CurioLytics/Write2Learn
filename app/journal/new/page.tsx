@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
 import { journalTemplateService } from '@/services/journal-template-service';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { journalService } from '@/services/journal-service';
@@ -30,7 +31,41 @@ export default function NewJournalPage() {
   const customContent = searchParams?.get('customContent');
   const isEdit = searchParams?.get('edit') === 'true';
 
-  const DRAFT_KEY = 'journalDraft';
+  const autoSave = async () => {
+    if (!user || !title || !content) return;
+    
+    try {
+      if (journalId) {
+        await journalService.updateJournal(journalId, {
+          title,
+          content,
+          journal_date: journalDate,
+        });
+        await journalService.saveJournalTags(journalId, tags);
+      } else {
+        const result = await journalService.createJournal(user.id, {
+          title,
+          content,
+          journal_date: journalDate,
+        });
+        if (tags.length > 0) {
+          await journalService.saveJournalTags(result.id, tags);
+        }
+        setJournalId(result.id);
+      }
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  };
+
+  const { loadDraft, clearDraft } = useJournalAutosave({
+    title,
+    content,
+    journalDate,
+    tags,
+    journalId,
+    onSave: autoSave
+  });
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -61,44 +96,14 @@ export default function NewJournalPage() {
     }
 
     // Load draft for new journal
-    const draft = localStorage.getItem(DRAFT_KEY);
+    const draft = loadDraft();
     if (draft) {
-      try {
-        const { title: dTitle, content: dContent, journalDate: dDate, tags: dTags } = JSON.parse(draft);
-        setTitle(dTitle || '');
-        setContent(dContent || '');
-        setJournalDate(dDate || formatDateInput(new Date()));
-        setTags(dTags || []);
-      } catch (e) {
-        console.error('Failed to load draft:', e);
-      }
+      setTitle(draft.title || '');
+      setContent(draft.content || '');
+      setJournalDate(draft.journalDate || formatDateInput(new Date()));
+      setTags(draft.tags || []);
     }
-  }, [templateName, customContent, isEdit]);
-
-  const saveDraft = () => {
-    const draft = { title, content, journalDate, tags };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  };
-
-  const handleTitleChange = (value: string) => {
-    setTitle(value);
-    saveDraft();
-  };
-
-  const handleContentChange = (value: string) => {
-    setContent(value);
-    saveDraft();
-  };
-
-  const handleDateChange = (newDate: string) => {
-    setJournalDate(newDate);
-    saveDraft();
-  };
-
-  const handleTagsChange = (newTags: string[]) => {
-    setTags(newTags);
-    saveDraft();
-  };
+  }, [templateName, customContent, isEdit, loadDraft]);
 
   const handleSave = async () => {
     setError(null);
@@ -128,7 +133,7 @@ export default function NewJournalPage() {
           
           setJournalId(result.id);
         }
-        localStorage.removeItem(DRAFT_KEY); // Clear draft on save
+        clearDraft(); // Clear draft on save
         router.push('/journal');
       } else {
         const offlineEntry = {
@@ -198,8 +203,8 @@ export default function NewJournalPage() {
               journalId={journalId || undefined}
               currentDate={journalDate}
               currentTags={tags}
-              onDateChange={handleDateChange}
-              onTagsChange={handleTagsChange}
+              onDateChange={setJournalDate}
+              onTagsChange={setTags}
               onDelete={handleDelete}
             />
                         <Button
@@ -222,7 +227,7 @@ export default function NewJournalPage() {
           <input
             type="text"
             value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Tiêu đề..."
             className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full"
           />
@@ -230,7 +235,7 @@ export default function NewJournalPage() {
 
         <LiveMarkdownEditor
           value={content}
-          onChange={handleContentChange}
+          onChange={setContent}
           placeholder="Bắt đầu viết ở đây..."
           minHeight={400}
         />

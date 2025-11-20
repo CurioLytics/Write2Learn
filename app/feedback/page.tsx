@@ -69,7 +69,7 @@ export default function FeedbackPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-900">Cảm ơn bạn!</h1>
             <p className="text-gray-600">
-              Phản hồi của bạn đã được gửi thành công. Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.
+              Chúng mình chắc chắn sẽ xem xét phản hồi của bạn để cải thiện Write2Learn.
             </p>
           </div>
 

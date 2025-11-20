@@ -38,6 +38,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
 
   const endRef = useRef<HTMLDivElement>(null);
 
+  const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
+
   // Intro message
   useEffect(() => {
     setMessages([
@@ -54,6 +56,40 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Prevent navigation/reload when there are user messages
+  useEffect(() => {
+    if (!hasUserMessages) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (hasUserMessages) {
+        const confirmLeave = window.confirm(
+          'Bạn đã có tin nhắn trong cuộc trò chuyện này. Nếu thoát bây giờ, cuộc trò chuyện sẽ không được lưu lại. Bạn có chắc muốn thoát?'
+        );
+        
+        if (!confirmLeave) {
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    // Push state to enable popstate detection
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasUserMessages]);
 
   const addMessage = (msg: RoleplayMessage) =>
     setMessages((prev) => [...prev, msg]);
@@ -123,8 +159,6 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const handleExit = () => {
     router.push(`/roleplay/${scenario.id}`);
   };
-
-  const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
 
   return (
     <TooltipProvider delayDuration={300}>
