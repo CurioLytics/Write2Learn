@@ -27,7 +27,7 @@ export function TagFilter({ onFilterChange, currentTag }: TagFilterProps) {
   if (availableTags.length === 0) return null;
   
   return (
-    <div className="mb-6 bg-white rounded-lg p-4 shadow-sm">
+    <div className="mb-6 bg-white rounded-2xl p-4 shadow">
       <h3 className="text-md font-medium text-gray-700 mb-3">Filter by Tag</h3>
       
       <div className="flex flex-wrap gap-2">

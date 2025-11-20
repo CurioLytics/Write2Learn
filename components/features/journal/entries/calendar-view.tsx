@@ -27,7 +27,7 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
   const year = currentMonth.getFullYear();
   
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm">
+    <div className="rounded-2xl p-4 bg-white shadow">
       <div className="flex justify-between items-center mb-4">
         <button 
           onClick={goToPreviousMonth}

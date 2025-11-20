@@ -99,7 +99,7 @@ export function ExploreFrameworks() {
         {filteredFrameworks.map(framework => (
           <Card 
             key={framework.name} 
-            className="cursor-pointer hover:shadow-md transition-shadow group"
+            className="cursor-pointer hover:shadow-md transition-shadow group bg-white shadow border-0 rounded-2xl"
             onClick={() => {
               setSelectedFramework(framework);
               setIsDialogOpen(true);

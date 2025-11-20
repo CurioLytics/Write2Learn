@@ -198,7 +198,7 @@ return (
     {/* Framework Section */}
     <div className="w-full max-w-3xl mt-10 bg-white shadow rounded-2xl p-6">
       <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
-      <p className="text-center text-gray-600 mb-6">Khám phá các phương pháp có cấu trúc để nâng cao kỹ năng viết</p>
+      <p className="text-center text-gray-600 mb-6">Khám phá các framework để trải nghiệm nhiều khía cạnh trong nhật k</p>
       <ExploreFrameworks />
     </div>
 
