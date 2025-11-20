@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
+import { VoiceInputButton } from './voice-input-button';
 import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
 import { roleplaySessionService } from '@/services/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
@@ -160,6 +161,11 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     router.push(`/roleplay/${scenario.id}`);
   };
 
+  const handleVoiceTranscript = (text: string) => {
+    // Append to existing input value with space
+    setInputValue(prev => prev ? `${prev} ${text}` : text);
+  };
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm overflow-hidden">
@@ -269,7 +275,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         )}
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+        <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2 relative">
           <input
             type="text"
             value={inputValue}
@@ -277,6 +283,12 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
             placeholder="Type your message..."
             disabled={isLoading}
             className="flex-1 px-4 py-2 border rounded-full focus:ring-2 focus:ring-gray-300 outline-none"
+          />
+
+          {/* Voice Input Button */}
+          <VoiceInputButton 
+            onTranscript={handleVoiceTranscript}
+            disabled={isLoading}
           />
 
           <Button

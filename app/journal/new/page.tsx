@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
+import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
 import { formatDateInput } from '@/utils/date-utils';
 
 export default function NewJournalPage() {
@@ -188,6 +189,10 @@ export default function NewJournalPage() {
     }
   };
 
+  const handleVoiceTranscript = (text: string) => {
+    setContent(prev => prev ? `${prev} ${text}` : text);
+  };
+
 
 
   return (
@@ -253,6 +258,7 @@ export default function NewJournalPage() {
         )}
 
       </main>
+      <FloatingVoiceButton onTranscript={handleVoiceTranscript} />
     </div>
   );
 }

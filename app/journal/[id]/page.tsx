@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
 import { journalService } from '@/services/journal-service';
+import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
@@ -163,6 +164,10 @@ export default function JournalViewPage() {
     }
   };
 
+  const handleVoiceTranscript = (text: string) => {
+    setContent(prev => prev ? `${prev} ${text}` : text);
+  };
+
   // Show error state
   if (error && !journal) {
     return (
@@ -268,6 +273,7 @@ export default function JournalViewPage() {
           </div>
         )}
       </main>
+      <FloatingVoiceButton onTranscript={handleVoiceTranscript} />
     </div>
   );
 }
