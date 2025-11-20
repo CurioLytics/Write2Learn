@@ -20,6 +20,7 @@ import { VoiceInputButton } from './voice-input-button';
 import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
 import { roleplaySessionService } from '@/services/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { useTTS } from '@/hooks/roleplay/use-tts';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 import styles from './roleplay.module.css';
 
@@ -30,6 +31,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const { speak, stop, isPlaying, playingMessageId } = useTTS();
 
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -95,6 +97,14 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const addMessage = (msg: RoleplayMessage) =>
     setMessages((prev) => [...prev, msg]);
 
+  const handleSpeakToggle = (messageId: string, text: string) => {
+    if (isPlaying(messageId)) {
+      stop();
+    } else {
+      speak(text, messageId);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = inputValue.trim();
@@ -116,12 +126,18 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         scenario,
         [...messages, userMsg]
       );
-      addMessage({
+      const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,
         content: reply,
         sender: 'bot',
         timestamp: Date.now(),
-      });
+      };
+      addMessage(botMsg);
+      
+      // Auto-play bot response
+      setTimeout(() => {
+        speak(reply, botMsg.id);
+      }, 300);
     } catch (error: any) {
       addMessage({
         id: `err-${Date.now()}`,
@@ -250,6 +266,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
               key={m.id}
               message={m}
               roleName={m.sender === 'bot' ? scenario.ai_role : 'You'}
+              onSpeakToggle={handleSpeakToggle}
+              isPlaying={isPlaying(m.id)}
             />
           ))}
 

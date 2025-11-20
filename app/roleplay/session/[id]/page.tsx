@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { roleplayService } from '@/services/roleplay-service';
 import { RoleplayScenario } from '@/types/roleplay';
 import { ChatInterface } from '@/components/roleplay/chat-interface';
+import { VoiceModeChatInterface } from '@/components/roleplay/voice-mode-chat-interface';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import {
@@ -21,8 +22,10 @@ import styles from '@/components/roleplay/roleplay.module.css';
 
 export default function ChatSessionPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const id = params?.id as string;
+  const mode = searchParams?.get('mode') || 'text'; // Default to text mode
   
   const [scenario, setScenario] = useState<RoleplayScenario | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +126,11 @@ export default function ChatSessionPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col space-y-8">
       <div className="bg-white shadow rounded-2xl p-6 flex flex-col">
-        <ChatInterface scenario={scenario} />
+        {mode === 'voice' ? (
+          <VoiceModeChatInterface scenario={scenario} />
+        ) : (
+          <ChatInterface scenario={scenario} />
+        )}
       </div>
 
       <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
