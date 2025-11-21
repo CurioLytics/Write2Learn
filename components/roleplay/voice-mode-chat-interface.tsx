@@ -21,7 +21,7 @@ import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
 import { roleplaySessionService } from '@/services/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
-import { Mic, MicOff, Send } from 'lucide-react';
+import { Mic, MicOff, Send, Keyboard, Lightbulb } from 'lucide-react';
 
 interface VoiceModeChatInterfaceProps {
   scenario: RoleplayScenario;
@@ -31,8 +31,16 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const router = useRouter();
   const { user } = useAuth();
 
+  // Generate unique session ID for this conversation
+  const [sessionId] = useState(() => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 9);
+    return `session_${timestamp}_${random}`;
+  });
+
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [backupInput, setBackupInput] = useState('');
+  const [showTextInput, setShowTextInput] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +64,8 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
     try {
       const reply = await roleplayWebhookService.getBotResponse(
         scenario,
-        [...messages, userMsg]
+        [...messages, userMsg],
+        sessionId
       );
       const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,
@@ -225,17 +234,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   aria-label="Show roleplay task"
                   className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                 >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 
-                      0116 0zm-7-4a1 1 0 11-2 0 1 1 
-                      0 012 0zM9 9a1 1 0 000 2v3a1 1 
-                      0 001 1h1a1 1 0 100-2v-3a1 1 
-                      0 00-1-1H9z"
-                    />
-                  </svg>
+                  <Lightbulb className="w-3 h-3" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-sm">
@@ -303,30 +302,58 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
 
         {/* Voice Controls Container */}
         <div className="relative pb-8">
-          {/* Backup Text Input (small, top) */}
-          <div className="px-4 pb-2">
-            <form onSubmit={handleBackupSubmit} className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="text"
-                value={backupInput}
-                onChange={(e) => setBackupInput(e.target.value)}
-                placeholder="Backup text input..."
-                disabled={isThinking}
-                className="flex-1 px-3 py-1.5 text-sm border rounded-full focus:ring-2 focus:ring-gray-300 outline-none bg-white"
-              />
-              <Button
-                type="submit"
-                disabled={!backupInput.trim() || isThinking}
-                size="sm"
-                className="bg-gray-900 hover:bg-gray-800 rounded-full h-8 w-8 p-0"
+          {/* Toggle Icons (top-right) */}
+          {!showTextInput && (
+            <div className="absolute top-2 right-6 z-10">
+              <button
+                onClick={() => setShowTextInput(true)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                aria-label="Toggle text input"
               >
-                <Send className="w-3.5 h-3.5" />
-              </Button>
-            </form>
-          </div>
+                <Keyboard className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          )}
 
-          {/* Large Centered Mic Button */}
-          <div className="flex flex-col items-center gap-3 pb-4">
+          {/* Text Input Mode */}
+          {showTextInput ? (
+            <div className="px-4 pb-2 pt-2">
+              <form onSubmit={handleBackupSubmit} className="flex gap-2 max-w-md mx-auto items-center">
+                {/* Small Mic Icon Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowTextInput(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
+                  aria-label="Switch to voice mode"
+                >
+                  <Mic className="w-4 h-4 text-gray-600" />
+                </button>
+
+                {/* Text Input */}
+                <input
+                  type="text"
+                  value={backupInput}
+                  onChange={(e) => setBackupInput(e.target.value)}
+                  placeholder="Type your message..."
+                  disabled={isThinking}
+                  className="flex-1 px-4 py-2 text-sm border rounded-full focus:ring-2 focus:ring-purple-300 outline-none bg-white"
+                  autoFocus
+                />
+
+                {/* Send Button */}
+                <Button
+                  type="submit"
+                  disabled={!backupInput.trim() || isThinking}
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 rounded-full h-9 w-9 p-0 flex-shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </form>
+            </div>
+          ) : (
+            /* Voice Mode - Large Centered Mic Button with Transcription Above */
+            <div className="flex flex-col items-center gap-3 pb-4 pt-4">
             {/* Status Text */}
             <div className="h-6 flex items-center">
               {isThinking && (
@@ -351,26 +378,26 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               )}
             </div>
 
-            {/* Interim Text Display */}
+            {/* Interim Text Display - Directly Above Mic */}
             {interimText && (
-              <div className="max-w-md px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm text-gray-700">
+              <div className="max-w-md px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm text-gray-700 mb-2">
                 {interimText}
               </div>
             )}
 
-            {/* Mic Button */}
+            {/* Mic Button with Subtle Pulse Animation */}
             <button
               onClick={handleMicClick}
               disabled={isThinking || voiceState === 'timeout-prompt'}
               className={`
                 w-20 h-20 rounded-full flex items-center justify-center
-                transition-all duration-200 transform
+                transition-all duration-200
                 disabled:opacity-50 disabled:cursor-not-allowed
                 ${isMicActive 
-                  ? 'bg-red-500 hover:bg-red-600 scale-110 shadow-lg shadow-red-300' 
+                  ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-300 animate-[micPulse_1.5s_ease-in-out_infinite]' 
                   : isBotSpeaking
                   ? 'bg-blue-500 hover:bg-blue-600 animate-pulse'
-                  : 'bg-gray-900 hover:bg-gray-800 hover:scale-110 shadow-lg'
+                  : 'bg-gray-900 hover:bg-gray-800 hover:scale-105 shadow-lg'
                 }
               `}
             >
@@ -385,7 +412,8 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
             {isMicActive && (
               <p className="text-xs text-gray-500">Nhấn để gửi tin nhắn</p>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Timeout Prompt Dialog */}
           {voiceState === 'timeout-prompt' && (
@@ -434,6 +462,10 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         @keyframes wave {
           0%, 100% { height: 1rem; }
           50% { height: 1.5rem; }
+        }
+        @keyframes micPulse {
+          0%, 100% { transform: scale(0.95); }
+          50% { transform: scale(1); }
         }
       `}</style>
     </TooltipProvider>

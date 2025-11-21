@@ -12,7 +12,7 @@ export function OptionButton({ label, selected, onClick }: OptionButtonProps) {
       onClick={onClick}
       className={`
         w-full px-6 py-4 rounded-2xl text-left transition-all duration-200
-        font-medium text-base
+        font-normal text-base
         ${
           selected
             ? 'bg-blue-600 text-white shadow-md'

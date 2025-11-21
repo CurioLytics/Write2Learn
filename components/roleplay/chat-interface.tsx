@@ -33,6 +33,13 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const { user } = useAuth();
   const { speak, stop, isPlaying, playingMessageId } = useTTS();
 
+  // Generate unique session ID for this conversation
+  const [sessionId] = useState(() => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 9);
+    return `session_${timestamp}_${random}`;
+  });
+
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +131,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     try {
       const reply = await roleplayWebhookService.getBotResponse(
         scenario,
-        [...messages, userMsg]
+        [...messages, userMsg],
+        sessionId
       );
       const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,

@@ -7,7 +7,8 @@ import { ProgressBar } from '@/components/onboarding/progress-bar';
 import { OptionButton } from '@/components/onboarding/option-button';
 import { 
   ONBOARDING_STEPS, 
-  TOTAL_STEPS, 
+  TOTAL_STEPS,
+  COUNTABLE_STEPS,
   type OnboardingData,
   type OnboardingStep 
 } from '@/types/onboarding';
@@ -32,6 +33,15 @@ export default function OnboardingPage() {
   const [isLoadingSetup, setIsLoadingSetup] = useState(false);
 
   const currentStep = ONBOARDING_STEPS[currentStepIndex];
+  
+  // Calculate the countable step number (excluding section-intro steps)
+  const getCountableStepNumber = (stepIndex: number) => {
+    return ONBOARDING_STEPS.slice(0, stepIndex + 1)
+      .filter(step => step.type !== 'section-intro').length;
+  };
+  
+  const countableStepNumber = getCountableStepNumber(currentStepIndex);
+  
   const hasSelection = currentStep.dataKey ? 
     (Array.isArray(data[currentStep.dataKey]) ? 
       (data[currentStep.dataKey] as any[]).length > 0 : 
@@ -144,16 +154,16 @@ export default function OnboardingPage() {
       case 'welcome':
         return (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-normal text-gray-900 mb-4 tracking-tight">
               {currentStep.title}
             </h1>
-            <p className="text-lg text-gray-600 mb-8 max-w-md">
+            <p className="text-lg text-gray-600 mb-8 max-w-md italic">
               {currentStep.description}
             </p>
             <Button
               onClick={handleNext}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-medium"
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-normal"
             >
               Bắt đầu hành trình của bạn
             </Button>
@@ -163,7 +173,7 @@ export default function OnboardingPage() {
       case 'section-intro':
         return (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+            <h1 className="text-5xl font-normal text-gray-900 mb-4 tracking-tight italic">
               {currentStep.title}
             </h1>
             <p className="text-lg text-gray-600 mb-8 max-w-md">
@@ -172,7 +182,7 @@ export default function OnboardingPage() {
             <Button
               onClick={handleNext}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+              className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
             >
               Continue
             </Button>
@@ -184,11 +194,11 @@ export default function OnboardingPage() {
         return (
           <div className="py-8">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl font-normal text-gray-900 mb-2">
                 {currentStep.title}
               </h2>
               {currentStep.description && (
-                <p className="text-base text-gray-600">
+                <p className="text-base text-gray-600 italic">
                   {currentStep.description}
                 </p>
               )}
@@ -218,10 +228,10 @@ export default function OnboardingPage() {
         <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-normal text-gray-900 mb-2">
               Setting up your profile...
             </h2>
-            <p className="text-gray-600 max-w-md">
+            <p className="text-gray-600 max-w-md italic">
               Great — let's build a journal that fits your mind and learning journey.
             </p>
           </div>
@@ -232,9 +242,9 @@ export default function OnboardingPage() {
       {!isLoadingSetup && (
         <>
           {/* Progress Bar */}
-          {currentStep.type !== 'welcome' && (
+          {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && (
             <div className="w-full max-w-3xl mb-8">
-              <ProgressBar currentStep={currentStepIndex} totalSteps={TOTAL_STEPS} />
+              <ProgressBar currentStep={countableStepNumber} totalSteps={COUNTABLE_STEPS} />
             </div>
           )}
 
@@ -276,7 +286,7 @@ export default function OnboardingPage() {
                     <Button
                       onClick={handleNext}
                       disabled={isSubmitting}
-                      className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+                      className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
                     >
                       {isSubmitting ? 'Saving...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Complete' : 'Continue'}
                     </Button>

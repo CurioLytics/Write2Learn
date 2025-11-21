@@ -159,7 +159,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   },
   {
     id: 'journaling-intro',
-    title: 'JOURNALING',
+    title: 'Journaling',
     description: 'Discover the power of daily reflection and self-expression.',
     type: 'section-intro',
   },
@@ -181,7 +181,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   },
   {
     id: 'language-intro',
-    title: 'LANGUAGE LEARNING',
+    title: 'Language Learning',
     description: 'Build confidence in English through practice and feedback.',
     type: 'section-intro',
   },
@@ -220,3 +220,9 @@ export const ONBOARDING_STEPS: StepConfig[] = [
 ];
 
 export const TOTAL_STEPS = ONBOARDING_STEPS.length;
+
+// Helper to get only countable steps (excluding section-intro)
+export const getCountableSteps = () => 
+  ONBOARDING_STEPS.filter(step => step.type !== 'section-intro');
+
+export const COUNTABLE_STEPS = getCountableSteps().length; // 7 steps
