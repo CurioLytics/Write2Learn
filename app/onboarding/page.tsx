@@ -1,213 +1,256 @@
 'use client';
 
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { StepIndicator } from './components/step-indicator';
-import { NameStep } from './components/name-step';
-import { EnglishLevelStep } from './components/english-level-step';
-import { GoalsStep } from './components/goals-step';
-import { WritingTypesStep } from './components/writing-types-step';
-import { CongratulationStep } from './components/congratulation-step';
-import { TemplateSelectionStep } from './components/template-selection-step';
-import { useOnboardingFlow } from './hooks/use-onboarding-flow';
-import type { UserProfile } from '@/types/onboarding';
+import { ProgressBar } from '@/components/onboarding/progress-bar';
+import { OptionButton } from '@/components/onboarding/option-button';
+import { SectionIntro } from '@/components/onboarding/section-intro';
+import { StepContainer } from '@/components/onboarding/step-container';
+import { 
+  ONBOARDING_STEPS, 
+  TOTAL_STEPS, 
+  type OnboardingData,
+  type OnboardingStep 
+} from '@/types/onboarding';
+import { useAuth } from '@/hooks/auth/use-auth';
+
+const STORAGE_KEY = 'onboarding_progress';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const {
-    step,
-    profile,
-    selectedTemplates,
-    updateProfile,
-    toggleTemplate,
-    nextStep,
-    prevStep,
-    reset,
-  } = useOnboardingFlow();
+  const { user } = useAuth();
+  
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [data, setData] = useState<OnboardingData>({
+    journaling_reasons: [],
+    journaling_challenges: [],
+    english_improvement_reasons: [],
+    english_challenges: [],
+    english_level: '',
+    daily_review_goal: 10,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [error, setError] = React.useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const currentStep = ONBOARDING_STEPS[currentStepIndex];
+  const hasSelection = currentStep.dataKey ? 
+    (Array.isArray(data[currentStep.dataKey]) ? 
+      (data[currentStep.dataKey] as any[]).length > 0 : 
+      !!data[currentStep.dataKey]) : 
+    false;
 
-  const canProceed = (): boolean => {
-    switch (step) {
-      case 1:
-        return !!profile.name?.trim();
-      case 2:
-        return !!profile.englishLevel;
-      case 3:
-        return Array.isArray(profile.goals) && profile.goals.length > 0;
-      case 4:
-        return Array.isArray(profile.writingTypes) && profile.writingTypes.length > 0;
-      case 5:
-      case 6:
-        return true;
-      default:
-        return false;
+  // Load progress from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const { stepIndex, data: savedData } = JSON.parse(saved);
+        setCurrentStepIndex(stepIndex);
+        setData(savedData);
+      } catch (e) {
+        console.error('Failed to load onboarding progress:', e);
+      }
+    }
+  }, []);
+
+  // Save progress to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      stepIndex: currentStepIndex,
+      data,
+    }));
+  }, [currentStepIndex, data]);
+
+  const handleNext = async () => {
+    if (currentStepIndex < TOTAL_STEPS - 1) {
+      setCurrentStepIndex(prev => prev + 1);
+    } else {
+      // Last step - save to database
+      await handleComplete();
     }
   };
 
-const handleNext = async () => {
-  if (isSubmitting) return;
-
-  // Step 5: redirect to /auth if user clicks "Đăng nhập để lưu hồ sơ"
-  if (step === 5) {
-    router.push('/auth');
-    return;
-  }
-
-  // ✅ Nếu chưa đến bước cuối, chỉ tiến step
-  if (step < 6) {
-    nextStep();
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError(null);
-
-  try {
-    // ✅ Lưu lại toàn bộ thông tin (đã có sẵn trong useOnboardingFlow)
-    if (selectedTemplates.length > 0) {
-      router.replace(`/journal/new?templateId=${selectedTemplates[0]}`);
-    } else {
-      router.replace('/journal/new');
+  const handleBack = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(prev => prev - 1);
     }
-  } catch (err) {
-    console.error('Error saving onboarding:', err);
-    setError('Đã xảy ra lỗi. Vui lòng thử lại.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
+
+  const handleSkip = () => {
+    handleNext();
+  };
+
+  const handleComplete = async () => {
+    if (!user?.id) {
+      router.push('/auth');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/profile/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save onboarding data');
+      }
+
+      // Clear localStorage
+      localStorage.removeItem(STORAGE_KEY);
+
+      // Redirect to home
+      router.push('/home');
+    } catch (error) {
+      console.error('Error saving onboarding:', error);
+      alert('Error saving your preferences. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSelect = (value: string | number) => {
+    if (!currentStep.dataKey) return;
+
+    const key = currentStep.dataKey;
+
+    if (currentStep.type === 'multi-select') {
+      const current = (data[key] as any[]) || [];
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value];
+      setData({ ...data, [key]: updated });
+    } else {
+      // single-select
+      setData({ ...data, [key]: value });
+    }
+  };
+
+  const isSelected = (value: string | number): boolean => {
+    if (!currentStep.dataKey) return false;
+    const current = data[currentStep.dataKey];
+    return Array.isArray(current) ? current.includes(value as any) : current === value;
+  };
+
+  // Render different step types
+  const renderStepContent = () => {
+    switch (currentStep.type) {
+      case 'welcome':
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center animate-in fade-in duration-500">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+              {currentStep.title}
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 max-w-md">
+              {currentStep.description}
+            </p>
+            <Button
+              onClick={handleNext}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-medium"
+            >
+              Bắt đầu hành trình của bạn
+            </Button>
+          </div>
+        );
+
+      case 'section-intro':
+        return (
+          <>
+            <SectionIntro 
+              title={currentStep.title} 
+              description={currentStep.description || ''} 
+            />
+            <div className="flex justify-center pt-8">
+              <Button
+                onClick={handleNext}
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+              >
+                Continue
+              </Button>
+            </div>
+          </>
+        );
+
+      case 'multi-select':
+      case 'single-select':
+        return (
+          <StepContainer title={currentStep.title} description={currentStep.description}>
+            {currentStep.options?.map((option) => (
+              <OptionButton
+                key={option.value.toString()}
+                label={option.label}
+                selected={isSelected(option.value)}
+                onClick={() => handleSelect(option.value)}
+              />
+            ))}
+          </StepContainer>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
-      <div
-        className="w-full max-w-md bg-card rounded-2xl shadow-sm p-8 space-y-8"
-        style={{ fontFamily: 'var(--font-sans)' }}
-      >
-        {/* ✅ Step Indicator */}
-        {step <= 5 && <StepIndicator currentStep={Math.min(step, 5)} totalSteps={5} />}
-
-        {/* ✅ Step Components */}
-        {step === 1 && (
-          <NameStep
-            name={profile.name || ''}
-            onNameChange={(name) => updateProfile({ name })}
-          />
-        )}
-        {step === 2 && (
-          <EnglishLevelStep
-            selectedLevel={profile.englishLevel || null}
-            onSelect={(level) => updateProfile({ englishLevel: level })}
-          />
-        )}
-        {step === 3 && (
-          <GoalsStep
-            selectedGoals={profile.goals || []}
-            onToggleGoal={(goal) => {
-              const goals = profile.goals || [];
-              updateProfile({
-                goals: goals.includes(goal)
-                  ? goals.filter((g) => g !== goal)
-                  : [...goals, goal],
-              });
-            }}
-          />
-        )}
-        {step === 4 && (
-          <WritingTypesStep
-            selectedTypes={profile.writingTypes || []}
-            onToggleType={(type) => {
-              const types = profile.writingTypes || [];
-              updateProfile({
-                writingTypes: types.includes(type)
-                  ? types.filter((t) => t !== type)
-                  : [...types, type],
-              });
-            }}
-          />
-        )}
-        {step === 5 && <CongratulationStep name={profile.name || ''} />}
-        {step === 6 && (
-          <TemplateSelectionStep
-            selectedTemplates={selectedTemplates}
-            onToggleTemplate={(id) => toggleTemplate(id)}
-          />
-        )}
-
-        {/* ✅ Error Message */}
-        {error && (
-          <div className="text-red-600 text-sm bg-red-50 rounded-lg p-3 text-center">
-            {error}
-          </div>
-        )}
-
-        {/* ✅ Navigation */}
-        <div className="flex items-center justify-between pt-8">
-          {step > 1 && (
-            <button
-              onClick={prevStep}
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition"
-              disabled={isSubmitting}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 19.5L8.25 12l7.5-7.5"
-                />
-              </svg>
-              Quay lại
-            </button>
-          )}
-
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed() || isSubmitting}
-            className="ml-auto"
-          >
-            {isSubmitting ? (
-              <div className="flex items-center gap-2">
-                <span>Đang xử lý...</span>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </div>
-            ) : step === 6 ? (
-              selectedTemplates.length > 0 ? 'Bắt đầu viết' : 'Viết tự do'
-            ) : step === 5 ? (
-              'Đăng nhập để lưu hồ sơ'
-            ) : (
-              'Tiếp tục'
-            )}
-          </Button>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Progress Bar */}
+      {currentStep.type !== 'welcome' && (
+        <div className="sticky top-0 bg-white py-6 z-10 border-b">
+          <ProgressBar currentStep={currentStepIndex} totalSteps={TOTAL_STEPS} />
         </div>
+      )}
+
+      {/* Step Content */}
+      <div className="flex-1 flex items-center justify-center">
+        {renderStepContent()}
       </div>
+
+      {/* Navigation */}
+      {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && (
+        <div className="sticky bottom-0 bg-white border-t py-6 px-6">
+          <div className="max-w-2xl mx-auto flex items-center justify-between">
+            {/* Back Button */}
+            {currentStepIndex > 0 && (
+              <Button
+                onClick={handleBack}
+                variant="ghost"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                ← Back
+              </Button>
+            )}
+
+            <div className="flex-1" />
+
+            {/* Skip / Continue */}
+            <div className="flex gap-3">
+              {!hasSelection && (
+                <Button
+                  onClick={handleSkip}
+                  variant="ghost"
+                  className="text-gray-600"
+                >
+                  Skip
+                </Button>
+              )}
+              
+              {hasSelection && (
+                <Button
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+                >
+                  {isSubmitting ? 'Saving...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Complete' : 'Continue'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
