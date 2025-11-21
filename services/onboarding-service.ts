@@ -1,8 +1,9 @@
-import { createServerClient } from '@/services/supabase/server-client';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import type { OnboardingData } from '@/types/onboarding';
 
 export async function saveOnboardingData(userId: string, data: OnboardingData) {
-  const supabase = createServerClient();
+  const supabase = createRouteHandlerClient({ cookies });
 
   const { error } = await supabase
     .from('profiles')
