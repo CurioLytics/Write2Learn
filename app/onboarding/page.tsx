@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/onboarding/progress-bar';
 import { OptionButton } from '@/components/onboarding/option-button';
-import { SectionIntro } from '@/components/onboarding/section-intro';
-import { StepContainer } from '@/components/onboarding/step-container';
 import { 
   ONBOARDING_STEPS, 
   TOTAL_STEPS, 
@@ -31,6 +29,7 @@ export default function OnboardingPage() {
     daily_review_goal: 10,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSetup, setIsLoadingSetup] = useState(false);
 
   const currentStep = ONBOARDING_STEPS[currentStepIndex];
   const hasSelection = currentStep.dataKey ? 
@@ -65,7 +64,12 @@ export default function OnboardingPage() {
     if (currentStepIndex < TOTAL_STEPS - 1) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
-      // Last step - save to database
+      // Last step - show loading state then save
+      setIsLoadingSetup(true);
+      
+      // Simulate setup time (you can adjust or remove this)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       await handleComplete();
     }
   };
@@ -139,7 +143,7 @@ export default function OnboardingPage() {
     switch (currentStep.type) {
       case 'welcome':
         return (
-          <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center animate-in fade-in duration-500">
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
               {currentStep.title}
             </h1>
@@ -158,36 +162,48 @@ export default function OnboardingPage() {
 
       case 'section-intro':
         return (
-          <>
-            <SectionIntro 
-              title={currentStep.title} 
-              description={currentStep.description || ''} 
-            />
-            <div className="flex justify-center pt-8">
-              <Button
-                onClick={handleNext}
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
-              >
-                Continue
-              </Button>
-            </div>
-          </>
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+              {currentStep.title}
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 max-w-md">
+              {currentStep.description}
+            </p>
+            <Button
+              onClick={handleNext}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+            >
+              Continue
+            </Button>
+          </div>
         );
 
       case 'multi-select':
       case 'single-select':
         return (
-          <StepContainer title={currentStep.title} description={currentStep.description}>
-            {currentStep.options?.map((option) => (
-              <OptionButton
-                key={option.value.toString()}
-                label={option.label}
-                selected={isSelected(option.value)}
-                onClick={() => handleSelect(option.value)}
-              />
-            ))}
-          </StepContainer>
+          <div className="py-8">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {currentStep.title}
+              </h2>
+              {currentStep.description && (
+                <p className="text-base text-gray-600">
+                  {currentStep.description}
+                </p>
+              )}
+            </div>
+            <div className="space-y-3">
+              {currentStep.options?.map((option) => (
+                <OptionButton
+                  key={option.value.toString()}
+                  label={option.label}
+                  selected={isSelected(option.value)}
+                  onClick={() => handleSelect(option.value)}
+                />
+              ))}
+            </div>
+          </div>
         );
 
       default:
@@ -196,60 +212,80 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Progress Bar */}
-      {currentStep.type !== 'welcome' && (
-        <div className="sticky top-0 bg-white py-6 z-10 border-b">
-          <ProgressBar currentStep={currentStepIndex} totalSteps={TOTAL_STEPS} />
+    <div className="flex flex-col items-center px-4 py-10 w-full min-h-screen">
+      {/* Loading Setup State */}
+      {isLoadingSetup && (
+        <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Setting up your profile...
+            </h2>
+            <p className="text-gray-600 max-w-md">
+              Great — let's build a journal that fits your mind and learning journey.
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Step Content */}
-      <div className="flex-1 flex items-center justify-center">
-        {renderStepContent()}
-      </div>
-
-      {/* Navigation */}
-      {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && (
-        <div className="sticky bottom-0 bg-white border-t py-6 px-6">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
-            {/* Back Button */}
-            {currentStepIndex > 0 && (
-              <Button
-                onClick={handleBack}
-                variant="ghost"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                ← Back
-              </Button>
-            )}
-
-            <div className="flex-1" />
-
-            {/* Skip / Continue */}
-            <div className="flex gap-3">
-              {!hasSelection && (
-                <Button
-                  onClick={handleSkip}
-                  variant="ghost"
-                  className="text-gray-600"
-                >
-                  Skip
-                </Button>
-              )}
-              
-              {hasSelection && (
-                <Button
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
-                >
-                  {isSubmitting ? 'Saving...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Complete' : 'Continue'}
-                </Button>
-              )}
+      {/* Normal Onboarding Flow */}
+      {!isLoadingSetup && (
+        <>
+          {/* Progress Bar */}
+          {currentStep.type !== 'welcome' && (
+            <div className="w-full max-w-3xl mb-8">
+              <ProgressBar currentStep={currentStepIndex} totalSteps={TOTAL_STEPS} />
             </div>
+          )}
+
+          {/* Main Content Container */}
+          <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6 mb-8">
+            {renderStepContent()}
           </div>
-        </div>
+
+          {/* Navigation */}
+          {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && (
+            <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                {/* Back Button */}
+                {currentStepIndex > 0 && (
+                  <Button
+                    onClick={handleBack}
+                    variant="ghost"
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    ← Back
+                  </Button>
+                )}
+
+                <div className="flex-1" />
+
+                {/* Skip / Continue */}
+                <div className="flex gap-3">
+                  {!hasSelection && (
+                    <Button
+                      onClick={handleSkip}
+                      variant="ghost"
+                      className="text-gray-600"
+                    >
+                      Skip
+                    </Button>
+                  )}
+                  
+                  {hasSelection && (
+                    <Button
+                      onClick={handleNext}
+                      disabled={isSubmitting}
+                      className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl"
+                    >
+                      {isSubmitting ? 'Saving...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Complete' : 'Continue'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
