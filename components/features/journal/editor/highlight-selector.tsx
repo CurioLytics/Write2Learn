@@ -128,7 +128,7 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
         
         const rect = range.getBoundingClientRect();
         const buttonHeight = 40;
-        const margin = 8;
+        const margin = 60;
         
         const topPosition = rect.top - buttonHeight - margin;
         const leftPosition = rect.left + (rect.width / 2);
