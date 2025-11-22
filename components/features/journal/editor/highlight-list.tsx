@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface HighlightListProps {
@@ -12,8 +11,6 @@ export const HighlightList: React.FC<HighlightListProps> = ({
   highlights,
   onRemove,
 }) => {
-  console.log('HighlightList rendering with highlights:', highlights);
-
   return (
     <div className="space-y-3">
       {!highlights || highlights.length === 0 ? (

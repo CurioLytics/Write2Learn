@@ -101,10 +101,8 @@ async function saveJournalAndHighlights({
           highlights
         );
         flashcardData = result.flashcards;
-        console.log('Generated flashcards:', flashcardData);
       } catch (error) {
         console.error('Error generating flashcards:', error);
-        // Continue without flashcards if generation fails
       }
     }
     

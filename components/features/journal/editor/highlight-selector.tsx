@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useResponsive } from '@/hooks/common/use-responsive';
+import { useEffect, useState, useRef } from 'react';
 import { zIndex } from '@/utils/z-index';
 import styles from '@/components/features/journal/editor/highlight-selector.module.css';
 
 interface HighlightSelectorProps {
   containerId: string;
   onHighlightSaved: (text: string) => void;
-  highlights: string[]; // Add the current highlights array from parent
+  highlights: string[];
 }
 
 export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
@@ -20,14 +19,11 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
   const buttonRef = useRef<HTMLDivElement>(null);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
-  // Track which highlights are currently displayed in the DOM
   const highlightedTextRefs = useRef<Map<string, HTMLElement[]>>(new Map());
-  // Get responsive state
-  const { isMobile, isDesktop } = useResponsive();
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const selectionTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to highlight text in the container
   const highlightTextInContainer = (text: string, container: HTMLElement) => {
-    // Get all text nodes in the container
     const textNodes = getAllTextNodes(container);
     const refs: HTMLElement[] = [];
     
@@ -37,7 +33,6 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
       
       if (index >= 0) {
         try {
-          // Split the text node and insert a highlighted span
           const range = document.createRange();
           range.setStart(node, index);
           range.setEnd(node, index + text.length);
@@ -47,7 +42,6 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
           
           range.surroundContents(span);
           refs.push(span);
-          console.log('Text highlighted successfully:', text);
         } catch (error) {
           console.error('Error highlighting text:', error);
         }
@@ -55,20 +49,13 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
     }
     
     if (refs.length > 0) {
-      // Store references to this highlight's DOM elements
       highlightedTextRefs.current.set(text, refs);
     }
   };
   
-  // Get all text nodes in a container
   const getAllTextNodes = (element: Node): Text[] => {
     const textNodes: Text[] = [];
-    
-    const walk = document.createTreeWalker(
-      element,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
+    const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
     
     let node;
     while ((node = walk.nextNode())) {
@@ -83,24 +70,19 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Function to remove highlights that are not in the highlights array
     const removeUnwantedHighlights = () => {
-      // Get all highlighted spans in the container
       const highlightedSpans = container.querySelectorAll(`.${styles['highlighted-text']}`);
       
       highlightedSpans.forEach(span => {
         const text = span.textContent;
         if (text && !highlights.includes(text)) {
-          // This highlight is no longer in the array, remove the highlight styling
           const textNode = document.createTextNode(text);
           span.parentNode?.replaceChild(textNode, span);
         }
       });
     };
     
-    // Function to add highlights that are in the array but not in the DOM
     const addMissingHighlights = () => {
-      // Only process highlights not already tracked
       highlights.forEach(text => {
         if (text && !highlightedTextRefs.current.has(text)) {
           highlightTextInContainer(text, container);
@@ -110,30 +92,18 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
     
     removeUnwantedHighlights();
     addMissingHighlights();
-    
   }, [highlights, containerId]);
 
   useEffect(() => {
     const container = document.getElementById(containerId);
-    if (!container) {
-      console.error(`Container with id ${containerId} not found`);
-      return;
-    }
+    if (!container) return;
 
-    console.log('Setting up highlight selector for container:', containerId);
-    
-    // Track selection timeout to debounce multiple events
-    let selectionTimeout: NodeJS.Timeout | null = null;
-
-    // Function to handle text selection
-    const handleSelection = () => {
-      // Clear any pending selection handler
-      if (selectionTimeout) {
-        clearTimeout(selectionTimeout);
+    const showSaveButton = () => {
+      if (selectionTimeout.current) {
+        clearTimeout(selectionTimeout.current);
       }
       
-      // Debounce selection handling to prevent multiple rapid calls
-      selectionTimeout = setTimeout(() => {
+      selectionTimeout.current = setTimeout(() => {
         const selection = window.getSelection();
         
         if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
@@ -149,55 +119,75 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
         
         const range = selection.getRangeAt(0);
         
-        // Check if selection is within our container
         if (!container.contains(range.commonAncestorContainer)) {
           setIsButtonVisible(false);
           return;
         }
         
-        // Store selected text
         setSelectedText(text);
         
-        // Calculate button position
         const rect = range.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
+        const buttonHeight = 40;
+        const margin = 8;
         
-        // Position the button above the selected text
-        const buttonHeight = 40; // Approximate button height
-        const margin = 8; // Small margin above the selection
-        
-        // Calculate position relative to viewport (not container)
         const topPosition = rect.top - buttonHeight - margin;
         const leftPosition = rect.left + (rect.width / 2);
         
         setButtonPosition({
-          top: Math.max(10, topPosition), // Ensure it doesn't go above viewport
-          left: Math.max(10, Math.min(leftPosition, window.innerWidth - 100)) // Keep within viewport bounds
+          top: Math.max(10, topPosition),
+          left: Math.max(10, Math.min(leftPosition, window.innerWidth - 100))
         });
         
         setIsButtonVisible(true);
       }, 100);
     };
     
-    // Handle mouseup to detect selections
     const handleMouseUp = (e: MouseEvent) => {
-      // Only handle if the click was within our container
       if (!container.contains(e.target as Node)) return;
-      handleSelection();
+      showSaveButton();
     };
     
-    // Handle touchend for mobile devices
-    const handleTouchEnd = (e: TouchEvent) => {
-      // Only handle if the touch was within our container
+    const handleTouchStart = (e: TouchEvent) => {
       if (!container.contains(e.target as Node)) return;
-      handleSelection();
+      
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+      
+      longPressTimer.current = setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed) {
+          showSaveButton();
+        }
+      }, 500);
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      
+      if (!container.contains(e.target as Node)) return;
+      
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed) {
+          showSaveButton();
+        }
+      }, 10);
+    };
+    
+    const handleTouchMove = () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
     };
 
-    // Handle clicks/touches outside to hide the button
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
       
-      // Don't hide if clicking the save button or within container
       if (
         (buttonRef.current && buttonRef.current.contains(target)) ||
         (container && container.contains(target))
@@ -209,23 +199,28 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
       setSelectedText('');
     };
     
-    // Add event listeners - only using mouseup/touchend, not selectionchange
     container.addEventListener('mouseup', handleMouseUp);
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
     container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: true });
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('touchstart', handleOutsideClick as EventListener, { passive: true });
     
-    // Cleanup
     return () => {
-      if (selectionTimeout) {
-        clearTimeout(selectionTimeout);
+      if (selectionTimeout.current) {
+        clearTimeout(selectionTimeout.current);
+      }
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
       }
       container.removeEventListener('mouseup', handleMouseUp);
+      container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick as EventListener);
     };
-  }, [containerId, onHighlightSaved, selectedText]);
+  }, [containerId]);
   
   // Create button element
   const saveButton = (
@@ -243,7 +238,6 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
     >
       <button
         onClick={() => {
-          console.log('✅ Saved highlight:', selectedText);
           onHighlightSaved(selectedText);
           setIsButtonVisible(false);
           setSelectedText('');
@@ -276,7 +270,6 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
   
   return (
     <>
-      {/* Render the save button */}
       {isButtonVisible && saveButton}
     </>
   );
