@@ -57,19 +57,38 @@ export default function VocabPage() {
     }
   }, [user?.id]);
 
-  // Load starred words when switching to starred words tab (as backup)
-  useEffect(() => {
-    if (activeTab === 'starred-words' && user?.id && starredWords.length === 0) {
-      loadStarredWords();
-    }
-  }, [activeTab, user?.id]);
-
   const loadStarredWords = async () => {
     if (!user?.id) return;
+    
+    // Check sessionStorage cache first
+    const cacheKey = `starred-words-${user.id}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > 5 * 60 * 1000; // 5 minutes TTL
+        
+        if (!isExpired) {
+          setStarredWords(data);
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing cached starred words:', e);
+      }
+    }
+    
+    // Fetch fresh data if no cache or expired
     setIsLoadingStarredWords(true);
     try {
       const starred = await getStarredVocabulary();
       setStarredWords(starred);
+      
+      // Cache the data
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data: starred,
+        timestamp: Date.now()
+      }));
     } catch (error: any) {
       console.error('Error loading starred words:', error);
       toast.error(error.message || 'Failed to load starred words');
@@ -96,7 +115,10 @@ export default function VocabPage() {
       const data = await response.json();
       const newStarredStatus = data.isStarred;
       
-      // Refresh starred words if on that tab
+      // Invalidate cache and refresh starred words
+      const cacheKey = `starred-words-${user.id}`;
+      sessionStorage.removeItem(cacheKey);
+      
       if (activeTab === 'starred-words') {
         await loadStarredWords();
       }

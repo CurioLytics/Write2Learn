@@ -155,9 +155,19 @@ return (
       </div>
 
       {/* Journal & Calendar Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        {/* Calendar */}
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
+          <CalendarView 
+            journals={journals}
+            onDateSelect={handleDateSelect}
+            selectedDate={selectedDate}
+          />
+        </div>
+
         {/* Journal List */}
-        <div className="bg-gray-50 rounded-xl p-4 flex flex-col h-full">
+        <div className="bg-gray-50 rounded-xl p-4">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Bài viết gần đây</h2>
           {isLoading ? (
             <div className="flex justify-center py-8">
@@ -187,16 +197,6 @@ return (
               />
             </div>
           )}
-        </div>
-
-        {/* Calendar */}
-        <div className="bg-gray-50 rounded-xl p-4 flex flex-col h-full">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
-          <CalendarView 
-            journals={journals}
-            onDateSelect={handleDateSelect}
-            selectedDate={selectedDate}
-          />
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export default function CreateVocabSetPage() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -33,7 +34,11 @@ export default function CreateVocabSetPage() {
 
 
   const addVocabularyWord = () => {
+    const newIndex = vocabularyWords.length;
     setVocabularyWords([...vocabularyWords, { word: '', meaning: '' }]);
+    setTimeout(() => {
+      textareaRefs.current[newIndex * 2]?.focus();
+    }, 0);
   };
 
   const updateVocabularyWord = (index: number, field: keyof VocabularyWord, value: string) => {
@@ -202,6 +207,7 @@ export default function CreateVocabSetPage() {
                           Term
                         </label>
                         <textarea
+                          ref={(el) => { textareaRefs.current[index * 2] = el; }}
                           value={word.word}
                           onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
                           rows={2}

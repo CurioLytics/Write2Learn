@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -191,7 +191,6 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   };
 
   return (
-    <TooltipProvider delayDuration={300}>
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm overflow-hidden">
         
         {/* Header */}
@@ -199,8 +198,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
           <div className="flex items-center gap-2">
             <h2 className="font-medium text-gray-800">{scenario.name}</h2>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <Popover>
+              <PopoverTrigger asChild>
                 <button
                   aria-label="Show roleplay task"
                   className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
@@ -217,13 +216,13 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
                     />
                   </svg>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-sm">
+              </PopoverTrigger>
+              <PopoverContent side="right" align="start" className="max-w-sm">
                 <p className="text-sm whitespace-pre-wrap">
                   {scenario.task || 'No task available'}
                 </p>
-              </TooltipContent>
-            </Tooltip>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex items-center gap-2">
@@ -326,6 +325,5 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
           </Button>
         </form>
       </div>
-    </TooltipProvider>
   );
 }
