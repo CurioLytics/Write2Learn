@@ -1,6 +1,7 @@
 'use client';
 
 import { Sidebar } from './sidebar';
+import { MobileHeader } from './mobile-header';
 import { useResponsive } from '@/hooks/common/use-responsive';
 import { useTransitionStyles } from '@/hooks/common/use-transition-styles';
 import { SidebarProvider, useSidebar } from '@/hooks/common/use-sidebar';
@@ -20,6 +21,9 @@ function AppLayoutInner({ children }: AppLayoutProps) {
   // is only used by pages that should have sidebar
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Header - Only on mobile */}
+      {useBottomNav && <MobileHeader />}
+      
       {/* Side Navigation - Only rendered on tablet/desktop */}
       {!useBottomNav && <Sidebar isDesktopSidebar={true} />}
       
@@ -37,6 +41,8 @@ function AppLayoutInner({ children }: AppLayoutProps) {
           style={{
             ...contentStyles,
             transition: 'all 0.3s ease-in-out',
+            // Add top padding on mobile for the header
+            paddingTop: useBottomNav ? '3.5rem' : contentStyles.paddingTop,
             // Add bottom padding on mobile for the navigation bar
             paddingBottom: useBottomNav ? '4rem' : contentStyles.paddingBottom,
             // Add left padding on desktop/tablet if sidebar is visible
