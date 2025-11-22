@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
 import { VoiceInputButton } from './voice-input-button';
-import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
-import { roleplaySessionService } from '@/services/roleplay-session-service';
+import { roleplayConversationService } from '@/services/roleplay/roleplay-conversation-service';
+import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useTTS } from '@/hooks/roleplay/use-tts';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
@@ -129,7 +129,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     setIsLoading(true);
 
     try {
-      const reply = await roleplayWebhookService.getBotResponse(
+      const reply = await roleplayConversationService.getBotResponse(
         scenario,
         [...messages, userMsg],
         sessionId

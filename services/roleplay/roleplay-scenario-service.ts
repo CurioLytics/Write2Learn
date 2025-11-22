@@ -1,14 +1,11 @@
-'use client';
-
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { RoleplayScenario } from '@/types/roleplay';
-import { useAuth } from '@/hooks/auth/use-auth';
-import useCachedFetch from '@/hooks/common/use-cached-fetch';
+import { debugLog, errorLog, handleServiceError } from '@/utils/roleplay-utils';
 
 /**
- * Service xử lý các API liên quan đến tính năng Role-play
+ * Service for fetching and managing roleplay scenarios from database
  */
-class RoleplayService {
+class RoleplayScenarioService {
   /**
    * Lấy danh sách tình huống roleplay từ Supabase
    */
@@ -27,8 +24,7 @@ class RoleplayService {
       clearTimeout(timeoutId);
       
       if (error) {
-        console.error('Error fetching roleplay scenarios:', error);
-        throw new Error('Failed to load roleplay scenarios');
+        handleServiceError('getScenarios', error, 'Failed to load roleplay scenarios');
       }
       
       // Biến đổi dữ liệu để đảm bảo tuân thủ RoleplayScenario interface
@@ -47,8 +43,7 @@ class RoleplayService {
       
       return scenarios;
     } catch (error) {
-      console.error('Error in getScenarios:', error);
-      throw error;
+      handleServiceError('getScenarios', error, 'Failed to load roleplay scenarios');
     }
   }
   
@@ -66,8 +61,7 @@ class RoleplayService {
         .single();
         
       if (error) {
-        console.error(`Error fetching roleplay scenario with id ${id}:`, error);
-        throw new Error('Failed to load roleplay scenario');
+        handleServiceError('getScenarioById', `Error fetching scenario ${id}: ${error}`, 'Failed to load roleplay scenario');
       }
       
       if (!data) {
@@ -75,8 +69,8 @@ class RoleplayService {
       }
       
       // Debug: Log the raw data from database
-      console.log('Raw data from database:', data);
-      console.log('Raw data partner_prompt specifically:', {
+      debugLog('getScenarioById', 'Raw data from database:', data);
+      debugLog('getScenarioById', 'Raw data partner_prompt specifically:', {
         partner_prompt: data.partner_prompt,
         partner_prompt_type: typeof data.partner_prompt,
         partner_prompt_length: data.partner_prompt ? data.partner_prompt.length : 'N/A',
@@ -98,7 +92,7 @@ class RoleplayService {
       };
       
       // Debug: Log the processed scenario
-      console.log('Processed scenario:', {
+      debugLog('getScenarioById', 'Processed scenario:', {
         id: scenario.id,
         name: scenario.name,
         partner_prompt: scenario.partner_prompt,
@@ -107,8 +101,7 @@ class RoleplayService {
       
       return scenario;
     } catch (error) {
-      console.error(`Error in getScenarioById:`, error);
-      throw error;
+      handleServiceError('getScenarioById', error, 'Failed to load roleplay scenario');
     }
   }
   
@@ -124,74 +117,11 @@ class RoleplayService {
       
       return topics;
     } catch (error) {
-      console.error('Error getting topics:', error);
-      throw error;
+      handleServiceError('getTopics', error, 'Failed to load roleplay topics');
     }
   }
 }
 
-export const roleplayService = new RoleplayService();
 
-/**
- * Hook để sử dụng danh sách tình huống roleplay với cache
- * @param topic Filter theo chủ đề (không bắt buộc)
- */
-export function useRoleplayScenarios(topic?: string) {
-  const { user } = useAuth();
-  
-  const { 
-    data: scenarios, 
-    loading, 
-    error,
-    refresh
-  } = useCachedFetch<RoleplayScenario[]>({
-    key: `roleplay-scenarios-${topic || 'all'}`,
-    duration: 5 * 60 * 1000, // 5 minutes cache
-    dependencyArray: [user?.id, topic],
-    fetcher: async () => {
-      const allScenarios = await roleplayService.getScenarios();
-      
-      // Nếu có topic, lọc kết quả
-      if (topic) {
-        return allScenarios.filter(scenario => scenario.topic === topic);
-      }
-      
-      return allScenarios;
-    },
-    fallback: []
-  });
-  
-  return {
-    scenarios,
-    loading,
-    error,
-    refresh
-  };
-}
 
-/**
- * Hook để lấy danh sách tất cả các chủ đề với cache
- */
-export function useRoleplayTopics() {
-  const { user } = useAuth();
-  
-  const {
-    data: topics,
-    loading,
-    error
-  } = useCachedFetch<string[]>({
-    key: 'roleplay-topics',
-    duration: 10 * 60 * 1000, // 10 minutes cache
-    dependencyArray: [user?.id],
-    fetcher: async () => {
-      return await roleplayService.getTopics();
-    },
-    fallback: []
-  });
-  
-  return {
-    topics,
-    loading,
-    error
-  };
-}
+export const roleplayScenarioService = new RoleplayScenarioService();

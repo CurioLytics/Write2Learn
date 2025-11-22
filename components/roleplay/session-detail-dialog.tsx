@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { RoleplaySessionData } from '@/services/roleplay-session-service';
+import { RoleplaySessionData } from '@/types/roleplay';
 import { Bot, User } from 'lucide-react';
 
 interface SessionDetailDialogProps {

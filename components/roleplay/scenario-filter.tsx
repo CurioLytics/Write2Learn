@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRoleplayTopics } from '@/services/roleplay-service';
+import { useRoleplayTopics } from '@/hooks/roleplay/use-roleplay-topics';
 
 interface ScenarioFilterProps {
   onFilterChange: (topic: string | null) => void;

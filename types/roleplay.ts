@@ -4,11 +4,11 @@ export interface RoleplayScenario {
   context: string;
   starter_message: string;
   task: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  level: string;
   topic: string;
   ai_role: string;
   partner_prompt: string | null;
-  image?: string | null; 
+  image: string | null;
 }
 
 export interface RoleplayMessage {
@@ -16,6 +16,28 @@ export interface RoleplayMessage {
   content: string;
   sender: 'user' | 'bot';
   timestamp: number;
+}
+
+export interface RoleplayFeedback {
+  clarity: string;
+  vocabulary: string;
+  grammar: string;
+  ideas: string;
+  improved_version: string[];
+}
+
+export interface RoleplaySessionData {
+  session_id: string;
+  scenario_name: string;
+  scenario: {
+    name: string;
+    context: string;
+    ai_role: string;
+  };
+  feedback: RoleplayFeedback | null;
+  messages: RoleplayMessage[];
+  highlights: string[];
+  created_at: string;
 }
 
 // Type định nghĩa cho một phiên hội thoại

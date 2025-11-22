@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { ScenarioFilter } from '@/components/roleplay/scenario-filter';
 import { SessionHistory } from '@/components/roleplay/session-history';
-import { useRoleplayScenarios } from '@/services/roleplay-service';
+import { useRoleplayScenarios } from '@/hooks/roleplay/use-roleplay-scenarios';
 
 export default function RoleplayPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { roleplayService } from '@/services/roleplay-service';
+import { roleplayScenarioService } from '@/services/roleplay/roleplay-scenario-service';
 import { RoleplayScenario } from '@/types/roleplay';
 import { ChatInterface } from '@/components/roleplay/chat-interface';
 import { VoiceModeChatInterface } from '@/components/roleplay/voice-mode-chat-interface';
@@ -39,7 +39,7 @@ export default function ChatSessionPage() {
       
       try {
         setLoading(true);
-        const data = await roleplayService.getScenarioById(id);
+        const data = await roleplayScenarioService.getScenarioById(id);
         
         // Kiểm tra xem có starter_message hay không
         if (!data.starter_message) {

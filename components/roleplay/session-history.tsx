@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { roleplaySessionService, RoleplaySessionData } from '@/services/roleplay-session-service';
+import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
+import { RoleplaySessionData } from '@/types/roleplay';
 import { SessionCard } from './session-card';
 import Link from 'next/link';
 import { SessionDetailDialog } from './session-detail-dialog';

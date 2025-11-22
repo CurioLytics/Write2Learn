@@ -4,22 +4,29 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HighlightSelector } from '@/components/journal/highlight-selector-new';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
 import { MessageBubble } from '@/components/roleplay/message-bubble';
-import { roleplaySessionService } from '@/services/roleplay-session-service';
+import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
+import { RoleplaySessionData } from '@/types/roleplay';
+import { RoleplayFeedback } from '@/types/roleplay';
+import { RefreshCw } from 'lucide-react';
 
 export default function RoleplaySummaryPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
-  const [sessionData, setSessionData] = useState<any>(null);
+  const [sessionData, setSessionData] = useState<RoleplaySessionData | null>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'improved version'];
 
   useEffect(() => {
     if (!user) {
@@ -76,6 +83,44 @@ export default function RoleplaySummaryPage() {
     }
   };
 
+  const handleRetryFeedback = async () => {
+    setRetrying(true);
+    setLoadingStep(0);
+    setError(null);
+    
+    // Animate loading steps
+    const interval = setInterval(() => {
+      setLoadingStep(prev => {
+        if (prev < loadingSteps.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 2000);
+    
+    try {
+      const feedback = await roleplaySessionService.retryFeedback(params.sessionId as string);
+      
+      // Clear interval IMMEDIATELY when response arrives
+      clearInterval(interval);
+      
+      // Stop loading state BEFORE updating data
+      setRetrying(false);
+      setLoadingStep(0);
+      
+      // Then update state
+      if (sessionData) {
+        setSessionData({
+          ...sessionData,
+          feedback
+        });
+      }
+    } catch (err: any) {
+      clearInterval(interval);
+      setRetrying(false);
+      setLoadingStep(0);
+      setError(err?.message || 'Failed to generate feedback');
+    }
+  };
+
   const handleBack = () => {
     router.push('/roleplay');
   };
@@ -90,12 +135,33 @@ export default function RoleplaySummaryPage() {
     );
   }
 
+  if (retrying) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center w-full">
+          <div className="mb-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg">
+              <span className="text-gray-900">Checking your </span>
+              <span className="text-blue-600 font-medium">{loadingSteps[loadingStep]}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !sessionData) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center w-full">
           <div className="text-red-600 mb-2">{error || 'Không tìm thấy phiên hội thoại'}</div>
-          <Button onClick={handleBack} className="mt-2">Quay lại</Button>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={handleBack} variant="outline" className="mt-2">Quay lại</Button>
+            {error && (
+              <Button onClick={() => window.location.reload()} className="mt-2">Thử lại</Button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -103,54 +169,141 @@ export default function RoleplaySummaryPage() {
 
   return (
     <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Xem học được gì nào ^^</h1>
-            <h2 className="text-lg text-gray-700">{sessionData.scenario_name}</h2>
+            <h2 className="text-lg text-gray-700 mb-4">{sessionData.scenario_name}</h2>
+            
+            {/* Messages Accordion */}
+            <Accordion type="single" collapsible className="mb-6">
+              <AccordionItem value="messages">
+                <AccordionTrigger>Lịch sử hội thoại</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                    {sessionData.messages?.map((message: any, index: number) => (
+                      <MessageBubble 
+                        key={index}
+                        message={message}
+                        roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
+                        compact={true}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
-          <div className="flex flex-col md:flex-row gap-8 w-full mb-8">
-            <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%', background: 'oklch(1 0 0)' }}>
-              <div className="min-h-[300px] p-0">
-                <div id="conversation-content" className="space-y-3 max-h-[350px] overflow-y-auto">
-                  {sessionData.messages?.map((message: any, index: number) => (
-                    <MessageBubble 
-                      key={index}
-                      message={message}
-                      roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
-                      compact={true}
-                    />
-                  ))}
-                </div>
-                <HighlightSelector
-                  containerId="conversation-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
+
+          {/* Feedback Tabs */}
+          {sessionData.feedback ? (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Phản hồi</h3>
+                <button
+                  onClick={handleRetryFeedback}
+                  disabled={retrying}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  title="Tạo lại phản hồi"
+                >
+                  <RefreshCw className={`w-4 h-4 text-gray-600 ${retrying ? 'animate-spin' : ''}`} />
+                </button>
               </div>
+              
+              <Tabs defaultValue="clarity" className="w-full">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="clarity">Clarity</TabsTrigger>
+                  <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
+                  <TabsTrigger value="grammar">Grammar</TabsTrigger>
+                  <TabsTrigger value="ideas">Ideas</TabsTrigger>
+                  <TabsTrigger value="improved">Improved</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="clarity" className="mt-4">
+                  <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.clarity || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="clarity-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="vocabulary" className="mt-4">
+                  <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.vocabulary || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="vocabulary-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="grammar" className="mt-4">
+                  <div id="grammar-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.grammar || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="grammar-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="ideas" className="mt-4">
+                  <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.ideas || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="ideas-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="improved" className="mt-4">
+                  <div id="improved-content" className="space-y-2 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.improved_version && sessionData.feedback.improved_version.length > 0 ? (
+                      sessionData.feedback.improved_version.map((item: string, index: number) => (
+                        <p key={index} className="text-gray-800 leading-relaxed">{item}</p>
+                      ))
+                    ) : (
+                      'Không có nội dung'
+                    )}
+                  </div>
+                  <HighlightSelector
+                    containerId="improved-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
-            <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%', background: 'oklch(1 0 0)' }}>
-              <div className="min-h-[300px] p-0">
-                <div id="feedback-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed max-h-[350px] overflow-y-auto">
-                  {sessionData.feedback || 'Chưa có phản hồi'}
-                </div>
-                <HighlightSelector
-                  containerId="feedback-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
-              </div>
+          ) : (
+            <div className="mb-8 p-8 bg-gray-50 rounded-lg text-center">
+              <p className="text-gray-500 mb-3">Chưa có phản hồi</p>
+              <Button
+                onClick={handleRetryFeedback}
+                disabled={retrying}
+                size="sm"
+                variant="outline"
+              >
+                Thử lại
+              </Button>
             </div>
-          </div>
-          {/* Đoạn nổi bật đã lưu */}
+          )}
+
+          {/* Highlights */}
           <div className="w-full mb-8">
             <h3 className="text-base font-semibold text-gray-800 mb-3">Đoạn nổi bật đã lưu</h3>
-            <div>
-              <HighlightList highlights={highlights} onRemove={removeHighlight} />
-            </div>
+            <HighlightList highlights={highlights} onRemove={removeHighlight} />
           </div>
+          
           {error && <p className="text-red-500 mb-4">{error}</p>}
-          {/* Hành động */}
+          
+          {/* Actions */}
           <div className="flex justify-end gap-4 w-full">
             <Button variant="outline" onClick={handleBack}>
               Quay lại hội thoại

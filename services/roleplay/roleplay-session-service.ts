@@ -1,22 +1,9 @@
 'use client';
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
-import { rootTaskDispose } from 'next/dist/build/swc/generated-native';
-
-export interface RoleplaySessionData {
-  session_id: string;
-  scenario_name: string;
-  scenario: {
-    name: string;
-    context: string;
-    ai_role: string;
-  };
-  feedback: string | null;
-  messages: RoleplayMessage[];
-  highlights: string[];
-  created_at: string;
-}
+import { RoleplayMessage, RoleplayScenario, RoleplayFeedback, RoleplaySessionData } from '@/types/roleplay';
+import { errorLog } from '@/utils/roleplay-utils';
+import { roleplayFeedbackService } from './roleplay-feedback-service';
 
 class RoleplaySessionService {
   /**
@@ -42,89 +29,66 @@ class RoleplaySessionService {
     
     // Generate feedback
     try {
-      console.log('Starting feedback generation for session:', sessionId);
-      const feedback = await this.generateFeedback(scenario, messages);
-      console.log('Generated feedback:', feedback);
-      console.log('Feedback type:', typeof feedback);
-      console.log('Feedback length:', feedback?.length);
+      const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages);
       
-      if (feedback && feedback !== 'Feedback processing error') {
+      if (feedback && feedback.clarity) {
         await this.saveFeedback(sessionId, feedback);
-        console.log('Feedback saved successfully to database');
-      } else {
-        console.warn('Invalid feedback received, skipping save');
       }
     } catch (feedbackError) {
-      // Continue even if feedback fails - user can still access summary
-      console.error('Feedback generation failed:', feedbackError);
+      errorLog('completeSession', feedbackError);
     }
     
     return sessionId;
   }
 
-  private async generateFeedback(scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
-    // Debug: Log scenario data before creating payload
-    console.log('Session service - received scenario for feedback:', {
-      id: scenario.id,
-      name: scenario.name,
-      partner_prompt: scenario.partner_prompt,
-      partner_prompt_type: typeof scenario.partner_prompt
-    });
+  /**
+   * Retry feedback generation for a session
+   */
+  async retryFeedback(sessionId: string): Promise<RoleplayFeedback> {
+    const supabase = createClientComponentClient();
     
-    const payload = {
-      body: {
-        query: {
-          title: scenario.name,
-          level: scenario.level,
-          ai_role: scenario.ai_role,
-          partner_prompt: scenario.partner_prompt
-        }
+    // Get session data
+    const { data: session, error } = await supabase
+      .from('sessions')
+      .select(`
+        conversation_json,
+        roleplays(id, name, level, ai_role, partner_prompt)
+      `)
+      .eq('session_id', sessionId)
+      .single();
+    
+    if (error || !session) {
+      throw new Error('Session not found');
+    }
+    
+    const scenario = session.roleplays as any;
+    const messages = session.conversation_json?.messages || [];
+    
+    // Generate feedback
+    const feedback = await roleplayFeedbackService.generateFeedback(
+      {
+        id: scenario.id,
+        name: scenario.name,
+        level: scenario.level,
+        ai_role: scenario.ai_role,
+        partner_prompt: scenario.partner_prompt,
+        context: '',
+        starter_message: '',
+        task: '',
+        topic: '',
+        image: null
       },
-      messages: messages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : scenario.ai_role,
-        content: msg.content
-      }))
-    };
+      messages
+    );
     
-    // Debug: Log the complete payload for feedback
-    console.log('Session service - sending payload for feedback:', JSON.stringify(payload, null, 2));
-
-    const response = await fetch('https://auto2.elyandas.com/webhook/roleplay-assesment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Feedback service failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Raw feedback response:', data);
-    console.log('Response is array:', Array.isArray(data));
-    
-    let processedFeedback;
-    if (Array.isArray(data) && data.length > 0 && data[0]?.text) {
-      processedFeedback = data[0].text;
-    } else if (data?.feedback) {
-      processedFeedback = data.feedback;
-    } else if (data?.text) {
-      processedFeedback = data.text;
-    } else if (typeof data === 'string') {
-      processedFeedback = data;
-    } else {
-      console.error('Unexpected feedback format:', data);
-      processedFeedback = 'Feedback processing error';
+    // Save feedback
+    if (feedback && feedback.clarity) {
+      await this.saveFeedback(sessionId, feedback);
     }
     
-    console.log('Processed feedback:', processedFeedback);
-    
-    return processedFeedback;
+    return feedback;
   }
 
-  /**
-   * Get session with feedback for summary page
-   */
   async getSessionWithFeedback(sessionId: string) {
     const supabase = createClientComponentClient();
     
@@ -135,6 +99,7 @@ class RoleplaySessionService {
         conversation_json,
         feedback,
         highlights,
+        created_at,
         roleplays(name, context, ai_role)
       `)
       .eq('session_id', sessionId)
@@ -142,20 +107,24 @@ class RoleplaySessionService {
 
     if (error || !data) throw new Error(`Session not found: ${error?.message}`);
     
-    console.log('Retrieved session data:', {
-      session_id: data.session_id,
-      has_feedback: !!data.feedback,
-      feedback_length: data.feedback?.length,
-      feedback_preview: data.feedback?.substring(0, 100)
-    });
+    // Parse feedback if it's a JSON string
+    let parsedFeedback = null;
+    if (data.feedback) {
+      try {
+        parsedFeedback = typeof data.feedback === 'string' ? JSON.parse(data.feedback) : data.feedback;
+      } catch {
+        parsedFeedback = { clarity: data.feedback, vocabulary: '', grammar: '', ideas: '', improved_version: [] };
+      }
+    }
 
     return {
       session_id: data.session_id,
       scenario_name: (data.roleplays as any)?.name || 'Unknown Scenario',
-      scenario: data.roleplays,
-      feedback: data.feedback,
+      scenario: (data.roleplays as any) || { name: '', context: '', ai_role: '' },
+      feedback: parsedFeedback,
       messages: data.conversation_json?.messages || [],
-      highlights: data.highlights || []
+      highlights: data.highlights || [],
+      created_at: data.created_at || new Date().toISOString()
     };
   }
 
@@ -179,7 +148,7 @@ class RoleplaySessionService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching sessions:', error);
+      errorLog('getSessions', error);
       throw new Error(`Failed to load sessions: ${error.message}`);
     }
 
@@ -229,26 +198,17 @@ class RoleplaySessionService {
     return response.json();
   }
 
-  private async saveFeedback(sessionId: string, feedback: string): Promise<void> {
-    console.log('Saving feedback to database:', {
-      sessionId,
-      feedback: feedback?.substring(0, 100) + '...', // Show first 100 chars
-      feedbackLength: feedback?.length
-    });
-    
+  private async saveFeedback(sessionId: string, feedback: RoleplayFeedback): Promise<void> {
     const supabase = createClientComponentClient();
     
     const { error } = await supabase
       .from('sessions')
-      .update({ feedback })
+      .update({ feedback: JSON.stringify(feedback) })
       .eq('session_id', sessionId);
 
     if (error) {
-      console.error('Database error saving feedback:', error);
       throw new Error(`Failed to save feedback: ${error.message}`);
     }
-    
-    console.log('Feedback successfully saved to database');
   }
 }
 

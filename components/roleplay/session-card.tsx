@@ -1,6 +1,6 @@
 'use client';
 
-import { RoleplaySessionData } from '@/services/roleplay-session-service';
+import { RoleplaySessionData } from '@/types/roleplay';
 
 interface SessionCardProps {
   session: RoleplaySessionData;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { roleplayService } from '@/services/roleplay-service';
+import { roleplayScenarioService } from '@/services/roleplay/roleplay-scenario-service';
 import { RoleplayScenario } from '@/types/roleplay';
 import { ScenarioDetail } from '@/components/roleplay/scenario-detail';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ export default function ScenarioDetailPage() {
       
       try {
         setLoading(true);
-        const data = await roleplayService.getScenarioById(id);
+        const data = await roleplayScenarioService.getScenarioById(id);
         setScenario(data);
         setError(null);
       } catch (err) {

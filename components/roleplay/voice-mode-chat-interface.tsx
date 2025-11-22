@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
 import { useVoiceMode } from '@/hooks/roleplay/use-voice-mode';
-import { roleplayWebhookService } from '@/services/roleplay-webhook-service';
-import { roleplaySessionService } from '@/services/roleplay-session-service';
+import { roleplayConversationService } from '@/services/roleplay/roleplay-conversation-service';
+import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 import { Mic, MicOff, Send, Keyboard, Lightbulb } from 'lucide-react';
@@ -62,7 +62,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
     addMessage(userMsg);
 
     try {
-      const reply = await roleplayWebhookService.getBotResponse(
+      const reply = await roleplayConversationService.getBotResponse(
         scenario,
         [...messages, userMsg],
         sessionId
