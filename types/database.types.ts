@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      delete_account_requests: {
+        Row: {
+          confirmed: boolean | null
+          deleted_at: string | null
+          reason: string | null
+          requested_at: string | null
+          user_id: string
+        }
+        Insert: {
+          confirmed?: boolean | null
+          deleted_at?: string | null
+          reason?: string | null
+          requested_at?: string | null
+          user_id: string
+        }
+        Update: {
+          confirmed?: boolean | null
+          deleted_at?: string | null
+          reason?: string | null
+          requested_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delete_account_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_logs: {
         Row: {
           details: string | null
@@ -237,7 +269,6 @@ export type Database = {
           category: string | null
           content: string | null
           id: string
-          is_default: boolean | null
           name: string
           other: string | null
           tag: string[] | null
@@ -246,7 +277,6 @@ export type Database = {
           category?: string | null
           content?: string | null
           id?: string
-          is_default?: boolean | null
           name: string
           other?: string | null
           tag?: string[] | null
@@ -255,7 +285,6 @@ export type Database = {
           category?: string | null
           content?: string | null
           id?: string
-          is_default?: boolean | null
           name?: string
           other?: string | null
           tag?: string[] | null
@@ -265,6 +294,7 @@ export type Database = {
       journals: {
         Row: {
           content: string
+          created_at: string | null
           enhanced_version: string | null
           id: string
           journal_date: string | null
@@ -273,6 +303,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          created_at?: string | null
           enhanced_version?: string | null
           id?: string
           journal_date?: string | null
@@ -281,6 +312,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          created_at?: string | null
           enhanced_version?: string | null
           id?: string
           journal_date?: string | null
@@ -331,31 +363,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          daily_review_goal: number | null
+          english_challenges: string[] | null
+          english_improvement_reasons: string[] | null
           english_level: string | null
-          goals: string[] | null
           id: string
+          journaling_challenges: string[] | null
+          journaling_reasons: string[] | null
           name: string | null
           onboarding_completed: boolean | null
           updated_at: string | null
-          writing_types: string[] | null
         }
         Insert: {
+          daily_review_goal?: number | null
+          english_challenges?: string[] | null
+          english_improvement_reasons?: string[] | null
           english_level?: string | null
-          goals?: string[] | null
           id: string
+          journaling_challenges?: string[] | null
+          journaling_reasons?: string[] | null
           name?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null
-          writing_types?: string[] | null
         }
         Update: {
+          daily_review_goal?: number | null
+          english_challenges?: string[] | null
+          english_improvement_reasons?: string[] | null
           english_level?: string | null
-          goals?: string[] | null
           id?: string
+          journaling_challenges?: string[] | null
+          journaling_reasons?: string[] | null
           name?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null
-          writing_types?: string[] | null
         }
         Relationships: []
       }
@@ -421,6 +462,41 @@ export type Database = {
           },
         ]
       }
+      security_log: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: number
+          ip_address: unknown
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: number
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: number
+          ip_address?: unknown
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           conversation_json: Json | null
@@ -470,18 +546,21 @@ export type Database = {
         Row: {
           content: string
           cover_image: string | null
+          default: boolean | null
           name: string
           profile_id: string
         }
         Insert: {
           content: string
           cover_image?: string | null
+          default?: boolean | null
           name: string
           profile_id: string
         }
         Update: {
           content?: string
           cover_image?: string | null
+          default?: boolean | null
           name?: string
           profile_id?: string
         }
@@ -771,10 +850,19 @@ export type Database = {
           word: string
         }[]
       }
-      test_get_journal_vocab_set_id: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
+      test_get_journal_vocab_set_id:
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.test_get_journal_vocab_set_id(p_user_id => text), public.test_get_journal_vocab_set_id(p_user_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.test_get_journal_vocab_set_id(p_user_id => text), public.test_get_journal_vocab_set_id(p_user_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       update_flashcard_review: {
         Args: {
           card_id: string

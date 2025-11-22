@@ -1,12 +1,13 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-// Use more generic typing since we're having issues with the Database type
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
+
+type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 
 // Helper function to create a profile if one doesn't exist
 async function ensureProfileExists(
-  supabase: SupabaseClient,
+  supabase: ReturnType<typeof createRouteHandlerClient<Database>>,
   userId: string,
   userEmail: string | undefined
 ) {
@@ -27,17 +28,23 @@ async function ensureProfileExists(
     if (!existingProfile) {
       console.log(`Creating new profile for user ${userId}`);
       
+      // Use type-safe insert with updated database schema
+      const profileData: ProfileInsert = {
+        id: userId,
+        name: null,
+        english_level: null,
+        daily_review_goal: null,
+        english_challenges: null,
+        english_improvement_reasons: null,
+        journaling_challenges: null,
+        journaling_reasons: null,
+        onboarding_completed: false,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error: insertError } = await supabase
         .from('profiles')
-        .insert({
-          id: userId,
-          name: null, // User will set this during onboarding
-          english_level: null, // Will be set during onboarding
-          goals: null, // Will be set during onboarding
-          writing_types: null, // Will be set during onboarding
-          onboarding_completed: false,
-          updated_at: new Date().toISOString(),
-        });
+        .insert(profileData as any);
 
       if (insertError) {
         console.error('Error creating profile:', insertError);
@@ -58,7 +65,7 @@ async function ensureProfileExists(
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
     const error = searchParams.get('error');
@@ -141,8 +148,8 @@ export async function GET(req: NextRequest) {
           return NextResponse.redirect(new URL('/onboarding', req.url));
         }
         
-        // Redirect based on onboarding status
-        if (profile?.onboarding_completed) {
+        // Redirect based on onboarding status (with type assertion due to helper lib issues)
+        if ((profile as any)?.onboarding_completed) {
           return NextResponse.redirect(new URL('/home', req.url));
         } else {
           return NextResponse.redirect(new URL('/onboarding', req.url));
