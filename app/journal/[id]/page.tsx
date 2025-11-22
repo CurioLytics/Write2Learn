@@ -1,17 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
 import { journalService } from '@/services/journal-service';
-import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
-import { BreathingLoader } from '@/components/ui/breathing-loader';
-import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
-import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
+import { JournalEditorLayout } from '@/components/journal/journal-editor-layout';
 import { formatDateInput } from '@/utils/date-utils';
 
 export default function JournalEditPage() {
@@ -19,7 +16,6 @@ export default function JournalEditPage() {
   const params = useParams();
   const { user, loading: authLoading } = useAuth();
   const journalId = params?.id as string;
-  const editorRef = useRef<LiveMarkdownEditorRef>(null);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -150,9 +146,7 @@ export default function JournalEditPage() {
   };
 
   const handleVoiceTranscript = (text: string, isFinal: boolean) => {
-    if (isFinal && editorRef.current) {
-      editorRef.current.insertTextAtCursor(text);
-    }
+    // No additional logic needed here, the layout handles it
   };
 
   if (error && !content) {
@@ -170,60 +164,22 @@ export default function JournalEditPage() {
   }
 
   return (
-    <div className="bg-white px-6 py-8">
-      <main className="max-w-3xl w-full mx-auto flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/journal" className="text-blue-600 text-sm hover:underline">
-            ⬅ Back to Journal
-          </Link>
-          <div className="flex items-center gap-3">
-            <JournalActionsMenu
-              journalId={journalId}
-              currentDate={journalDate}
-              currentTags={tags}
-              onDateChange={setJournalDate}
-              onTagsChange={setTags}
-              onDelete={handleDelete}
-            />
-            <Button onClick={handleSave} variant="outline">
-              Lưu
-            </Button>
-            <Button onClick={handleGetFeedback} disabled={!content || !title}>
-              Nhận phản hồi
-            </Button>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Tiêu đề..."
-            className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full"
-          />
-        </div>
-
-        <LiveMarkdownEditor
-          ref={editorRef}
-          value={content}
-          onChange={setContent}
-          placeholder="Bắt đầu viết ở đây..."
-          minHeight={400}
-        />
-
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
-
-        {isLoading && (
-          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <BreathingLoader 
-              message="Getting personalized feedback..."
-              className="bg-white rounded-lg shadow-lg p-8"
-            />
-          </div>
-        )}
-      </main>
-      <FloatingVoiceButton onTranscript={handleVoiceTranscript} />
-    </div>
+    <JournalEditorLayout
+      title={title}
+      content={content}
+      journalDate={journalDate}
+      tags={tags}
+      journalId={journalId}
+      isLoading={isLoading}
+      error={error}
+      onTitleChange={setTitle}
+      onContentChange={setContent}
+      onDateChange={setJournalDate}
+      onTagsChange={setTags}
+      onSave={handleSave}
+      onGetFeedback={handleGetFeedback}
+      onDelete={handleDelete}
+      onVoiceTranscript={handleVoiceTranscript}
+    />
   );
 }

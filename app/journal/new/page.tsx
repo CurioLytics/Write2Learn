@@ -1,25 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
-import { journalTemplateService } from '@/services/journal-template-service';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { journalService } from '@/services/journal-service';
-import { Button } from '@/components/ui/button';
-import { BreathingLoader } from '@/components/ui/breathing-loader';
-import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
-import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
-import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
+import { JournalEditorLayout } from '@/components/journal/journal-editor-layout';
 import { formatDateInput } from '@/utils/date-utils';
 
 export default function NewJournalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const editorRef = useRef<LiveMarkdownEditorRef>(null);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -28,7 +21,6 @@ export default function NewJournalPage() {
   const [journalDate, setJournalDate] = useState(formatDateInput(new Date()));
   const [tags, setTags] = useState<string[]>([]);
   const [journalId, setJournalId] = useState<string | null>(null);
-  const [interimTranscript, setInterimTranscript] = useState('');
 
   const templateName = searchParams?.get('templateName');
   const customContent = searchParams?.get('customContent');
@@ -70,14 +62,12 @@ export default function NewJournalPage() {
     onSave: autoSave
   });
 
-  // Redirect unauthenticated users
   useEffect(() => {
     if (!loading && !user && !sessionStorage.getItem('onboardingData')) {
       router.push('/auth');
     }
   }, [user, loading, router]);
 
-  // Load template, edit data, or draft
   useEffect(() => {
     if (isEdit) {
       setTitle(localStorage.getItem('editJournalTitle') || '');
@@ -98,7 +88,6 @@ export default function NewJournalPage() {
       return;
     }
 
-    // Load draft for new journal
     const draft = loadDraft();
     if (draft) {
       setTitle(draft.title || '');
@@ -115,28 +104,25 @@ export default function NewJournalPage() {
     try {
       if (user) {
         if (journalId) {
-          // Update existing journal
           await journalService.updateJournal(journalId, {
             title,
             content,
             journal_date: journalDate,
           });
         } else {
-          // Create new journal
           const result = await journalService.createJournal(user.id, {
             title,
             content,
             journal_date: journalDate,
           });
           
-          // Save tags to journal_tag table if any
           if (tags.length > 0) {
             await journalService.saveJournalTags(result.id, tags);
           }
           
           setJournalId(result.id);
         }
-        clearDraft(); // Clear draft on save
+        clearDraft();
         router.push('/journal');
       } else {
         const offlineEntry = {
@@ -192,91 +178,26 @@ export default function NewJournalPage() {
   };
 
   const handleVoiceTranscript = (text: string, isFinal: boolean) => {
-    if (isFinal) {
-      // Insert text at cursor position
-      if (editorRef.current) {
-        editorRef.current.insertTextAtCursor(text);
-      } else {
-        // Fallback: append to end
-        setContent(prev => {
-          const trimmed = prev.trim();
-          return trimmed ? `${trimmed} ${text}` : text;
-        });
-      }
-      setInterimTranscript('');
-    } else {
-      // Just store interim for display
-      setInterimTranscript(text);
-    }
+    // No additional logic needed here, the layout handles it
   };
 
-
-
   return (
-    <div className="bg-white px-6 py-8">
-      <main className="max-w-3xl w-full mx-auto flex flex-col">
-        {/* Header with navigation and actions */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/journal" className="text-blue-600 text-sm hover:underline">
-            ⬅ Back to Journal
-          </Link>
-          <div className="flex items-center gap-3">
-            <JournalActionsMenu
-              journalId={journalId || undefined}
-              currentDate={journalDate}
-              currentTags={tags}
-              onDateChange={setJournalDate}
-              onTagsChange={setTags}
-              onDelete={handleDelete}
-            />
-                        <Button
-              onClick={handleSave}
-              variant="outline"
-            >
-              Lưu
-            </Button>
-            <Button
-              onClick={handleGetFeedback}
-              disabled={!content || !title}
-            >
-              Nhận phản hồi
-            </Button>
-          </div>
-        </div>
-
-        {/* Title input */}
-        <div className="mb-6">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Tiêu đề..."
-            className="text-3xl font-semibold focus:outline-none placeholder-gray-400 bg-transparent w-full"
-          />
-        </div>
-
-        <LiveMarkdownEditor
-          ref={editorRef}
-          value={content}
-          onChange={setContent}
-          placeholder="Bắt đầu viết ở đây..."
-          minHeight={400}
-        />
-
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
-
-        {/* Show breathing loader during feedback processing */}
-        {isLoading && (
-          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <BreathingLoader 
-              message="Getting personalized feedback..."
-              className="bg-white rounded-lg shadow-lg p-8"
-            />
-          </div>
-        )}
-
-      </main>
-      <FloatingVoiceButton onTranscript={handleVoiceTranscript} />
-    </div>
+    <JournalEditorLayout
+      title={title}
+      content={content}
+      journalDate={journalDate}
+      tags={tags}
+      journalId={journalId || undefined}
+      isLoading={isLoading}
+      error={error}
+      onTitleChange={setTitle}
+      onContentChange={setContent}
+      onDateChange={setJournalDate}
+      onTagsChange={setTags}
+      onSave={handleSave}
+      onGetFeedback={handleGetFeedback}
+      onDelete={handleDelete}
+      onVoiceTranscript={handleVoiceTranscript}
+    />
   );
 }
