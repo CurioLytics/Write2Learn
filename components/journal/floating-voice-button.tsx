@@ -9,9 +9,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useEffect, useState } from 'react';
 
 interface FloatingVoiceButtonProps {
-  onTranscript: (text: string) => void;
+  onTranscript: (text: string, isFinal: boolean) => void;
 }
 
 export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) {
@@ -25,6 +26,22 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
     interimText,
     isSupported
   } = useVoiceInput(onTranscript);
+
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    if (isListening) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [isListening]);
 
   if (!isSupported) {
     return (
@@ -79,17 +96,13 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
               <Button
                 onClick={isListening ? stopListening : startListening}
                 size="lg"
-                className={`h-14 w-14 rounded-full shadow-lg transition-all duration-300 ${
+                className={`h-14 w-14 rounded-full shadow-lg transition-all duration-500 ease-in-out ${
                   isListening
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse scale-110'
-                    : 'bg-gray-900 hover:bg-gray-800 hover:scale-110'
+                    ? 'bg-primary hover:bg-primary/90 scale-110 animate-pulse-subtle'
+                    : 'bg-gray-900 hover:bg-gray-800 scale-100 hover:scale-105'
                 }`}
               >
-                {isListening ? (
-                  <MicOff className="h-5 w-5 text-white" />
-                ) : (
-                  <Mic className="h-5 w-5 text-white" />
-                )}
+                <Mic className="h-5 w-5 text-white transition-transform duration-300" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top">
@@ -101,23 +114,21 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
         </div>
       </TooltipProvider>
 
-      {/* Status Overlay */}
-      {(isListening || error || interimText) && (
+      {/* Status Overlay - recording indicator */}
+      {isListening && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg px-4 py-2 animate-fade-in">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="font-medium">Recording...</span>
+            <span className="text-xs text-gray-500">({language === 'vi-VN' ? 'Vietnamese' : 'English'})</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error Overlay */}
+      {error && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg p-4 max-w-xs animate-fade-in">
-          {isListening && (
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="font-medium">Đang ghi âm...</span>
-            </div>
-          )}
-          
-          {interimText && (
-            <p className="text-sm text-gray-600 italic mt-2">{interimText}</p>
-          )}
-          
-          {error && (
-            <div className="text-sm text-red-600 mt-2">{error}</div>
-          )}
+          <div className="text-sm text-red-600">{error}</div>
         </div>
       )}
     </>

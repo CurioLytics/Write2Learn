@@ -27,6 +27,7 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
         .from('templates')
         .select('profile_id, name, content, cover_image')
         .in('name', ['Morning Intentions', 'Evening Wind-Down'])
+        .order('name', { ascending: false })
         .limit(2);
 
       const formattedTemplates: JournalTemplate[] = (data || []).map((template: any) => ({

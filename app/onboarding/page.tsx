@@ -22,6 +22,7 @@ export default function OnboardingPage() {
   
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [data, setData] = useState<OnboardingData>({
+    name: '',
     journaling_reasons: [],
     journaling_challenges: [],
     english_improvement_reasons: [],
@@ -34,18 +35,20 @@ export default function OnboardingPage() {
 
   const currentStep = ONBOARDING_STEPS[currentStepIndex];
   
-  // Calculate the countable step number (excluding section-intro steps)
+  // Calculate the countable step number (excluding section-intro and welcome steps)
   const getCountableStepNumber = (stepIndex: number) => {
     return ONBOARDING_STEPS.slice(0, stepIndex + 1)
-      .filter(step => step.type !== 'section-intro').length;
+      .filter(step => step.type !== 'section-intro' && step.type !== 'welcome').length;
   };
   
   const countableStepNumber = getCountableStepNumber(currentStepIndex);
   
   const hasSelection = currentStep.dataKey ? 
-    (Array.isArray(data[currentStep.dataKey]) ? 
-      (data[currentStep.dataKey] as any[]).length > 0 : 
-      !!data[currentStep.dataKey]) : 
+    (currentStep.type === 'text-input' ?
+      !!(data[currentStep.dataKey] as string)?.trim() :
+      Array.isArray(data[currentStep.dataKey]) ? 
+        (data[currentStep.dataKey] as any[]).length > 0 : 
+        !!data[currentStep.dataKey]) : 
     false;
 
   // Load progress from localStorage
@@ -155,7 +158,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <h1 className="text-4xl md:text-5xl font-normal text-gray-900 mb-4 tracking-tight">
-              {currentStep.title}
+              {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
             </h1>
             <p className="text-lg text-gray-600 mb-8 max-w-md italic">
               {currentStep.description}
@@ -165,7 +168,7 @@ export default function OnboardingPage() {
               size="lg"
               className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-normal"
             >
-              Bắt đầu hành trình của bạn
+              Start your journey
             </Button>
           </div>
         );
@@ -174,7 +177,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
             <h1 className="text-5xl font-normal text-gray-900 mb-4 tracking-tight italic">
-              {currentStep.title}
+              {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
             </h1>
             <p className="text-lg text-gray-600 mb-8 max-w-md">
               {currentStep.description}
@@ -189,13 +192,43 @@ export default function OnboardingPage() {
           </div>
         );
 
+      case 'text-input':
+        return (
+          <div className="py-8">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-normal text-gray-900 mb-2">
+                {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
+              </h2>
+              {currentStep.description && (
+                <p className="text-base text-gray-600 italic">
+                  {currentStep.description}
+                </p>
+              )}
+            </div>
+            <div className="max-w-md mx-auto">
+              <input
+                type="text"
+                value={(currentStep.dataKey ? data[currentStep.dataKey] : '') as string}
+                onChange={(e) => {
+                  if (currentStep.dataKey) {
+                    setData({ ...data, [currentStep.dataKey]: e.target.value });
+                  }
+                }}
+                placeholder={currentStep.placeholder}
+                className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+                autoFocus
+              />
+            </div>
+          </div>
+        );
+
       case 'multi-select':
       case 'single-select':
         return (
           <div className="py-8">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-normal text-gray-900 mb-2">
-                {currentStep.title}
+                {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
               </h2>
               {currentStep.description && (
                 <p className="text-base text-gray-600 italic">
@@ -254,7 +287,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Navigation */}
-          {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && (
+          {currentStep.type !== 'welcome' && currentStep.type !== 'section-intro' && currentStep.type !== 'text-input' && (
             <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 {/* Back Button */}
@@ -292,6 +325,21 @@ export default function OnboardingPage() {
                     </Button>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Text Input Navigation */}
+          {currentStep.type === 'text-input' && (
+            <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
+              <div className="flex items-center justify-center">
+                <Button
+                  onClick={handleNext}
+                  disabled={!hasSelection}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue
+                </Button>
               </div>
             </div>
           )}

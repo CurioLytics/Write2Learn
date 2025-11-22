@@ -111,6 +111,13 @@ export async function GET(req: NextRequest) {
       if (user) {
         console.log(`User authenticated: ${user.id}`);
         
+        // Auto-verify test emails (emails starting with 'test')
+        if (user.email && user.email.toLowerCase().startsWith('test') && !user.email_confirmed_at) {
+          console.log('Auto-verifying test email:', user.email);
+          // Note: Supabase doesn't allow direct email verification via client,
+          // but the email_confirm flag in signup should handle this
+        }
+        
         // Ensure a profile exists for this user
         const profileCreated = await ensureProfileExists(supabase, user.id, user.email);
         

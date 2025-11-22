@@ -1,69 +1,7 @@
-export type EnglishLevel = 'Beginner (A1-A2)' | 'Intermediate (B1-B2)' | 'Advanced (C1-C2)';
-
-export type LearningGoal = 'Fluency' | 'Exam prep' | 'Work' | 'Travel' | 'Speaking' | 'Vocabulary';
-
-export type WritingType = 'Daily journal' | 'Travel notes' | 'Study reflections' | 'Work logs' | 'Creative stories' | 'Other';
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  englishLevel: EnglishLevel;
-  goals: LearningGoal[];
-  writingTypes: WritingType[];
-  onboardingCompleted: boolean;
-}
-
-export const ENGLISH_LEVELS: EnglishLevel[] = [
-  'Beginner (A1-A2)',
-  'Intermediate (B1-B2)',
-  'Advanced (C1-C2)',
-];
-
-export const ENGLISH_LEVELS_VI: Record<EnglishLevel, string> = {
-  'Beginner (A1-A2)': 'Sơ cấp (A1-A2)',
-  'Intermediate (B1-B2)': 'Trung cấp (B1-B2)',
-  'Advanced (C1-C2)': 'Cao cấp (C1-C2)',
-};
-
-export const LEARNING_GOALS: LearningGoal[] = [
-  'Fluency',
-  'Exam prep',
-  'Work',
-  'Travel',
-  'Speaking',
-  'Vocabulary',
-];
-
-export const LEARNING_GOALS_VI: Record<LearningGoal, string> = {
-  'Fluency': 'Nói trôi chảy',
-  'Exam prep': 'Chuẩn bị thi',
-  'Work': 'Công việc',
-  'Travel': 'Du lịch',
-  'Speaking': 'Giao tiếp',
-  'Vocabulary': 'Từ vựng',
-};
-
-export const WRITING_TYPES: WritingType[] = [
-  'Daily journal',
-  'Travel notes',
-  'Study reflections',
-  'Work logs',
-  'Creative stories',
-  'Other',
-];
-
-export const WRITING_TYPES_VI: Record<WritingType, string> = {
-  'Daily journal': 'Nhật ký hàng ngày',
-  'Travel notes': 'Ghi chú du lịch',
-  'Study reflections': 'Suy ngẫm về học tập',
-  'Work logs': 'Nhật ký công việc',
-  'Creative stories': 'Truyện sáng tạo',
-  'Other': 'Khác',
-};
-
-// ==================== NEW ONBOARDING FLOW ====================
+// ==================== ONBOARDING FLOW ====================
 
 export interface OnboardingData {
+  name: string;
   journaling_reasons: string[];
   journaling_challenges: string[];
   english_improvement_reasons: string[];
@@ -74,6 +12,7 @@ export interface OnboardingData {
 
 export type OnboardingStep = 
   | 'welcome'
+  | 'name-input'
   | 'journaling-intro'
   | 'journaling-reasons'
   | 'journaling-challenges'
@@ -85,11 +24,12 @@ export type OnboardingStep =
 
 export interface StepConfig {
   id: OnboardingStep;
-  title: string;
+  title: string | ((data: OnboardingData) => string);
   description?: string;
-  type: 'welcome' | 'section-intro' | 'multi-select' | 'single-select';
+  type: 'welcome' | 'section-intro' | 'multi-select' | 'single-select' | 'text-input';
   options?: { value: string | number; label: string }[];
   dataKey?: keyof OnboardingData;
+  placeholder?: string;
 }
 
 // Journaling reasons options
@@ -158,6 +98,14 @@ export const ONBOARDING_STEPS: StepConfig[] = [
     type: 'welcome',
   },
   {
+    id: 'name-input',
+    title: 'How should I call you?',
+    description: 'Just your first name is fine',
+    type: 'text-input',
+    dataKey: 'name',
+    placeholder: 'Enter your name',
+  },
+  {
     id: 'journaling-intro',
     title: 'Journaling',
     description: 'Discover the power of daily reflection and self-expression.',
@@ -165,7 +113,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   },
   {
     id: 'journaling-reasons',
-    title: 'Why are you here?',
+    title: (data) => data.name ? `Why are you here, ${data.name}?` : 'Why are you here?',
     description: 'Choose what resonates with you',
     type: 'multi-select',
     options: JOURNALING_REASONS,
@@ -221,8 +169,8 @@ export const ONBOARDING_STEPS: StepConfig[] = [
 
 export const TOTAL_STEPS = ONBOARDING_STEPS.length;
 
-// Helper to get only countable steps (excluding section-intro)
+// Helper to get only countable steps (excluding section-intro and welcome)
 export const getCountableSteps = () => 
-  ONBOARDING_STEPS.filter(step => step.type !== 'section-intro');
+  ONBOARDING_STEPS.filter(step => step.type !== 'section-intro' && step.type !== 'welcome');
 
-export const COUNTABLE_STEPS = getCountableSteps().length; // 7 steps
+export const COUNTABLE_STEPS = getCountableSteps().length; // 8 steps

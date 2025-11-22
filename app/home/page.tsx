@@ -302,14 +302,16 @@ export default function DashboardPage() {
                     <div className="text-center mt-6">
                         <Button
                             onClick={() => router.push('/journal/new')}
-                            variant='default'
+                            variant='outline'
+                            className="relative overflow-hidden bg-white border-2 border-gray-900 text-gray-900 hover:text-white transition-colors duration-500 group"
                         >
-                            Viết tự do
+                            <span className="absolute inset-0 bg-gray-900 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></span>
+                            <span className="relative z-10">Free Write Now</span>
                         </Button>
                     </div>
                 </div>
                 <button
-                    aria-label="Cuộn xuống phần hội thoại"
+                    aria-label="Scroll down to roleplay section"
                     onClick={() => scrollTo('roleplay')}
                     className="mt-6 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                 >

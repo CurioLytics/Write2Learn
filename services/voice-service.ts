@@ -32,7 +32,8 @@ class VoiceService {
 
   startListening(
     onResult: (text: string, isFinal: boolean) => void,
-    onError: (error: string) => void
+    onError: (error: string) => void,
+    language?: Language
   ) {
     if (!this.recognition) {
       onError('Trình duyệt không hỗ trợ ghi âm. Vui lòng dùng Chrome hoặc Edge.');
@@ -44,10 +45,21 @@ class VoiceService {
       return;
     }
 
+    // Set language if provided
+    if (language) {
+      this.recognition.lang = language;
+    }
+
     this.recognition.onresult = (event: any) => {
-      const result = event.results[event.results.length - 1];
-      const text = result[0].transcript;
-      onResult(text, result.isFinal);
+      // Get the latest result
+      const lastResultIndex = event.results.length - 1;
+      const result = event.results[lastResultIndex];
+      const text = result[0].transcript.trim();
+      
+      // Emit both interim and final results
+      if (text) {
+        onResult(text, result.isFinal);
+      }
     };
 
     this.recognition.onerror = (event: any) => {

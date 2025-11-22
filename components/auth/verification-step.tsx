@@ -88,7 +88,9 @@ export function VerificationStep({ user, isNewUser }: VerificationStepProps) {
               />
             </svg>
             <h3 className="text-xl sm:text-lg font-medium">Email Verified</h3>
-            <p className="text-base sm:text-sm text-gray-600 mt-2">Your email has been verified successfully.</p>
+            <p className="text-base sm:text-sm text-gray-600 mt-2">
+              Your email has been verified successfully.
+            </p>
           </div>
         ) : (
           <div className="text-blue-600">

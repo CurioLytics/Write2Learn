@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
@@ -10,7 +10,7 @@ import { FloatingVoiceButton } from '@/components/journal/floating-voice-button'
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
-import { LiveMarkdownEditor } from '@/components/features/journal/editor';
+import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
 import { formatDateInput } from '@/utils/date-utils';
 import type { Journal } from '@/types/journal';
@@ -20,6 +20,7 @@ export default function JournalViewPage() {
   const params = useParams();
   const { user, loading: authLoading } = useAuth();
   const journalId = params?.id as string;
+  const editorRef = useRef<LiveMarkdownEditorRef>(null);
 
   const [journal, setJournal] = useState<Journal | null>(null);
   const [title, setTitle] = useState('');
@@ -29,6 +30,7 @@ export default function JournalViewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [interimTranscript, setInterimTranscript] = useState('');
 
   const autoSave = async () => {
     if (!journalId || !title || !content) return;
@@ -164,8 +166,23 @@ export default function JournalViewPage() {
     }
   };
 
-  const handleVoiceTranscript = (text: string) => {
-    setContent(prev => prev ? `${prev} ${text}` : text);
+  const handleVoiceTranscript = (text: string, isFinal: boolean) => {
+    if (isFinal) {
+      // Insert text at cursor position
+      if (editorRef.current) {
+        editorRef.current.insertTextAtCursor(text);
+      } else {
+        // Fallback: append to end
+        setContent(prev => {
+          const trimmed = prev.trim();
+          return trimmed ? `${trimmed} ${text}` : text;
+        });
+      }
+      setInterimTranscript('');
+    } else {
+      // Just store interim for display
+      setInterimTranscript(text);
+    }
   };
 
   // Show error state
@@ -244,6 +261,7 @@ export default function JournalViewPage() {
         </div>
 
         <LiveMarkdownEditor
+          ref={editorRef}
           value={content}
           onChange={setContent}
           placeholder="Bắt đầu viết ở đây..."

@@ -78,29 +78,6 @@ export function AuthForm() {
         } else if (data?.user) {
           setUser(data.user);
           setSignupComplete(true);
-          
-          // Nếu có thông tin onboarding từ session, gửi lên server sau khi đăng ký thành công
-          if (typeof window !== 'undefined') {
-            const onboardingData = sessionStorage.getItem('onboardingProfile');
-            if (onboardingData) {
-              try {
-                // Lưu thông tin onboarding vào database
-                await fetch('/api/profile', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Request-ID': `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
-                  },
-                  body: onboardingData,
-                });
-                
-                // Xóa dữ liệu khỏi session sau khi đã lưu
-                sessionStorage.removeItem('onboardingProfile');
-              } catch (apiError) {
-                console.error('Không thể lưu thông tin onboarding:', apiError);
-              }
-            }
-          }
         }
       }
     } catch (err) {

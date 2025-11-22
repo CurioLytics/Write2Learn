@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { voiceService } from '@/services/voice-service';
 
-export function useVoiceInput(onTranscript: (text: string) => void) {
+export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => void) {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState('');
@@ -38,18 +38,24 @@ export function useVoiceInput(onTranscript: (text: string) => void) {
     voiceService.startListening(
       (text, isFinal) => {
         if (isFinal) {
-          onTranscript(text);
+          // Send final text to parent and clear interim
+          onTranscript(text, true);
           setInterimText('');
         } else {
+          // Show interim text in real-time
           setInterimText(text);
+          // Also send interim to parent for immediate feedback
+          onTranscript(text, false);
         }
       },
       (errorMsg) => {
         setError(errorMsg);
         setIsListening(false);
-      }
+        setInterimText('');
+      },
+      language
     );
-  }, [onTranscript]);
+  }, [onTranscript, language]);
 
   const stopListening = useCallback(() => {
     voiceService.stopListening();

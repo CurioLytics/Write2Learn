@@ -4,6 +4,9 @@
 
 Write2Learn is a Next.js 15 (App Router) app for English writing improvement through journaling, vocabulary, and roleplay. Built with TypeScript, Supabase, and Tailwind CSS.
 
+## Coding style
+Delete all code that unused, and unneccasry. For example when adjusting existing code, delete the old code instead of commenting it out, never turn them into fallbacks or leave them as dead code.
+
 ### Key Service Patterns
 - **Feature-first organization**: Code organized by domain (`auth/`, `journal/`, `vocab/`) not by tech layer
 - **Singleton services**: Each service exports a single instance (`vocabularyService`, `journalService`)
@@ -66,3 +69,5 @@ export async function POST(request: Request) {
 - Dynamic imports for client-only components (markdown editor)
 
 When implementing new features, follow the established service → API route → component pattern and maintain the feature-based directory structure.
+
+
