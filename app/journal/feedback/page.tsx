@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
-import { HighlightSelector } from '@/components/journal/highlight-selector-new';
+import { HighlightSelector } from '@/components/features/journal/editor/highlight-selector';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
 import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import { flashcardGenerationService } from '@/services/flashcard-generation-service';

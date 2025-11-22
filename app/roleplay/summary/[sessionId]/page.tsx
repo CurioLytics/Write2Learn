@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HighlightSelector } from '@/components/journal/highlight-selector-new';
+import { HighlightSelector } from '@/components/features/journal/editor/highlight-selector';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
 import { MessageBubble } from '@/components/roleplay/message-bubble';
 import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
