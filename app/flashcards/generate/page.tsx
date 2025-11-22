@@ -38,22 +38,25 @@ export default function FlashcardCreationPage() {
           const parsed = JSON.parse(raw);
           let list: any[] = [];
 
-          if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0].output)) {
-            list = parsed[0].output;
+          // Handle array directly (new structure from webhook)
+          if (Array.isArray(parsed)) {
+            list = parsed;
+          } else if (parsed && Array.isArray(parsed.flashcards)) {
+            list = parsed.flashcards;
           } else if (parsed && Array.isArray(parsed.output)) {
             list = parsed.output;
-          } else if (Array.isArray(parsed)) {
-            list = parsed;
           }
 
+          // Validate and normalize flashcards
           const valid = list.filter(
-            (c: any) =>
-              c &&
-              typeof c.word === 'string' &&
-              c.back &&
-              typeof c.back.definition === 'string' &&
-              typeof c.back.example === 'string'
-          );
+            (c: any) => c && typeof c.word === 'string' && typeof c.back === 'string'
+          ).map((c: any) => ({
+            word: c.word,
+            back: {
+              definition: c.back,
+              example: ''
+            }
+          }));
 
           setFlashcards(valid as Flashcard[]);
         }
@@ -222,7 +225,7 @@ export default function FlashcardCreationPage() {
           <p className="text-sm text-gray-600 mb-6">Lưu thành công.</p>
           <div className="flex justify-center gap-3">
             <Button onClick={() => router.push('/vocab')}>Đến Vocab Hub</Button>
-            <Button variant="outline" onClick={() => router.push('/flashcards/create')}>
+            <Button variant="outline" onClick={() => router.push('/flashcards/generate')}>
               Tạo thêm
             </Button>
           </div>

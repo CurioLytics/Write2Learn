@@ -1,9 +1,8 @@
-'use client';
-
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { RoleplayMessage, RoleplayScenario, RoleplayFeedback, RoleplaySessionData } from '@/types/roleplay';
 import { errorLog } from '@/utils/roleplay-utils';
 import { roleplayFeedbackService } from './roleplay-feedback-service';
+import { flashcardGenerationService } from '@/services/flashcard-generation-service';
 
 class RoleplaySessionService {
   /**
@@ -179,23 +178,15 @@ class RoleplaySessionService {
 
     if (error) throw new Error(`Failed to save highlights: ${error.message}`);
 
-    // Generate vocabulary from highlights
-    const payload = {
+    // Generate flashcards using shared service
+    const result = await flashcardGenerationService.generateFromRoleplay(
       userId,
-      title: `Roleplay: ${sessionData.scenario_name}`,
-      content: sessionData.feedback,
-      journalDate: new Date().toISOString().split('T')[0],
-      highlights,
-    };
+      sessionData.scenario_name,
+      sessionData.feedback,
+      highlights
+    );
 
-    const response = await fetch('https://auto2.elyandas.com/webhook/save-process-highlight-v1', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error(`Failed to generate vocabulary: ${response.status}`);
-    return response.json();
+    return { flashcards: result.flashcards };
   }
 
   private async saveFeedback(sessionId: string, feedback: RoleplayFeedback): Promise<void> {

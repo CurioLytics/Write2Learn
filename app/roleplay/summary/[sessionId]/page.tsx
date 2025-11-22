@@ -66,17 +66,19 @@ export default function RoleplaySummaryPage() {
     }
     
     setProcessing(true);
+    setError(null);
     
     try {
-      const data = await roleplaySessionService.saveHighlightsAndGenerateFlashcards(
+      const result = await roleplaySessionService.saveHighlightsAndGenerateFlashcards(
         params.sessionId as string,
         highlights,
         sessionData,
         user.id
       );
       
-      localStorage.setItem('flashcardData', JSON.stringify(data));
-      router.push('/flashcards/create');
+      // Store flashcards and navigate to flashcard generation page
+      localStorage.setItem('flashcardData', JSON.stringify(result.flashcards));
+      router.push('/flashcards/generate');
     } catch (err: any) {
       setError(err?.message || 'Failed to save highlights');
       setProcessing(false);

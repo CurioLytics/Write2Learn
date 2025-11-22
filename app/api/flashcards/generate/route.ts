@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     // Prepare webhook payload
     const webhookPayload = {
       highlights,
-      content,
+      context: content, // The improved/enhanced version of the journal
       title: title || 'Untitled Journal',
       level: profile?.level || null,
       userId: user.id
@@ -89,42 +89,30 @@ export async function POST(request: Request) {
     
     const responseData = await webhookResponse.json();
     
-    // Normalize response to expected format
+    // Parse webhook response structure: [{ output: [{ word, back }] }]
     let flashcards: FlashcardResponse[] = [];
     
-    // Handle various response structures from the webhook
-    if (Array.isArray(responseData)) {
-      // If response is an array, check if first item has output property
-      if (responseData.length > 0 && responseData[0].output) {
-        flashcards = responseData[0].output;
-      } else {
-        flashcards = responseData;
-      }
-    } else if (responseData.output && Array.isArray(responseData.output)) {
-      flashcards = responseData.output;
-    } else if (responseData.flashcards && Array.isArray(responseData.flashcards)) {
-      flashcards = responseData.flashcards;
-    } else if (responseData.data && Array.isArray(responseData.data)) {
-      flashcards = responseData.data;
+    if (Array.isArray(responseData) && responseData.length > 0 && responseData[0]?.output) {
+      flashcards = responseData[0].output;
+    } else {
+      console.error('Unexpected webhook response structure:', responseData);
+      return NextResponse.json(
+        { success: false, error: 'Invalid flashcard response structure' },
+        { status: 500 }
+      );
     }
     
     console.log('Webhook response:', JSON.stringify(responseData, null, 2));
     console.log('Extracted flashcards:', JSON.stringify(flashcards, null, 2));
     
-    // Validate flashcard format and normalize structure
+    // Validate flashcard format where back is a string
     const validFlashcards = flashcards.filter((card: any) => 
       card && 
       typeof card.word === 'string' && 
-      card.back && 
-      typeof card.back.definition === 'string'
+      typeof card.back === 'string'
     ).map((card: any) => ({
       word: card.word,
-      back: {
-        definition: card.back.definition,
-        example: card.back.example || 
-                (card.back.synonyms ? `Synonyms: ${card.back.synonyms.join(', ')}` : '') || 
-                ''
-      }
+      back: card.back
     }));
     
     return createSuccessResponse({

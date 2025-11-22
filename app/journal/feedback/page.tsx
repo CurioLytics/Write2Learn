@@ -12,6 +12,7 @@ import { LoadingState, ErrorState } from '@/components/ui/common/state-component
 import { HighlightSelector } from '@/components/journal/highlight-selector-new';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
 import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
+import { flashcardGenerationService } from '@/services/flashcard-generation-service';
 import styles from '@/components/features/journal/editor/highlight-selector.module.css';
 
 // Custom hooks
@@ -93,36 +94,14 @@ async function saveJournalAndHighlights({
     let flashcardData = null;
     if (highlights && highlights.length > 0) {
       try {
-        const flashcardResponse = await fetch('/api/flashcards/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            highlights,
-            content: enhancedContent || originalContent,
-            title,
-          }),
-        });
-        
-        if (flashcardResponse.ok) {
-          const flashcardResult = await flashcardResponse.json();
-          
-          // Extract flashcards from various possible response structures
-          if (flashcardResult.data?.flashcards) {
-            flashcardData = flashcardResult.data.flashcards;
-          } else if (flashcardResult.flashcards) {
-            flashcardData = flashcardResult.flashcards;
-          } else if (flashcardResult.data?.output) {
-            flashcardData = flashcardResult.data.output;
-          } else if (Array.isArray(flashcardResult.data) && flashcardResult.data[0]?.output) {
-            flashcardData = flashcardResult.data[0].output;
-          }
-          
-          console.log('Generated flashcards:', flashcardData);
-        } else {
-          console.error('Failed to generate flashcards:', flashcardResponse.statusText);
-        }
+        const result = await flashcardGenerationService.generateFromJournal(
+          userId,
+          title,
+          enhancedContent || originalContent,
+          highlights
+        );
+        flashcardData = result.flashcards;
+        console.log('Generated flashcards:', flashcardData);
       } catch (error) {
         console.error('Error generating flashcards:', error);
         // Continue without flashcards if generation fails
@@ -169,14 +148,11 @@ export default function JournalFeedbackPage() {
 
       if (redirectToFlashcards && highlights.length && data.flashcards) {
         // Store generated flashcards for the creation page
-        localStorage.setItem('flashcardData', JSON.stringify({
-          output: data.flashcards
-        }));
-        router.push('/flashcards/create');
+        localStorage.setItem('flashcardData', JSON.stringify(data.flashcards));
+        router.push('/flashcards/generate');
       } else if (redirectToFlashcards && highlights.length) {
-        // Fallback: redirect with journal data if flashcard generation failed
-        localStorage.setItem('flashcardData', JSON.stringify(data));
-        router.push('/flashcards/create');
+        // Fallback: redirect even if flashcard generation failed
+        router.push('/flashcards/generate');
       } else {
         router.push('/journal');
       }
