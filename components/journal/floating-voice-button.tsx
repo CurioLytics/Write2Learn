@@ -70,65 +70,73 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
     <>
       {/* Main Floating Button */}
       <TooltipProvider>
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
-          {/* Language Toggle (shown when listening) */}
-          {isListening && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={toggleLanguage}
-                  size="sm"
-                  variant="outline"
-                  className="rounded-full shadow-md bg-white hover:bg-gray-50 h-10 w-10 animate-fade-in"
-                >
-                  <Languages className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p className="text-sm">{language === 'vi-VN' ? 'Tiếng Việt' : 'English'}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* Main Mic Button */}
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3">
+          {/* Main Mic Button with Glow Effect */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                onClick={isListening ? stopListening : startListening}
-                size="lg"
-                className={`h-14 w-14 rounded-full shadow-lg transition-all duration-500 ease-in-out ${
-                  isListening
-                    ? 'bg-primary hover:bg-primary/90 scale-110 animate-pulse-subtle'
-                    : 'bg-gray-900 hover:bg-gray-800 scale-100 hover:scale-105'
-                }`}
-              >
-                <Mic className="h-5 w-5 text-white transition-transform duration-300" />
-              </Button>
+              <div className="relative">
+                {/* Outer glow rings */}
+                <div className={`absolute inset-0 rounded-full transition-all duration-700 ${
+                  isListening 
+                    ? 'animate-ping-slow bg-blue-400/30' 
+                    : 'bg-gray-900/20'
+                }`} style={{ padding: '20px' }}></div>
+                
+                <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
+                  isListening 
+                    ? 'animate-pulse-glow bg-blue-500/20' 
+                    : 'bg-gray-800/10'
+                }`} style={{ padding: '10px' }}></div>
+
+                {/* Main button */}
+                <button
+                  onClick={isListening ? stopListening : startListening}
+                  className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${
+                    isListening
+                      ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 scale-110 shadow-blue-500/50 animate-breathe'
+                      : 'bg-gradient-to-br from-gray-800 via-gray-900 to-black hover:scale-110 hover:shadow-gray-900/50 shadow-gray-900/30'
+                  }`}
+                >
+                  {/* Inner glow */}
+                  <div className={`absolute inset-0 rounded-full transition-opacity duration-500 ${
+                    isListening ? 'opacity-100 bg-white/10 animate-pulse' : 'opacity-0'
+                  }`}></div>
+                  
+                  <Mic className={`relative z-10 h-8 w-8 text-white mx-auto transition-transform duration-300 ${
+                    isListening ? 'animate-bounce-subtle' : ''
+                  }`} />
+                  
+                  {/* Language badge */}
+                  <div className="absolute -bottom-1 -right-1 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLanguage();
+                      }}
+                      className="h-7 w-7 rounded-full bg-white shadow-lg flex items-center justify-center text-xs font-bold text-gray-900 hover:scale-110 transition-transform border-2 border-gray-200"
+                    >
+                      {language === 'vi-VN' ? 'VI' : 'EN'}
+                    </button>
+                  </div>
+                </button>
+              </div>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="text-sm">
-                {isListening ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}
+            <TooltipContent side="top" className="text-base">
+              <p className="font-medium">
+                {isListening ? 'Stop Recording' : 'Start Recording'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Language: {language === 'vi-VN' ? 'Vietnamese' : 'English'}
               </p>
             </TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
 
-      {/* Status Overlay - recording indicator */}
-      {isListening && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg px-4 py-2 animate-fade-in">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="font-medium">Recording...</span>
-            <span className="text-xs text-gray-500">({language === 'vi-VN' ? 'Vietnamese' : 'English'})</span>
-          </div>
-        </div>
-      )}
-
       {/* Error Overlay */}
       {error && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-white rounded-lg shadow-lg p-4 max-w-xs animate-fade-in">
-          <div className="text-sm text-red-600">{error}</div>
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40 bg-white rounded-xl shadow-2xl p-5 max-w-xs animate-fade-in border-l-4 border-red-500">
+          <div className="text-sm text-red-600 font-medium">{error}</div>
         </div>
       )}
     </>

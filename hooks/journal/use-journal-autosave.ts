@@ -1,5 +1,4 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface JournalDraft {
   title: string;
@@ -28,7 +27,8 @@ export function useJournalAutosave({
   draftKey = 'journalDraft'
 }: UseJournalAutosaveProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const savePromiseRef = useRef<Promise<void> | null>(null);
+  const isSavingRef = useRef(false);
+  const hasUnsavedChangesRef = useRef(false);
 
   const saveDraft = useCallback(() => {
     const draft: JournalDraft = { title, content, journalDate, tags };
@@ -48,6 +48,29 @@ export function useJournalAutosave({
     localStorage.removeItem(draftKey);
   }, [draftKey]);
 
+  const saveToDatabase = useCallback(async () => {
+    if (!onSave || isSavingRef.current || (!title && !content)) {
+      return;
+    }
+
+    try {
+      isSavingRef.current = true;
+      await onSave();
+      hasUnsavedChangesRef.current = false;
+    } catch (err) {
+      console.error('Auto-save to database failed:', err);
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [onSave, title, content]);
+
+  // Track changes
+  useEffect(() => {
+    if (title || content) {
+      hasUnsavedChangesRef.current = true;
+    }
+  }, [title, content]);
+
   // Debounced local storage save (500ms delay)
   useEffect(() => {
     if (timeoutRef.current) {
@@ -63,27 +86,18 @@ export function useJournalAutosave({
     };
   }, [saveDraft]);
 
-  // Save to DB on unmount (navigation away) and page unload (reload/close)
+  // Save to DB ONLY on unmount (one time)
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      saveDraft();
-      if (onSave && (title || content)) {
-        savePromiseRef.current = onSave();
-      }
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Save draft to localStorage immediately
       saveDraft();
       
-      // Save to DB on navigation away
-      if (onSave && (title || content)) {
-        onSave().catch(err => console.error('Auto-save failed:', err));
+      // Save to database if there are unsaved changes
+      if (hasUnsavedChangesRef.current && !isSavingRef.current) {
+        saveToDatabase();
       }
     };
-  }, [saveDraft, onSave, title, content]);
+  }, [saveDraft, saveToDatabase]);
 
   return { loadDraft, clearDraft, saveDraft };
 }

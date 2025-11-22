@@ -89,7 +89,7 @@ class VoiceService {
       this.recognition.start();
       this.isListening = true;
     } catch (error) {
-      onError('Không thể bắt đầu ghi âm.');
+      onError('Please try again');
     }
   }
 

@@ -113,127 +113,120 @@ export default function VocabPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8" style={{ fontFamily: 'var(--font-sans)' }}>
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Từ vựng</h1>
-              <p className="text-sm text-gray-600 mt-2">Quản lý và ôn tập từ vựng tiếng Anh của bạn</p>
-            </div>
-            <div className="text-sm text-gray-600">{filteredSets.length} bộ</div>
-          </div>
+    <div className="flex flex-col items-center px-4 py-10 w-full">
+      {/* HEADER */}
+      <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Từ vựng</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Quản lý và ôn tập từ vựng tiếng Anh của bạn
+        </p>
+      </div>
 
-          {/* Tabs */}
-          <div className="mb-6 border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('sets')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'sets'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Bộ từ vựng
-              </button>
-              <button
-                onClick={() => setActiveTab('starred-words')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'starred-words'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                ⭐ Stared Words
-              </button>
-            </nav>
-          </div>
-
-          {activeTab === 'sets' ? (
-            <>
-              {/* Filter Toggle for Sets */}
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-medium text-gray-800">
-                </h2>
-                <button
-                  onClick={() => setShowStarredOnly(!showStarredOnly)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    showStarredOnly
-                      ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
-                      : 'bg-gray-100 text-gray-600 border border-gray-300'
-                  }`}
-                  title={showStarredOnly ? 'Starred only' : 'Show all sets'}
-                >
-                  {showStarredOnly ? '⭐' : '☆'}
-                </button>
-              </div>
-
-              <VocabularySetList
-                vocabularySets={filteredSets}
-                isLoading={isLoadingFlashcards}
-                error={flashcardError}
-                onSelectSet={handleSelectSet}
-                onStarToggle={(setId: string, newStarredStatus: boolean) => {
-                  setFlashcardSets(prev => prev.map(set => 
-                    set.set_id === setId 
-                      ? { ...set, is_starred: newStarredStatus }
-                      : set
-                  ));
-                }}
-              />
-            </>
-          ) : (
-            <>
-              {/* Starred Words View */}
-              <div className="mb-6">
-                <h2 className="text-lg font-medium text-gray-800 mb-4">
-                </h2>
-                
-                {isLoadingStarredWords ? (
-                  <div className="text-center py-8 text-gray-500">Chờ xíu...</div>
-                ) : starredWords.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <p className="mb-2">Chưa có từ nào được đánh dấu</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {starredWords.map((word) => (
-                      <div
-                        key={word.id}
-                        className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium text-gray-900">{word.word}</h3>
-                          <button
-                            onClick={() => handleStarToggle(word.id)}
-                            className="text-yellow-500 hover:text-yellow-600 transition-colors"
-                            title="Bỏ đánh dấu"
-                          >
-                            ⭐
-                          </button>
-                        </div>
-                        <p className="text-gray-700 text-sm mb-2">{word.meaning}</p>
-                        {word.example && (
-                          <p className="text-gray-500 text-xs italic">{word.example}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          <div className="mt-8 flex justify-center gap-3">
-            <Button
-              variant='default'
-              onClick={() => router.push('/vocab/create')}
+      {/* Add spacing between header and next block */}
+      <div className="w-full max-w-3xl space-y-6 mt-10">
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('sets')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sets'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              Thêm bộ
-            </Button>
-          </div>
+              Bộ từ vựng
+            </button>
+            <button
+              onClick={() => setActiveTab('starred-words')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'starred-words'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              ⭐ Starred Words
+            </button>
+          </nav>
         </div>
+
+        {activeTab === 'sets' ? (
+          <div className="bg-white rounded-2xl shadow p-6">
+            {/* Filter Toggle for Sets */}
+            <div className="mb-6 flex items-center justify-between">
+              <div className="text-sm text-gray-600">{filteredSets.length} bộ</div>
+              <button
+                onClick={() => setShowStarredOnly(!showStarredOnly)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  showStarredOnly
+                    ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                    : 'bg-gray-100 text-gray-600 border border-gray-300'
+                }`}
+                title={showStarredOnly ? 'Starred only' : 'Show all sets'}
+              >
+                {showStarredOnly ? '⭐' : '☆'}
+              </button>
+            </div>
+
+            <VocabularySetList
+              vocabularySets={filteredSets}
+              isLoading={isLoadingFlashcards}
+              error={flashcardError}
+              onSelectSet={handleSelectSet}
+              onStarToggle={(setId: string, newStarredStatus: boolean) => {
+                setFlashcardSets(prev => prev.map(set => 
+                  set.set_id === setId 
+                    ? { ...set, is_starred: newStarredStatus }
+                    : set
+                ));
+              }}
+            />
+
+            <div className="mt-8 flex justify-center">
+              <Button
+                variant='default'
+                onClick={() => router.push('/vocab/create')}
+              >
+                Thêm bộ
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow p-6">
+            {/* Starred Words View */}
+            {isLoadingStarredWords ? (
+              <div className="text-center py-8 text-gray-500">Chờ xíu...</div>
+            ) : starredWords.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p className="mb-2">Chưa có từ nào được đánh dấu</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {starredWords.map((word) => (
+                  <div
+                    key={word.id}
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-medium text-gray-900">{word.word}</h3>
+                      <button
+                        onClick={() => handleStarToggle(word.id)}
+                        className="text-yellow-500 hover:text-yellow-600 transition-colors"
+                        title="Bỏ đánh dấu"
+                      >
+                        ⭐
+                      </button>
+                    </div>
+                    <p className="text-gray-700 text-sm mb-2">{word.meaning}</p>
+                    {word.example && (
+                      <p className="text-gray-500 text-xs italic">{word.example}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

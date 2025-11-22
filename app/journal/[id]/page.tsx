@@ -13,24 +13,20 @@ import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
 import { formatDateInput } from '@/utils/date-utils';
-import type { Journal } from '@/types/journal';
 
-export default function JournalViewPage() {
+export default function JournalEditPage() {
   const router = useRouter();
   const params = useParams();
   const { user, loading: authLoading } = useAuth();
   const journalId = params?.id as string;
   const editorRef = useRef<LiveMarkdownEditorRef>(null);
 
-  const [journal, setJournal] = useState<Journal | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [journalDate, setJournalDate] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [interimTranscript, setInterimTranscript] = useState('');
 
   const autoSave = async () => {
     if (!journalId || !title || !content) return;
@@ -47,7 +43,7 @@ export default function JournalViewPage() {
     }
   };
 
-  useJournalAutosave({
+  const { clearDraft } = useJournalAutosave({
     title,
     content,
     journalDate,
@@ -57,34 +53,28 @@ export default function JournalViewPage() {
     draftKey: `journal_edit_${journalId}`
   });
 
-  // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth');
     }
   }, [user, authLoading, router]);
 
-  // Load journal data
   useEffect(() => {
     const fetchJournal = async () => {
       if (!journalId || !user) return;
 
       try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Get all journals and find the specific one
+        setIsLoading(false);
         const journals = await journalService.getJournals(user.id);
         const journalData = journals.find(j => j.id === journalId);
         
         if (!journalData) {
-          throw new Error('Journal not found');
+          setError('Journal not found');
+          return;
         }
         
-        // Load tags for this journal
         const journalTags = await journalService.getJournalEntryTags(journalId);
         
-        setJournal(journalData);
         setTitle(journalData.title || '');
         setContent(journalData.content || '');
         setJournalDate(journalData.journal_date || formatDateInput(new Date()));
@@ -101,36 +91,36 @@ export default function JournalViewPage() {
   }, [journalId, user]);
 
   const handleSave = async () => {
-    if (!journalId) return;
+    if (!journalId || !user) return;
 
     setError(null);
-    setIsSaving(true);
+    setIsLoading(true);
 
     try {
-      // Update journal content
       await journalService.updateJournal(journalId, {
         title,
         content,
         journal_date: journalDate,
       });
       
-      // Save tags to journal_tag table
-      await journalService.saveJournalTags(journalId, tags);
+      if (tags.length > 0) {
+        await journalService.saveJournalTags(journalId, tags);
+      }
       
-      // Redirect back to journal list like in journal/new
+      clearDraft();
       router.push('/journal');
     } catch (error) {
       console.error('Error updating journal:', error);
       setError('Không thể lưu nhật ký');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
   const handleGetFeedback = async () => {
     if (!content.trim()) return setError('Vui lòng viết nội dung trước');
 
-    setIsSaving(true);
+    setIsLoading(true);
     setError(null);
 
     try {
@@ -145,21 +135,14 @@ export default function JournalViewPage() {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
       setError(`Lỗi: ${errorMessage}`);
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
-  };
-
-  const handleDateChange = (newDate: string) => {
-    setJournalDate(newDate);
-  };
-
-  const handleTagsChange = (newTags: string[]) => {
-    setTags(newTags);
   };
 
   const handleDelete = async () => {
     try {
       await journalService.deleteJournal(journalId);
+      clearDraft();
       router.push('/journal');
     } catch (error) {
       setError('Không thể xóa nhật ký');
@@ -167,35 +150,19 @@ export default function JournalViewPage() {
   };
 
   const handleVoiceTranscript = (text: string, isFinal: boolean) => {
-    if (isFinal) {
-      // Insert text at cursor position
-      if (editorRef.current) {
-        editorRef.current.insertTextAtCursor(text);
-      } else {
-        // Fallback: append to end
-        setContent(prev => {
-          const trimmed = prev.trim();
-          return trimmed ? `${trimmed} ${text}` : text;
-        });
-      }
-      setInterimTranscript('');
-    } else {
-      // Just store interim for display
-      setInterimTranscript(text);
+    if (isFinal && editorRef.current) {
+      editorRef.current.insertTextAtCursor(text);
     }
   };
 
-  // Show error state
-  if (error && !journal) {
+  if (error && !content) {
     return (
       <div className="flex flex-col items-center justify-center bg-white px-6 py-20">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Không thể tải nhật ký</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <Link href="/journal">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              Quay lại danh sách
-            </Button>
+            <Button>Quay lại danh sách</Button>
           </Link>
         </div>
       </div>
@@ -205,7 +172,6 @@ export default function JournalViewPage() {
   return (
     <div className="bg-white px-6 py-8">
       <main className="max-w-3xl w-full mx-auto flex flex-col">
-        {/* Header with navigation and actions */}
         <div className="flex items-center justify-between mb-6">
           <Link href="/journal" className="text-blue-600 text-sm hover:underline">
             ⬅ Back to Journal
@@ -215,21 +181,19 @@ export default function JournalViewPage() {
               journalId={journalId}
               currentDate={journalDate}
               currentTags={tags}
-              onDateChange={handleDateChange}
-              onTagsChange={handleTagsChange}
+              onDateChange={setJournalDate}
+              onTagsChange={setTags}
               onDelete={handleDelete}
             />
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-6 py-2"
-            >
-              {isSaving ? 'Saving...' : 'Save'}
+            <Button onClick={handleSave} variant="outline">
+              Lưu
+            </Button>
+            <Button onClick={handleGetFeedback} disabled={!content || !title}>
+              Nhận phản hồi
             </Button>
           </div>
         </div>
 
-        {/* Title input */}
         <div className="mb-6">
           <input
             type="text"
@@ -240,26 +204,6 @@ export default function JournalViewPage() {
           />
         </div>
 
-        {/* Date and Tags display */}
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <span>📅</span>
-            <span>{new Date(journalDate).toLocaleDateString('vi-VN')}</span>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span>🏷️</span>
-              <div className="flex flex-wrap gap-1">
-                {tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         <LiveMarkdownEditor
           ref={editorRef}
           value={content}
@@ -268,21 +212,9 @@ export default function JournalViewPage() {
           minHeight={400}
         />
 
-        {error && (
-          <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
 
-        <div className="flex justify-center mt-8">
-          <Button
-            onClick={handleGetFeedback}
-            disabled={!content || !title || isSaving}
-          >
-            Nhận phản hồi
-          </Button>
-        </div>
-
-        {/* Show breathing loader during feedback processing */}
-        {isSaving && (
+        {isLoading && (
           <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
             <BreathingLoader 
               message="Getting personalized feedback..."

@@ -85,8 +85,14 @@ export default function JournalPage() {
 
   const handleJournalSelect = (journal: Journal) => {
     setSelectedJournal(journal);
-    // Navigate to the journal entry
     router.push(`/journal/${journal.id}`);
+  };
+
+  const handleJournalDelete = (journalId: string) => {
+    setJournals(prev => prev.filter(j => j.id !== journalId));
+    if (selectedJournal?.id === journalId) {
+      setSelectedJournal(null);
+    }
   };
 
   const handleDateSelect = (date: Date) => {
@@ -177,6 +183,7 @@ return (
                 journals={filteredJournals}
                 onSelect={handleJournalSelect}
                 selectedJournalId={selectedJournal?.id}
+                onDelete={handleJournalDelete}
               />
             </div>
           )}
