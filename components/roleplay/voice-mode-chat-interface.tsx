@@ -3,7 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -217,7 +223,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const isThinking = voiceState === 'thinking';
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <>
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-gradient-to-b from-gray-50 to-white rounded-lg shadow-sm overflow-hidden">
         
         {/* Header */}
@@ -228,21 +234,26 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               Voice Mode
             </span>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <Dialog>
+              <DialogTrigger asChild>
                 <button
                   aria-label="Show roleplay task"
                   className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                 >
                   <Lightbulb className="w-3 h-3" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-sm">
-                <p className="text-sm whitespace-pre-wrap">
-                  {scenario.task || 'No task available'}
-                </p>
-              </TooltipContent>
-            </Tooltip>
+              </DialogTrigger>
+              <DialogContent className="bg-white max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Roleplay Task</DialogTitle>
+                </DialogHeader>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {scenario.task || 'No task available'}
+                  </p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex items-center gap-2">
@@ -468,6 +479,6 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
           50% { transform: scale(1); }
         }
       `}</style>
-    </TooltipProvider>
+    </>
   );
 }

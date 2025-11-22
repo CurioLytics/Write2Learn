@@ -37,7 +37,7 @@ export function TemplateCard({
   return (
     <div 
       className={cn(
-        "flex flex-col h-64 w-full max-w-xs rounded-lg overflow-hidden shadow-sm border transition-all duration-200",
+        "flex flex-col h-52 sm:h-64 w-full rounded-lg overflow-hidden shadow-sm border transition-all duration-200",
         isSelected 
           ? "border-primary ring-2 ring-primary/20" 
           : "border-gray-200 hover:border-primary/60 hover:shadow-md",
@@ -50,24 +50,24 @@ export function TemplateCard({
       tabIndex={0}
     >
       {/* Card header with emoji and title */}
-      <div className="flex items-center p-4 border-b border-gray-100">
-        <span className="text-2xl mr-3" role="img" aria-hidden="true">
+      <div className="flex items-center p-2.5 sm:p-4 border-b border-gray-100 min-w-0">
+        <span className="text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0" role="img" aria-hidden="true">
           {getTemplateEmoji(template)}
         </span>
-        <h3 className="font-medium text-gray-800 line-clamp-1 text-lg">
+        <h3 className="font-medium text-gray-800 line-clamp-1 text-sm sm:text-lg overflow-hidden break-words min-w-0 flex-1">
           {template.name}
         </h3>
       </div>
       
       {/* Card body with description */}
-      <div className="flex-grow p-4 bg-white">
-        <p className="text-sm text-gray-600 line-clamp-4">
+      <div className="flex-grow p-2.5 sm:p-4 bg-white">
+        <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 sm:line-clamp-4">
           {getTemplateDescription(template)}
         </p>
       </div>
       
       {/* Card footer with tags */}
-      <div className="p-3 bg-gray-50/50">
+      <div className="p-2 sm:p-3 bg-gray-50/50">
         <div className="flex flex-wrap gap-1">
           {getRelevantTags(template).map((tag) => (
             <span 

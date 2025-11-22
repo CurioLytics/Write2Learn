@@ -3,7 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -198,8 +204,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
           <div className="flex items-center gap-2">
             <h2 className="font-medium text-gray-800">{scenario.name}</h2>
 
-            <Popover>
-              <PopoverTrigger asChild>
+            <Dialog>
+              <DialogTrigger asChild>
                 <button
                   aria-label="Show roleplay task"
                   className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
@@ -216,13 +222,18 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
                     />
                   </svg>
                 </button>
-              </PopoverTrigger>
-              <PopoverContent side="right" align="start" className="max-w-sm">
-                <p className="text-sm whitespace-pre-wrap">
-                  {scenario.task || 'No task available'}
-                </p>
-              </PopoverContent>
-            </Popover>
+              </DialogTrigger>
+              <DialogContent className="bg-white max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Roleplay Task</DialogTitle>
+                </DialogHeader>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {scenario.task || 'No task available'}
+                  </p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex items-center gap-2">
