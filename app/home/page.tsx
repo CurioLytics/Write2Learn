@@ -324,15 +324,18 @@ export default function DashboardPage() {
 
             {/* SECTION 2 – HỘI THOẠI */}
             <section ref={roleplaySectionRef} id="roleplay" className="h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-green-50/40 py-8">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
+                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8 w-full">
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
                             <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Hôm nay, bạn muốn đóng vai ai?</h2>
+                            <Link href="/roleplay" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                Xem thêm
+                            </Link>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative -mx-4 lg:mx-0">
                             <div 
-                                className="overflow-x-auto scrollbar-hide scroll-smooth"
+                                className="overflow-x-auto scrollbar-hide scroll-smooth px-4 lg:px-0"
                                 onMouseDown={(e) => {
                                     const slider = e.currentTarget;
                                     let isDown = true;
@@ -384,15 +387,6 @@ export default function DashboardPage() {
                                     )}
                                 </div>
                             </div>
-                            
-                            {/* Scroll indicators */}
-                            {scenarios.length > 2 && (
-                                <div className="flex justify-center mt-3 space-x-1">
-                                    {scenarios.map((_, index) => (
-                                        <div key={index} className="w-2 h-2 rounded-full bg-gray-300" />
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     </div>
 
