@@ -59,7 +59,7 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
@@ -94,7 +94,7 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
           <ul className="space-y-2">
             {filteredSessions.map((session) => (
               <li key={session.session_id}>
-                <Link href={`/roleplay/session/${session.session_id}`} className="text-blue-600 hover:underline">
+                <Link href={`/roleplay/session/${session.session_id}`} className="text-[var(--primary)] hover:underline">
                   {session.scenario_name}
                 </Link>
               </li>

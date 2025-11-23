@@ -131,7 +131,7 @@ function getPercentageColorClass(percentage: number): string {
   if (percentage >= 80) {
     return 'text-emerald-500'; // Green for high mastery
   } else if (percentage >= 50) {
-    return 'text-blue-500';    // Blue for medium mastery
+    return 'text-[var(--accent-blue)]';    // Blue for medium mastery
   } else if (percentage >= 20) {
     return 'text-amber-500';   // Amber for low mastery
   } else {

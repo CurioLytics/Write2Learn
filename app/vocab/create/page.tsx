@@ -211,7 +211,7 @@ export default function CreateVocabSetPage() {
                           value={word.word}
                           onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
                           rows={2}
-                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none bg-white"
                           placeholder="Enter term..."
                         />
                       </div>
@@ -224,7 +224,7 @@ export default function CreateVocabSetPage() {
                           value={word.meaning}
                           onChange={(e) => updateVocabularyWord(index, 'meaning', e.target.value)}
                           rows={2}
-                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none bg-white"
                           placeholder="Enter meaning..."
                         />
                       </div>

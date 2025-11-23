@@ -45,7 +45,7 @@ export function RoleplayCard({ id, title, description, imageUrl }: RoleplayCardP
       <div className="p-2 sm:p-3">
         <h3 className="font-medium text-gray-800 text-xs sm:text-sm truncate mb-1">{title}</h3>
         <p className="text-xs text-gray-500 line-clamp-2 mb-2">{description}</p>
-        <div className="flex items-center text-blue-600 text-xs">
+        <div className="flex items-center text-[var(--primary)] text-xs">
           <span>Bắt đầu</span>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

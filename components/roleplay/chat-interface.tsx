@@ -268,7 +268,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
               variant="outline"
               size="sm"
             >
-              {finishing ? 'Finishing...' : 'Done'}
+              {finishing ? 'Finishing...' : 'Finish'}
             </Button>
           </div>
         </div>
@@ -287,7 +287,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
 
           {isLoading && (
             <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
-              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-medium">
+              <div className="w-6 h-6 rounded-full bg-[var(--primary-blue-lighter)] flex items-center justify-center text-[var(--primary)] text-xs font-medium">
                 {scenario.ai_role[0].toUpperCase()}
               </div>
               <div className={styles.typingIndicator}>

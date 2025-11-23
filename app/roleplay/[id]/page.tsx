@@ -68,7 +68,6 @@ export default function ScenarioDetailPage() {
           <p className="text-gray-600 mb-6">{error || 'Scenario not found'}</p>
           <Button 
             onClick={handleBack}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             Back to Scenarios
           </Button>

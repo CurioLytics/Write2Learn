@@ -340,7 +340,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   onChange={(e) => setBackupInput(e.target.value)}
                   placeholder="Type your message..."
                   disabled={isThinking}
-                  className="flex-1 px-4 py-2 text-sm border rounded-full focus:ring-2 focus:ring-purple-300 outline-none bg-white"
+                  className="flex-1 px-4 py-2 text-sm border rounded-full focus:ring-2 focus:ring-[var(--primary-purple-lighter)] outline-none bg-white"
                   autoFocus
                 />
 
@@ -349,7 +349,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   type="submit"
                   disabled={!backupInput.trim() || isThinking}
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 rounded-full h-9 w-9 p-0 flex-shrink-0"
+                  className="bg-[var(--primary-purple)] hover:bg-[var(--primary-purple-hover)] rounded-full h-9 w-9 p-0 flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
@@ -364,27 +364,27 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                 <p className="text-sm text-gray-600 animate-pulse">Đang nghĩ...</p>
               )}
               {isBotSpeaking && (
-                <p className="text-sm text-blue-600 font-medium">AI đang nói...</p>
+                <p className="text-sm text-[var(--primary)] font-medium">AI đang nói...</p>
               )}
               {voiceState === 'listening' && (
-                <p className="text-sm text-purple-600 font-medium animate-pulse">Lắng nghe...</p>
+                <p className="text-sm text-[var(--primary-purple)] font-medium animate-pulse">Lắng nghe...</p>
               )}
               {voiceState === 'user-speaking' && (
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <span className="w-1 h-4 bg-purple-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
-                    <span className="w-1 h-4 bg-purple-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-1 h-4 bg-purple-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-1 h-4 bg-purple-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
+                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
+                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
+                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
                   </div>
-                  <p className="text-sm text-purple-600 font-medium">Bạn đang nói...</p>
+                  <p className="text-sm text-[var(--primary-purple)] font-medium">Bạn đang nói...</p>
                 </div>
               )}
             </div>
 
             {/* Interim Text Display - Directly Above Mic */}
             {interimText && (
-              <div className="max-w-md px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm text-gray-700 mb-2">
+              <div className="max-w-md px-4 py-2 bg-[var(--primary-purple-light)] border border-[var(--primary-purple-lighter)] rounded-lg text-sm text-gray-700 mb-2">
                 {interimText}
               </div>
             )}
@@ -400,7 +400,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                 ${isMicActive 
                   ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-300 animate-[micPulse_1.5s_ease-in-out_infinite]' 
                   : isBotSpeaking
-                  ? 'bg-blue-500 hover:bg-blue-600 animate-pulse'
+                  ? 'bg-[var(--primary)] hover:opacity-90 animate-pulse'
                   : 'bg-gray-900 hover:bg-gray-800 hover:scale-105 shadow-lg'
                 }
               `}
@@ -437,7 +437,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   </Button>
                   <Button
                     onClick={continueAfterTimeout}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    className="flex-1 bg-[var(--primary-purple)] hover:bg-[var(--primary-purple-hover)]"
                   >
                     Tiếp tục
                   </Button>

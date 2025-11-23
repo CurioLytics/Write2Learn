@@ -9,7 +9,9 @@ export default function ReportLayout({
 }) {
   return (
     <AppLayout>
-      {children}
+      <div className="english-theme">
+        {children}
+      </div>
     </AppLayout>
   );
 }

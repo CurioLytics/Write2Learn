@@ -34,7 +34,7 @@ export function ScenarioFilter({ onFilterChange, currentTopic }: ScenarioFilterP
           className={`
             px-3 py-1.5 text-sm rounded-full transition-colors
             ${selectedTopic === null
-              ? 'bg-blue-100 text-blue-800 font-medium'
+              ? 'bg-[var(--primary-blue-lighter)] text-[var(--primary)] font-medium'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }
           `}
@@ -59,7 +59,7 @@ export function ScenarioFilter({ onFilterChange, currentTopic }: ScenarioFilterP
               className={`
                 px-3 py-1.5 text-sm rounded-full transition-colors
                 ${selectedTopic === topic
-                  ? 'bg-blue-100 text-blue-800 font-medium'
+                  ? 'bg-[var(--primary-blue-lighter)] text-[var(--primary)] font-medium'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
               `}

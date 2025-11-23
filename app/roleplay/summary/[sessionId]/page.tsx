@@ -142,10 +142,10 @@ export default function RoleplaySummaryPage() {
       <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center w-full">
           <div className="mb-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
             <p className="text-lg">
               <span className="text-gray-900">Checking your </span>
-              <span className="text-blue-600 font-medium">{loadingSteps[loadingStep]}</span>
+              <span className="text-[var(--primary)] font-medium">{loadingSteps[loadingStep]}</span>
             </p>
           </div>
         </div>

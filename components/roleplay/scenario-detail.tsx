@@ -45,7 +45,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
         <div className="mb-6">
           <button 
             onClick={handleBackClick} 
-            className="text-blue-600 hover:text-blue-800 flex items-center mb-4"
+            className="text-[var(--primary)] hover:opacity-80 flex items-center mb-4"
           >
             ← 
           </button>
@@ -60,7 +60,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
         
         <div className="mb-6">
           <h2 className="text-lg font-medium text-gray-700 mb-2">Nhiệm vụ</h2>
-          <div className="text-gray-600 bg-blue-50 p-4 rounded-md">
+          <div className="text-gray-600 bg-[var(--primary-blue-light)] p-4 rounded-md">
             {scenario.task}
           </div>
         </div>
@@ -90,10 +90,10 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
             {/* Text Mode */}
             <button
               onClick={() => startWithMode('text')}
-              className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+              className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-gray-200 hover:border-[var(--primary)] hover:bg-[var(--primary-blue-light)] transition-all group"
             >
-              <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                <MessageSquare className="w-8 h-8 text-gray-600 group-hover:text-blue-600" />
+              <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-[var(--primary-blue-lighter)] flex items-center justify-center transition-colors">
+                <MessageSquare className="w-8 h-8 text-gray-600 group-hover:text-[var(--primary)]" />
               </div>
               <div className="text-center">
                 <h3 className="font-medium text-gray-800">Văn bản</h3>
@@ -104,15 +104,15 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
             {/* Voice Mode */}
             <button
               onClick={() => startWithMode('voice')}
-              className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all group relative"
+              className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-gray-200 hover:border-[var(--primary-purple)] hover:bg-[var(--primary-purple-light)] transition-all group relative"
             >
               {/* Beta Badge */}
-              <span className="absolute top-2 right-2 px-2 py-0.5 bg-purple-600 text-white text-[10px] font-medium rounded-full">
+              <span className="absolute top-2 right-2 px-2 py-0.5 bg-[var(--primary-purple)] text-white text-[10px] font-medium rounded-full">
                 BETA
               </span>
               
-              <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
-                <Mic className="w-8 h-8 text-gray-600 group-hover:text-purple-600" />
+              <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-[var(--primary-purple-lighter)] flex items-center justify-center transition-colors">
+                <Mic className="w-8 h-8 text-gray-600 group-hover:text-[var(--primary-purple)]" />
               </div>
               <div className="text-center">
                 <h3 className="font-medium text-gray-800">Giọng nói</h3>

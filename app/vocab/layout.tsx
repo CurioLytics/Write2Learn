@@ -16,20 +16,7 @@ export default function VocabLayout({
   
   if (!shouldHaveSidebar) {
     return (
-      <div className="min-h-screen bg-white vocab-section">
-        <style jsx global>{`
-          .vocab-section {
-            --primary: var(--primary-blue);
-            --primary-foreground: oklch(1 0 0);
-            --accent: var(--primary-blue-light);
-            --ring: var(--primary-blue);
-          }
-          .vocab-section button[data-slot="button"]:not([class*="variant"]),
-          .vocab-section button[data-slot="button"][class*="default"] {
-            background-color: var(--primary-blue) !important;
-            color: white !important;
-          }
-        `}</style>
+      <div className="min-h-screen bg-white english-theme">
         {children}
       </div>
     );
@@ -37,20 +24,7 @@ export default function VocabLayout({
 
   return (
     <AppLayout>
-      <div className="vocab-section">
-        <style jsx global>{`
-          .vocab-section {
-            --primary: var(--primary-blue);
-            --primary-foreground: oklch(1 0 0);
-            --accent: var(--primary-blue-light);
-            --ring: var(--primary-blue);
-          }
-          .vocab-section button[data-slot="button"]:not([class*="variant"]),
-          .vocab-section button[data-slot="button"][class*="default"] {
-            background-color: var(--primary-blue) !important;
-            color: white !important;
-          }
-        `}</style>
+      <div className="english-theme">
         {children}
       </div>
     </AppLayout>

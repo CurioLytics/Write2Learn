@@ -16,13 +16,7 @@ export default function JournalLayout({
   
   if (!shouldHaveSidebar) {
     return (
-      <div className="min-h-screen bg-white journal-section">
-        <style jsx global>{`
-          .journal-section {
-            --primary: oklch(0.15 0 0);
-            --primary-foreground: oklch(1 0 0);
-          }
-        `}</style>
+      <div className="min-h-screen bg-white journal-theme">
         {children}
       </div>
     );
@@ -30,13 +24,7 @@ export default function JournalLayout({
 
   return (
     <AppLayout>
-      <div className="journal-section">
-        <style jsx global>{`
-          .journal-section {
-            --primary: oklch(0.15 0 0);
-            --primary-foreground: oklch(1 0 0);
-          }
-        `}</style>
+      <div className="journal-theme">
         {children}
       </div>
     </AppLayout>

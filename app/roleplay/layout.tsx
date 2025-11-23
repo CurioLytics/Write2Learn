@@ -16,7 +16,7 @@ export default function RoleplayLayout({
   
   if (!shouldHaveSidebar) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white english-theme">
         {children}
       </div>
     );
@@ -24,7 +24,9 @@ export default function RoleplayLayout({
 
   return (
     <AppLayout>
-      {children}
+      <div className="english-theme">
+        {children}
+      </div>
     </AppLayout>
   );
 }

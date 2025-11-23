@@ -23,12 +23,19 @@
   --cta: oklch(0.1 0 0);
   --cta-gold: #fccc41;
 
-  /* === Blue Theme (for vocab/roleplay/report sections) === */
+  /* === Blue Theme (for English Practice sections: vocab/roleplay/report) === */
   --primary-blue: oklch(0.55 0.22 250); /* blue-600 */
   --primary-blue-hover: oklch(0.48 0.24 255); /* blue-700 */
   --primary-blue-light: oklch(0.94 0.05 250); /* blue-50 */
   --primary-blue-lighter: oklch(0.9 0.08 250); /* blue-100 */
   --accent-blue: oklch(0.62 0.25 255); /* blue-500 */
+
+  /* === Purple Theme (for Premium/Beta features) === */
+  --primary-purple: oklch(0.5 0.24 300); /* purple-600 */
+  --primary-purple-hover: oklch(0.43 0.25 300); /* purple-700 */
+  --primary-purple-light: oklch(0.95 0.05 300); /* purple-50 */
+  --primary-purple-lighter: oklch(0.91 0.08 300); /* purple-100 */
+  --accent-purple: oklch(0.57 0.25 305); /* purple-500 */
 
   /* === Grays === */
   --secondary: oklch(0.92 0 0);
@@ -284,4 +291,92 @@ html {
 
 .animate-bounce-subtle {
   animation: bounce-subtle 1.5s ease-in-out infinite;
+}
+
+/* === Theme Classes === */
+
+/* Journal Theme: Minimal black & white with blue accents */
+.journal-theme {
+  --primary: oklch(0.15 0 0); /* black */
+  --primary-foreground: oklch(1 0 0); /* white */
+  --accent: var(--primary-blue);
+  --accent-foreground: oklch(1 0 0);
+  --ring: var(--primary-blue);
+}
+
+.journal-theme button[data-slot="button"]:not([class*="variant"]),
+.journal-theme button[data-slot="button"][class*="default"] {
+  background-color: oklch(0.15 0 0) !important;
+  color: white !important;
+}
+
+.journal-theme button[data-slot="button"]:not([class*="variant"]):hover,
+.journal-theme button[data-slot="button"][class*="default"]:hover {
+  opacity: 0.9;
+}
+
+/* English Practice Theme: Lively blue with black accents */
+.english-theme {
+  --primary: var(--primary-blue);
+  --primary-foreground: oklch(1 0 0); /* white */
+  --accent: oklch(0.15 0 0); /* black accent */
+  --accent-foreground: oklch(1 0 0);
+  --ring: var(--primary-blue);
+}
+
+/* Force default buttons to use blue background and white text */
+.english-theme .bg-primary {
+  background-color: var(--primary-blue) !important;
+}
+
+.english-theme .text-primary-foreground {
+  color: oklch(1 0 0) !important;
+}
+
+.english-theme button[data-slot="button"]:not([class*="outline"]):not([class*="secondary"]):not([class*="ghost"]):not([class*="link"]):not([class*="destructive"]):hover {
+  background-color: var(--primary-blue-hover) !important;
+}
+
+.english-theme button[data-slot="button"][class*="outline"],
+.english-theme button[data-slot="button"][class*="secondary"] {
+  border-color: var(--primary-blue) !important;
+  color: var(--primary-blue) !important;
+  background-color: transparent !important;
+}
+
+.english-theme button[data-slot="button"][class*="outline"]:hover,
+.english-theme button[data-slot="button"][class*="secondary"]:hover {
+  background-color: var(--primary-blue-light) !important;
+}
+
+/* Premium Theme: Purple accents for beta/premium features */
+.premium-theme {
+  --primary: var(--primary-purple);
+  --primary-foreground: oklch(1 0 0); /* white */
+  --accent: var(--primary-purple-light);
+  --accent-foreground: var(--primary-purple);
+  --ring: var(--primary-purple);
+}
+
+.premium-theme button[data-slot="button"]:not([class*="variant"]),
+.premium-theme button[data-slot="button"][class*="default"] {
+  background-color: var(--primary-purple) !important;
+  color: white !important;
+}
+
+.premium-theme button[data-slot="button"]:not([class*="variant"]):hover,
+.premium-theme button[data-slot="button"][class*="default"]:hover {
+  background-color: var(--primary-purple-hover) !important;
+}
+
+.premium-theme button[data-slot="button"][class*="outline"],
+.premium-theme button[data-slot="button"][class*="secondary"] {
+  border-color: var(--primary-purple) !important;
+  color: var(--primary-purple) !important;
+  background-color: transparent !important;
+}
+
+.premium-theme button[data-slot="button"][class*="outline"]:hover,
+.premium-theme button[data-slot="button"][class*="secondary"]:hover {
+  background-color: var(--primary-purple-light) !important;
 }
