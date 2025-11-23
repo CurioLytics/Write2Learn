@@ -210,7 +210,8 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
       const sessionId = await roleplaySessionService.completeSession(
         user.id,
         scenario,
-        messages
+        messages,
+        userPreferences
       );
 
       router.push(`/roleplay/summary/${sessionId}`);

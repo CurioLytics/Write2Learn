@@ -9,7 +9,12 @@ class RoleplaySessionService {
   /**
    * Complete session workflow: Save + Generate feedback
    */
-  async completeSession(userId: string, scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
+  async completeSession(
+    userId: string, 
+    scenario: RoleplayScenario, 
+    messages: RoleplayMessage[],
+    userPreferences: { name: string; english_level: string; style: string }
+  ): Promise<string> {
     const supabase = createClientComponentClient();
     
     // Save session
@@ -29,7 +34,7 @@ class RoleplaySessionService {
     
     // Generate feedback
     try {
-      const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages);
+      const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages, userPreferences);
       
       if (feedback && feedback.clarity) {
         await this.saveFeedback(sessionId, feedback);
@@ -44,7 +49,10 @@ class RoleplaySessionService {
   /**
    * Retry feedback generation for a session
    */
-  async retryFeedback(sessionId: string): Promise<RoleplayFeedback> {
+  async retryFeedback(
+    sessionId: string,
+    userPreferences: { name: string; english_level: string; style: string }
+  ): Promise<RoleplayFeedback> {
     const supabase = createClientComponentClient();
     
     // Get session data
@@ -78,7 +86,8 @@ class RoleplaySessionService {
         topic: '',
         image: null
       },
-      messages
+      messages,
+      userPreferences
     );
     
     // Save feedback

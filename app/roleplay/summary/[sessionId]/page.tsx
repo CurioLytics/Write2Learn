@@ -17,7 +17,7 @@ import { RefreshCw } from 'lucide-react';
 export default function RoleplaySummaryPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, userPreferences: cachedPreferences } = useAuth();
   const [sessionData, setSessionData] = useState<RoleplaySessionData | null>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +25,13 @@ export default function RoleplaySummaryPage() {
   const [retrying, setRetrying] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Use cached preferences with defaults
+  const userPreferences = {
+    name: cachedPreferences?.name || 'User',
+    english_level: cachedPreferences?.english_level || 'intermediate',
+    style: cachedPreferences?.style || 'conversational',
+  };
 
   const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'improved version'];
 
@@ -99,7 +106,10 @@ export default function RoleplaySummaryPage() {
     }, 2000);
     
     try {
-      const feedback = await roleplaySessionService.retryFeedback(params.sessionId as string);
+      const feedback = await roleplaySessionService.retryFeedback(
+        params.sessionId as string,
+        userPreferences
+      );
       
       // Clear interval IMMEDIATELY when response arrives
       clearInterval(interval);

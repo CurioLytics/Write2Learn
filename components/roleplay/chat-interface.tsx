@@ -185,7 +185,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
       const sessionId = await roleplaySessionService.completeSession(
         user.id,
         scenario,
-        messages
+        messages,
+        userPreferences
       );
 
       router.push(`/roleplay/summary/${sessionId}`);
