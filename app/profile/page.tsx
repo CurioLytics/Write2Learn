@@ -13,10 +13,7 @@ import { supabase } from '@/services/supabase/client';
 interface ProfileData {
   name: string;
   english_level: string;
-  journaling_reasons: string[];
-  journaling_challenges: string[];
-  english_improvement_reasons: string[];
-  english_challenges: string[];
+  style: string;
   daily_review_goal: number;
 }
 
@@ -29,39 +26,10 @@ const ENGLISH_LEVELS = [
   'advanced'
 ];
 
-const JOURNALING_REASONS = [
-  'mental_clarity',
-  'express_thoughts',
-  'build_habit',
-  'explore_self',
-  'organize_thoughts',
-  'process_emotions',
-  'reflect_insight'
-];
-
-const JOURNALING_CHALLENGES = [
-  'staying_consistent',
-  'coming_up_ideas',
-  'organizing_thoughts',
-  'feeling_stuck',
-  'emotions_to_words'
-];
-
-const ENGLISH_IMPROVEMENT_REASONS = [
-  'travel',
-  'conversation',
-  'study_exams',
-  'professional',
-  'express_better',
-  'long_term_fluency'
-];
-
-const ENGLISH_CHALLENGES = [
-  'vocabulary',
-  'speaking_fluency',
-  'grammar_accuracy',
-  'forming_ideas',
-  'native_content'
+const ENGLISH_TONES = [
+  { value: 'conversational', label: 'Conversational English', description: 'For daily life — casual and friendly' },
+  { value: 'professional', label: 'Professional English', description: 'For workplace — formal and polite' },
+  { value: 'academic', label: 'Academic English', description: 'For academic writing — clear and precise' }
 ];
 
 // Display labels for better UI
@@ -74,60 +42,19 @@ const ENGLISH_LEVEL_LABELS: Record<string, string> = {
   'advanced': 'Advanced'
 };
 
-const JOURNALING_REASON_LABELS: Record<string, string> = {
-  'mental_clarity': 'Mental clarity',
-  'express_thoughts': 'Express thoughts better',
-  'build_habit': 'Build a writing habit',
-  'explore_self': 'Explore myself through journaling',
-  'organize_thoughts': 'Organize my thoughts',
-  'process_emotions': 'Process emotions',
-  'reflect_insight': 'Reflect and gain insight'
-};
-
-const JOURNALING_CHALLENGE_LABELS: Record<string, string> = {
-  'staying_consistent': 'Staying consistent',
-  'coming_up_ideas': 'Coming up with ideas',
-  'organizing_thoughts': 'Organizing my thoughts',
-  'feeling_stuck': 'Feeling stuck',
-  'emotions_to_words': 'Turning emotions into words'
-};
-
-const ENGLISH_IMPROVEMENT_LABELS: Record<string, string> = {
-  'travel': 'Travel more comfortably',
-  'conversation': 'Everyday conversation',
-  'study_exams': 'Study or exams',
-  'professional': 'Professional communication',
-  'express_better': 'Express myself better',
-  'long_term_fluency': 'Build long-term fluency'
-};
-
-const ENGLISH_CHALLENGE_LABELS: Record<string, string> = {
-  'vocabulary': 'Vocabulary',
-  'speaking_fluency': 'Speaking fluency',
-  'grammar_accuracy': 'Grammar accuracy',
-  'forming_ideas': 'Forming ideas in English',
-  'native_content': 'Understanding native-level content'
-};
-
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData>({
     name: '',
     english_level: '',
-    journaling_reasons: [],
-    journaling_challenges: [],
-    english_improvement_reasons: [],
-    english_challenges: [],
+    style: '',
     daily_review_goal: 10
   });
   const [originalData, setOriginalData] = useState<ProfileData>({
     name: '',
     english_level: '',
-    journaling_reasons: [],
-    journaling_challenges: [],
-    english_improvement_reasons: [],
-    english_challenges: [],
+    style: '',
     daily_review_goal: 10
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -146,7 +73,7 @@ export default function ProfilePage() {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, english_level, journaling_reasons, journaling_challenges, english_improvement_reasons, english_challenges, daily_review_goal')
+          .select('name, english_level, style, daily_review_goal')
           .eq('id', user.id)
           .single();
 
@@ -158,10 +85,7 @@ export default function ProfilePage() {
         const profileData = {
           name: (profile as any)?.name || '',
           english_level: (profile as any)?.english_level || '',
-          journaling_reasons: (profile as any)?.journaling_reasons || [],
-          journaling_challenges: (profile as any)?.journaling_challenges || [],
-          english_improvement_reasons: (profile as any)?.english_improvement_reasons || [],
-          english_challenges: (profile as any)?.english_challenges || [],
+          style: (profile as any)?.style || '',
           daily_review_goal: (profile as any)?.daily_review_goal || 10
         };
         
@@ -186,10 +110,7 @@ export default function ProfilePage() {
           id: user.id,
           name: profileData.name,
           english_level: profileData.english_level,
-          journaling_reasons: profileData.journaling_reasons,
-          journaling_challenges: profileData.journaling_challenges,
-          english_improvement_reasons: profileData.english_improvement_reasons,
-          english_challenges: profileData.english_challenges,
+          style: profileData.style,
           daily_review_goal: profileData.daily_review_goal,
           updated_at: new Date().toISOString()
         } as any);
@@ -206,22 +127,6 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const addToArray = (field: keyof ProfileData, value: string) => {
-    if (value && !((profileData[field] as string[]).includes(value))) {
-      setProfileData(prev => ({
-        ...prev,
-        [field]: [...(prev[field] as string[]), value]
-      }));
-    }
-  };
-
-  const removeFromArray = (field: keyof ProfileData, valueToRemove: string) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: (prev[field] as string[]).filter(item => item !== valueToRemove)
-    }));
   };
 
   const hasChanges = JSON.stringify(profileData) !== JSON.stringify(originalData);
@@ -339,187 +244,29 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Journaling Reasons */}
+          {/* Tone and Style Preference */}
           <Card>
             <CardHeader>
-              <CardTitle>Why do you want to journal?</CardTitle>
+              <CardTitle>Tone and Style Preference</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {profileData.journaling_reasons.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.journaling_reasons.map((reason) => (
-                    <div key={reason} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm">
-                      <span>{JOURNALING_REASON_LABELS[reason] || reason}</span>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeFromArray('journaling_reasons', reason)}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {isEditing && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {JOURNALING_REASONS.map((reason) => (
-                    <Button
-                      key={reason}
-                      variant="outline"
-                      className={`text-sm ${
-                        profileData.journaling_reasons.includes(reason) 
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                          : "hover:bg-gray-100"
-                      }`}
-                      disabled={profileData.journaling_reasons.includes(reason)}
-                      onClick={() => addToArray('journaling_reasons', reason)}
-                    >
-                      {JOURNALING_REASON_LABELS[reason]}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Journaling Challenges */}
-          <Card>
-            <CardHeader>
-              <CardTitle>What challenges do you face with journaling?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {profileData.journaling_challenges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.journaling_challenges.map((challenge) => (
-                    <div key={challenge} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm">
-                      <span>{JOURNALING_CHALLENGE_LABELS[challenge] || challenge}</span>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeFromArray('journaling_challenges', challenge)}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {isEditing && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {JOURNALING_CHALLENGES.map((challenge) => (
-                    <Button
-                      key={challenge}
-                      variant="outline"
-                      className={`text-sm ${
-                        profileData.journaling_challenges.includes(challenge) 
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                          : "hover:bg-gray-100"
-                      }`}
-                      disabled={profileData.journaling_challenges.includes(challenge)}
-                      onClick={() => addToArray('journaling_challenges', challenge)}
-                    >
-                      {JOURNALING_CHALLENGE_LABELS[challenge]}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* English Improvement Reasons */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Why do you want to improve your English?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {profileData.english_improvement_reasons.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.english_improvement_reasons.map((reason) => (
-                    <div key={reason} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm">
-                      <span>{ENGLISH_IMPROVEMENT_LABELS[reason] || reason}</span>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeFromArray('english_improvement_reasons', reason)}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {isEditing && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {ENGLISH_IMPROVEMENT_REASONS.map((reason) => (
-                    <Button
-                      key={reason}
-                      variant="outline"
-                      className={`text-sm ${
-                        profileData.english_improvement_reasons.includes(reason) 
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                          : "hover:bg-gray-100"
-                      }`}
-                      disabled={profileData.english_improvement_reasons.includes(reason)}
-                      onClick={() => addToArray('english_improvement_reasons', reason)}
-                    >
-                      {ENGLISH_IMPROVEMENT_LABELS[reason]}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* English Challenges */}
-          <Card>
-            <CardHeader>
-              <CardTitle>What are your biggest challenges with English?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {profileData.english_challenges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.english_challenges.map((challenge) => (
-                    <div key={challenge} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm">
-                      <span>{ENGLISH_CHALLENGE_LABELS[challenge] || challenge}</span>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeFromArray('english_challenges', challenge)}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {isEditing && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {ENGLISH_CHALLENGES.map((challenge) => (
-                    <Button
-                      key={challenge}
-                      variant="outline"
-                      className={`text-sm ${
-                        profileData.english_challenges.includes(challenge) 
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                          : "hover:bg-gray-100"
-                      }`}
-                      disabled={profileData.english_challenges.includes(challenge)}
-                      onClick={() => addToArray('english_challenges', challenge)}
-                    >
-                      {ENGLISH_CHALLENGE_LABELS[challenge]}
-                    </Button>
-                  ))}
-                </div>
-              )}
+            <CardContent>
+              <div className="space-y-3">
+                {ENGLISH_TONES.map((tone) => (
+                  <button
+                    key={tone.value}
+                    onClick={() => isEditing && setProfileData(prev => ({ ...prev, style: tone.value }))}
+                    disabled={!isEditing}
+                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                      profileData.style === tone.value
+                        ? 'border-gray-800 bg-gray-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    } ${!isEditing ? 'cursor-default' : 'cursor-pointer'}`}
+                  >
+                    <div className="font-medium text-gray-900">{tone.label}</div>
+                    <div className="text-sm text-gray-600 mt-1">{tone.description}</div>
+                  </button>
+                ))}
+              </div>
             </CardContent>
           </Card>
 

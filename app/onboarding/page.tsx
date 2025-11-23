@@ -28,6 +28,7 @@ export default function OnboardingPage() {
     english_improvement_reasons: [],
     english_challenges: [],
     english_level: '',
+    english_tone: '',
     daily_review_goal: 10,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -241,6 +242,7 @@ export default function OnboardingPage() {
                 <OptionButton
                   key={option.value.toString()}
                   label={option.label}
+                  description={option.description}
                   selected={isSelected(option.value)}
                   onClick={() => handleSelect(option.value)}
                 />

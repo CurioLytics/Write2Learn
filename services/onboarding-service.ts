@@ -9,11 +9,13 @@ export async function saveOnboardingData(userId: string, data: OnboardingData) {
   const { error: profileError } = await supabase
     .from('profiles')
     .update({
+      name: data.name,
       journaling_reasons: data.journaling_reasons,
       journaling_challenges: data.journaling_challenges,
       english_improvement_reasons: data.english_improvement_reasons,
       english_challenges: data.english_challenges,
       english_level: data.english_level,
+      style: data.english_tone,
       daily_review_goal: data.daily_review_goal,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),

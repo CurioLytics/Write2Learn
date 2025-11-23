@@ -2,11 +2,12 @@
 
 interface OptionButtonProps {
   label: string;
+  description?: string;
   selected: boolean;
   onClick: () => void;
 }
 
-export function OptionButton({ label, selected, onClick }: OptionButtonProps) {
+export function OptionButton({ label, description, selected, onClick }: OptionButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -20,7 +21,12 @@ export function OptionButton({ label, selected, onClick }: OptionButtonProps) {
         }
       `}
     >
-      {label}
+      <div className="font-medium">{label}</div>
+      {description && (
+        <div className={`text-sm mt-1 ${selected ? 'text-blue-100' : 'text-gray-600'}`}>
+          {description}
+        </div>
+      )}
     </button>
   );
 }

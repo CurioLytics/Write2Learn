@@ -372,6 +372,7 @@ export type Database = {
           journaling_reasons: string[] | null
           name: string | null
           onboarding_completed: boolean | null
+          style: string | null
           updated_at: string | null
         }
         Insert: {
@@ -384,6 +385,7 @@ export type Database = {
           journaling_reasons?: string[] | null
           name?: string | null
           onboarding_completed?: boolean | null
+          style?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -396,6 +398,7 @@ export type Database = {
           journaling_reasons?: string[] | null
           name?: string | null
           onboarding_completed?: boolean | null
+          style?: string | null
           updated_at?: string | null
         }
         Relationships: []

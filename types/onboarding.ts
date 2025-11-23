@@ -7,6 +7,7 @@ export interface OnboardingData {
   english_improvement_reasons: string[];
   english_challenges: string[];
   english_level: string;
+  english_tone: string;
   daily_review_goal: number;
 }
 
@@ -20,6 +21,7 @@ export type OnboardingStep =
   | 'english-reasons'
   | 'english-challenges'
   | 'english-level'
+  | 'english-tone'
   | 'daily-goal';
 
 export interface StepConfig {
@@ -27,7 +29,7 @@ export interface StepConfig {
   title: string | ((data: OnboardingData) => string);
   description?: string;
   type: 'welcome' | 'section-intro' | 'multi-select' | 'single-select' | 'text-input';
-  options?: { value: string | number; label: string }[];
+  options?: { value: string | number; label: string; description?: string }[];
   dataKey?: keyof OnboardingData;
   placeholder?: string;
 }
@@ -79,6 +81,25 @@ export const ENGLISH_LEVELS_NEW = [
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'upper-intermediate', label: 'Upper-intermediate' },
   { value: 'advanced', label: 'Advanced' },
+];
+
+// English tone and style options
+export const ENGLISH_TONES = [
+  { 
+    value: 'conversational', 
+    label: 'Conversational English',
+    description: 'English for daily life — casual and friendly tone, informal style'
+  },
+  { 
+    value: 'professional', 
+    label: 'Professional English',
+    description: 'English for workplace — formal and polite tone, professional style'
+  },
+  { 
+    value: 'academic', 
+    label: 'Academic English',
+    description: 'English for academic writing — clear and precise tone, structured style'
+  },
 ];
 
 // Daily review goals
@@ -156,6 +177,14 @@ export const ONBOARDING_STEPS: StepConfig[] = [
     type: 'single-select',
     options: ENGLISH_LEVELS_NEW,
     dataKey: 'english_level',
+  },
+  {
+    id: 'english-tone',
+    title: 'What tone do you want to focus on?',
+    description: 'Choose the style that matches your learning goal',
+    type: 'single-select',
+    options: ENGLISH_TONES,
+    dataKey: 'english_tone',
   },
   {
     id: 'daily-goal',
