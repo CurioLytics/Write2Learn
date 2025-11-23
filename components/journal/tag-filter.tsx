@@ -37,6 +37,7 @@ export function TagFilter({ onFilterChange, currentTag }: TagFilterProps) {
             onClick={() => onFilterChange(currentTag === tag ? null : tag)}
             className={`
               px-3 py-1.5 text-sm rounded-full transition-colors capitalize
+              border-2 border-[var(--accent-blue)]
               ${currentTag === tag
                 ? 'bg-blue-100 text-blue-800 font-medium'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

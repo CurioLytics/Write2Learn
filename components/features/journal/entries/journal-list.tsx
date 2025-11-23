@@ -66,10 +66,10 @@ export function JournalList({ journals, onSelect, selectedJournalId, onDelete }:
       {journals.map(journal => (
         <div
           key={journal.id}
-          className={`relative p-4 rounded-lg border transition-all duration-200 ${
+          className={`relative p-4 rounded-lg border-2 transition-all duration-200 ${
             selectedJournalId === journal.id
-              ? 'bg-blue-50 border-blue-300 shadow-sm'
-              : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50/30'
+              ? 'bg-blue-50 border-[var(--accent-blue)] shadow-sm'
+              : 'bg-white border-gray-200 hover:border-[var(--accent-blue)] hover:bg-blue-50/30'
           } ${deletingId === journal.id ? 'opacity-50 pointer-events-none' : ''}`}
         >
           <div 
