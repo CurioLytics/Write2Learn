@@ -6,12 +6,28 @@ export interface JournalFeedbackRequest {
   userId?: string;
 }
 
+export interface GrammarDetail {
+  grammar_topic_id: string;
+  tags: string[];
+  description: string;
+}
+
 export interface JournalFeedbackResponse {
   title: string;
   summary: string;
-  improvedVersion: string;
-  originalVersion: string;
-  vocabSuggestions: VocabSuggestion[];
+  fixed_typo: string;
+  enhanced_version: string;
+  grammar_details: GrammarDetail[];
+  output: {
+    clarity: string;
+    vocabulary: string;
+    ideas: string;
+  };
+  // Legacy support
+  improvedVersion?: string;
+  originalVersion?: string;
+  vocabSuggestions?: VocabSuggestion[];
+  fb_details?: any[];
 }
 
 export interface VocabSuggestion {

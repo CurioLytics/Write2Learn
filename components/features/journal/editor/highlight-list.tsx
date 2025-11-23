@@ -15,7 +15,7 @@ export const HighlightList: React.FC<HighlightListProps> = ({
     <div className="space-y-3">
       {!highlights || highlights.length === 0 ? (
         <div className="text-gray-500 text-center py-4">
-          No highlights saved yet. Highlight text in the content above to save.
+          Tô và chọn đoạn văn bản trong cuộc hội thoại để lưu lại những điểm quan trọng nhé
         </div>
       ) : (
         highlights.map((highlight, index) => (

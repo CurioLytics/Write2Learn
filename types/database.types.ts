@@ -46,6 +46,48 @@ export type Database = {
           },
         ]
       }
+      feedback_grammar_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          feedback_id: string
+          grammar_topic_id: string | null
+          id: string
+          tags: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          feedback_id: string
+          grammar_topic_id?: string | null
+          id?: string
+          tags?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          feedback_id?: string
+          grammar_topic_id?: string | null
+          id?: string
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_grammar_items_feedback_id_fkey"
+            columns: ["feedback_id"]
+            isOneToOne: false
+            referencedRelation: "feedbacks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_grammar_items_grammar_topic_id_fkey"
+            columns: ["grammar_topic_id"]
+            isOneToOne: false
+            referencedRelation: "grammar_topics"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
       feedback_logs: {
         Row: {
           details: string | null
@@ -76,6 +118,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "feedback_logs_grammar_id_fkey"
+            columns: ["grammar_id"]
+            isOneToOne: false
+            referencedRelation: "grammar_topics"
+            referencedColumns: ["topic_id"]
+          },
+          {
             foreignKeyName: "feedback_logs_vocab_id_fkey"
             columns: ["vocab_id"]
             isOneToOne: false
@@ -83,14 +132,51 @@ export type Database = {
             referencedColumns: ["topic_id"]
           },
           {
-            foreignKeyName: "fk_feedback_topic"
-            columns: ["grammar_id"]
-            isOneToOne: false
-            referencedRelation: "grammar_topics"
-            referencedColumns: ["topic_id"]
-          },
-          {
             foreignKeyName: "fk_user"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedbacks: {
+        Row: {
+          clarity_feedback: string | null
+          created_at: string | null
+          enhanced_version: string | null
+          id: string
+          ideas_feedback: string | null
+          profile_id: string
+          source_id: string
+          source_type: Database["public"]["Enums"]["feedback_source_type"]
+          vocabulary_feedback: string | null
+        }
+        Insert: {
+          clarity_feedback?: string | null
+          created_at?: string | null
+          enhanced_version?: string | null
+          id?: string
+          ideas_feedback?: string | null
+          profile_id: string
+          source_id: string
+          source_type: Database["public"]["Enums"]["feedback_source_type"]
+          vocabulary_feedback?: string | null
+        }
+        Update: {
+          clarity_feedback?: string | null
+          created_at?: string | null
+          enhanced_version?: string | null
+          id?: string
+          ideas_feedback?: string | null
+          profile_id?: string
+          source_id?: string
+          source_type?: Database["public"]["Enums"]["feedback_source_type"]
+          vocabulary_feedback?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedbacks_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -123,6 +209,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           name: string
+          source: string | null
         }
         Insert: {
           category: string
@@ -130,6 +217,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           name: string
+          source?: string | null
         }
         Update: {
           category?: string
@@ -137,6 +225,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           name?: string
+          source?: string | null
         }
         Relationships: [
           {
@@ -894,7 +983,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      feedback_source_type: "journal" | "roleplay"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1021,6 +1110,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      feedback_source_type: ["journal", "roleplay"],
+    },
   },
 } as const

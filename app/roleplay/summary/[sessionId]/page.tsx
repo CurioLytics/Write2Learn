@@ -313,7 +313,7 @@ export default function RoleplaySummaryPage() {
 
           {/* Highlights */}
           <div className="w-full mb-8">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Đoạn nổi bật đã lưu</h3>
+            <h3 className="text-base font-semibold text-gray-800 mb-3">Highlighted</h3>
             <HighlightList highlights={highlights} onRemove={removeHighlight} />
           </div>
           
@@ -325,7 +325,7 @@ export default function RoleplaySummaryPage() {
               Quay lại hội thoại
             </Button>
             <Button onClick={handleSave} disabled={processing}>
-              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' : 'Hoàn tất'}
+              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' :' Lưu'}
             </Button>
           </div>
         </div>

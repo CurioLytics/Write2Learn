@@ -74,23 +74,34 @@ export function ExploreFrameworks() {
     <div className="space-y-4">
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant={selectedCategory === 'all' ? "default" : "outline"}
-          size="sm"
+        <button
           onClick={() => setSelectedCategory('all')}
+          className={`
+            px-3 py-1.5 text-sm rounded-full transition-colors capitalize
+            border-2 border-[var(--accent-blue)]
+            ${selectedCategory === 'all'
+              ? 'bg-blue-100 text-blue-800 font-medium'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }
+          `}
         >
           All Categories
-        </Button>
+        </button>
         {categories.map(category => (
-          <Button
+          <button
             key={category.name}
-            variant={selectedCategory === category.name ? "default" : "outline"}
-            size="sm"
             onClick={() => setSelectedCategory(category.name)}
-            className="capitalize"
+            className={`
+              px-3 py-1.5 text-sm rounded-full transition-colors capitalize
+              border-2 border-[var(--accent-blue)]
+              ${selectedCategory === category.name
+                ? 'bg-blue-100 text-blue-800 font-medium'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }
+            `}
           >
             {category.name}
-          </Button>
+          </button>
         ))}
       </div>
       

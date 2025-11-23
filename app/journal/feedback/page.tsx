@@ -6,14 +6,16 @@ import { useAuth } from '@/hooks/auth/use-auth';
 import { journalService } from '@/services/journal-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BreathingLoader } from '@/components/ui/breathing-loader';
-import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
+import { ErrorState } from '@/components/ui/common/state-components';
 import { HighlightSelector } from '@/components/features/journal/editor/highlight-selector';
 import { HighlightList } from '@/components/features/journal/editor/highlight-list';
 import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import { flashcardGenerationService } from '@/services/flashcard-generation-service';
-import styles from '@/components/features/journal/editor/highlight-selector.module.css';
+import { GrammarDetail } from '@/types/journal-feedback';
 
 // Custom hooks
 function useJournalFeedback() {
@@ -53,19 +55,8 @@ function useHighlights() {
   }, []);
 
   const removeHighlight = useCallback((index: number) => {
-    const text = highlights[index];
     setHighlights(prev => prev.filter((_, i) => i !== index));
-
-    const container = document.getElementById('improved-version-content');
-    if (!container) return;
-
-    const highlightEls = container.querySelectorAll(`.${styles['highlighted-text']}`);
-    highlightEls.forEach(el => {
-      if (el.textContent === text) {
-        el.replaceWith(document.createTextNode(text));
-      }
-    });
-  }, [highlights]);
+  }, []);
 
   return { highlights, addHighlight, removeHighlight };
 }
@@ -76,69 +67,64 @@ async function saveJournalAndHighlights({
 }: {
   userId: string; feedback: any; highlights: string[]; title: string; journalId?: string | null;
 }) {
-  try {
-    // Extract original and enhanced content from feedback
-    const originalContent = feedback.originalVersion || feedback.fixed_typo || '';
-    const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
-    
-    let resultId: string;
-    
-    // Check if we're updating an existing journal or creating a new one
-    if (journalId) {
-      // Update existing journal
-      await journalService.updateJournal(journalId, {
-        title,
-        content: enhancedContent || originalContent,
-        enhanced_version: enhancedContent,
-      });
-      resultId = journalId;
-    } else {
-      // Create new journal from feedback
-      const result = await journalService.createJournalFromFeedback(userId, {
-        title,
-        originalContent,
-        enhancedContent,
-        journalDate: new Date().toISOString(),
-        highlights,
-      });
-      resultId = result.id;
-    }
-    
-    // Save feedback details if available
-    if (feedback.fb_details?.length > 0) {
-      try {
-        await feedbackLogsService.saveFeedbackLogs(userId, feedback.fb_details);
-      } catch (error) {
-        console.error('Failed to save feedback logs:', error);
-        // Continue even if feedback logs fail
-      }
-    }
-    
-    // Generate flashcards if highlights exist
-    let flashcardData = null;
-    if (highlights && highlights.length > 0) {
-      try {
-        const result = await flashcardGenerationService.generateFromJournal(
-          { id: userId, name: 'User', english_level: 'intermediate', style: 'conversational' },
-          title,
-          enhancedContent || originalContent,
-          highlights
-        );
-        flashcardData = result.flashcards;
-      } catch (error) {
-        console.error('Error generating flashcards:', error);
-      }
-    }
-    
-    return { 
-      id: resultId, 
-      success: true,
-      flashcards: flashcardData 
-    };
-  } catch (error) {
-    console.error('Error saving journal from feedback:', error);
-    throw error;
+  const originalContent = feedback.fixed_typo || feedback.originalVersion || '';
+  const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
+  
+  let resultId: string;
+  
+  if (journalId) {
+    await journalService.updateJournal(journalId, {
+      title,
+      content: enhancedContent || originalContent,
+      enhanced_version: enhancedContent,
+    });
+    resultId = journalId;
+  } else {
+    const result = await journalService.createJournalFromFeedback(userId, {
+      title,
+      originalContent,
+      enhancedContent,
+      journalDate: new Date().toISOString(),
+      highlights,
+    });
+    resultId = result.id;
   }
+  
+  // Save feedback to feedbacks and feedback_grammar_items tables
+  try {
+    await feedbackLogsService.saveFeedback({
+      userId,
+      sourceId: resultId,
+      sourceType: 'journal',
+      feedbackData: {
+        clarity: feedback.output?.clarity,
+        vocabulary: feedback.output?.vocabulary,
+        ideas: feedback.output?.ideas,
+        enhanced_version: enhancedContent,
+      },
+      grammarDetails: feedback.grammar_details || [],
+    });
+  } catch (error) {
+    console.error('Failed to save feedback:', error);
+  }
+  
+  // Generate flashcards
+  let flashcardData = null;
+  if (highlights?.length > 0) {
+    try {
+      const result = await flashcardGenerationService.generateFromJournal(
+        { id: userId, name: 'User', english_level: 'intermediate', style: 'conversational' },
+        title,
+        enhancedContent || originalContent,
+        highlights
+      );
+      flashcardData = result.flashcards;
+    } catch (error) {
+      console.error('Error generating flashcards:', error);
+    }
+  }
+  
+  return { id: resultId, success: true, flashcards: flashcardData };
 }
 
 export default function JournalFeedbackPage() {
@@ -226,168 +212,148 @@ export default function JournalFeedbackPage() {
     <div className="w-full max-w-3xl mx-auto px-4 py-10">
       <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
         <CardContent className="space-y-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Phiên bản xịn xò</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Xem học được gì nào ^^</h1>
+            
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <Input
+              value={editableTitle}
+              onChange={(e) => setEditableTitle(e.target.value)}
+              placeholder="Enter journal title..."
+              className="text-lg"
+            />
+          </div>
+
+          {/* Summary */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Summary</h3>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="whitespace-pre-wrap text-gray-800">{feedback.summary}</div>
+            </div>
+          </div>
+
+          {/* Fixed Typo Accordion */}
+          <Accordion type="single" collapsible>
+            <AccordionItem value="fixed-typo">
+              <AccordionTrigger>Fixed Typo Version</AccordionTrigger>
+              <AccordionContent>
+                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg">
+                  {feedback.fixed_typo || feedback.originalVersion || 'No content'}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          {/* Feedback Tabs */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Phản hồi</h3>
+            <Tabs defaultValue="clarity" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="clarity">Clarity</TabsTrigger>
+                <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
+                <TabsTrigger value="ideas">Ideas</TabsTrigger>
+                <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="clarity" className="mt-4">
+                <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.clarity || 'No content'}
+                </div>
+                <HighlightSelector
+                  containerId="clarity-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
+              </TabsContent>
+              
+              <TabsContent value="vocabulary" className="mt-4">
+                <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.vocabulary || 'No content'}
+                </div>
+                <HighlightSelector
+                  containerId="vocabulary-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
+              </TabsContent>
+              
+              <TabsContent value="ideas" className="mt-4">
+                <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.ideas || 'No content'}
+                </div>
+                <HighlightSelector
+                  containerId="ideas-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
+              </TabsContent>
+              
+              <TabsContent value="enhanced" className="mt-4">
+                <div id="enhanced-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  {feedback.enhanced_version || feedback.improvedVersion || 'No content'}
+                </div>
+                <HighlightSelector
+                  containerId="enhanced-content"
+                  onHighlightSaved={addHighlight}
+                  highlights={highlights}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Grammar Details */}
+          {feedback.grammar_details?.length > 0 && (
+            <GrammarDetailsSection details={feedback.grammar_details} />
+          )}
+
+          {/* Highlights */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-800 mb-3">Highlighted</h3>
+            <HighlightList highlights={highlights} onRemove={removeHighlight} />
+          </div>
+
+          {errMsg && <p className="text-red-500">{errMsg}</p>}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-4 pt-4">
+            <Button variant="outline" onClick={handleEdit}>
+              Sửa
+            </Button>
+            <Button onClick={() => handleSave(highlights.length > 0)} disabled={processing}>
+              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' : 'Lưu'}
+            </Button>
 
           </div>
-            
-            {/* Title Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-              <Input
-                value={editableTitle}
-                onChange={(e) => setEditableTitle(e.target.value)}
-                placeholder="Enter journal title..."
-                className="text-lg"
-              />
-            </div>
-
-            {/* Summary */}
-            <ContentSection title="Summary" content={feedback.summary} />
-
-            {/* Version Comparison */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Version Comparison</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <VersionCard
-                  title="Fixed Typo"
-                  content={feedback.fixed_typo || feedback.originalVersion}
-                  className="border-orange-200 bg-orange-50"
-                  dotColor="bg-orange-500"
-                />
-                
-                <VersionCard
-                  title="Enhanced Version"
-                  content={feedback.enhanced_version || feedback.improvedVersion}
-                  className="border-green-200 bg-green-50"
-                  dotColor="bg-green-500"
-                  id="improved-version-content"
-                >
-                  <HighlightSelector
-                    containerId="improved-version-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </VersionCard>
-              </div>
-            </div>
-
-            {/* Feedback Details */}
-            {feedback.fb_details?.length > 0 && (
-              <FeedbackDetailsSection details={feedback.fb_details} />
-            )}
-
-            {/* Legacy Vocab Suggestions */}
-            {feedback.vocabSuggestions?.length > 0 && (
-              <VocabSuggestionsSection suggestions={feedback.vocabSuggestions} />
-            )}
-
-            {/* Highlights */}
-            <ContentSection title="Saved Highlights">
-              <HighlightList highlights={highlights} onRemove={removeHighlight} />
-            </ContentSection>
-
-            {errMsg && <p className="text-red-500">{errMsg}</p>}
-
-            {/* Actions */}
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={handleEdit}>
-                Sửa
-              </Button>
-              <Button onClick={() => handleSave(highlights.length > 0)} disabled={processing}>
-                {processing ? 'Processing...' : 
-                 highlights.length > 0 ? 'Lưu nhật ký và Tạo Flashcards' : 'Lưu'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-}
-
-// Reusable Components
-function ContentSection({ title, content, children }: { 
-  title: string; 
-  content?: string; 
-  children?: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-3">{title}</h3>
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-        {content && <div className="whitespace-pre-wrap text-gray-800">{content}</div>}
-        {children}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function VersionCard({ 
-  title, content, className, dotColor, id, children 
-}: {
-  title: string; content: string; className: string; dotColor: string; id?: string; children?: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <div className={`w-3 h-3 ${dotColor} rounded-full`}></div>
-        <h4 className="text-md font-medium text-gray-800">{title}</h4>
-      </div>
-        <div id={id} className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-          {content}
-        </div>
-        {children}
-      </div>
-
-  );
-}
-
-function FeedbackDetailsSection({ details }: { details: any[] }) {
+function GrammarDetailsSection({ details }: { details: GrammarDetail[] }) {
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-4">Chi tiết phản hồi</h3>
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Grammar Corrections</h3>
       <div className="space-y-4">
-        {details.map((detail: any, index: number) => (
+        {details.map((detail, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">
             <CardContent className="p-4">
-              <div className="text-sm font-medium text-blue-600 mb-2">
-                {(detail.type || detail.type_of_fix)?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="text-sm font-medium text-blue-600">
+                  {detail.grammar_topic_id.replace(/_/g, ' ')}
+                </span>
+                {detail.tags?.map(tag => (
+                  <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                    {tag}
+                  </span>
+                ))}
               </div>
-              <div className="text-gray-800">
-                {detail.fix || `"${detail.improved_part}"`}
-              </div>
-              {detail.explanation && (
-                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded mt-2">
-                  <strong>Giải thích:</strong> {detail.explanation}
-                </div>
-              )}
+              <div className="text-gray-800 whitespace-pre-wrap">{detail.description}</div>
             </CardContent>
           </Card>
         ))}
       </div>
     </div>
-  );
-}
-
-function VocabSuggestionsSection({ suggestions }: { suggestions: any[] }) {
-  return (
-    <ContentSection title="Vocabulary Suggestions">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {suggestions.map((vocab: any, index: number) => (
-          <Card key={index}>
-            <CardContent className="p-3">
-              <div className="font-semibold text-blue-600">{vocab.word}</div>
-              <div className="text-sm text-gray-700 mt-1">{vocab.meaning}</div>
-              {vocab.example && (
-                <div className="text-xs text-gray-500 mt-2 italic">
-                  Example: {vocab.example}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </ContentSection>
   );
 }
