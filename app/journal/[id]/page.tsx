@@ -123,7 +123,10 @@ export default function JournalEditPage() {
       const result = await journalFeedbackService.getFeedback(content, title);
 
       if (result.success && result.data) {
-        router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(result.data))}`);
+        // Store feedback in sessionStorage instead of URL
+        sessionStorage.setItem('journalFeedback', JSON.stringify(result.data));
+        // Pass only journal ID in URL for cleaner routing
+        router.push(`/journal/feedback?id=${journalId}`);
       } else {
         setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
       }

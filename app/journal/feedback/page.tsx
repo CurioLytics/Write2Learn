@@ -19,20 +19,30 @@ import styles from '@/components/features/journal/editor/highlight-selector.modu
 function useJournalFeedback() {
   const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState<any | null>(null);
+  const [journalId, setJournalId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      const param = searchParams?.get('feedback');
-      if (!param) throw new Error('No feedback data found.');
-      const parsed = JSON.parse(decodeURIComponent(param));
+      // Get feedback from sessionStorage instead of URL
+      const storedFeedback = sessionStorage.getItem('journalFeedback');
+      if (!storedFeedback) throw new Error('No feedback data found.');
+      
+      const parsed = JSON.parse(storedFeedback);
       setFeedback(Array.isArray(parsed) ? parsed[0] : parsed);
+      
+      // Get journal ID if editing existing journal
+      const id = searchParams?.get('id');
+      setJournalId(id);
+      
+      // Clear sessionStorage after reading to avoid stale data
+      // sessionStorage.removeItem('journalFeedback');
     } catch (err) {
       setError('Failed to load feedback data.');
     }
   }, [searchParams]);
 
-  return { feedback, error };
+  return { feedback, journalId, error };
 }
 
 function useHighlights() {
@@ -62,23 +72,37 @@ function useHighlights() {
 
 // Save function
 async function saveJournalAndHighlights({
-  userId, feedback, highlights, title
+  userId, feedback, highlights, title, journalId
 }: {
-  userId: string; feedback: any; highlights: string[]; title: string;
+  userId: string; feedback: any; highlights: string[]; title: string; journalId?: string | null;
 }) {
   try {
     // Extract original and enhanced content from feedback
     const originalContent = feedback.originalVersion || feedback.fixed_typo || '';
     const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
     
-    // Use journal service to save both original and enhanced versions
-    const result = await journalService.createJournalFromFeedback(userId, {
-      title,
-      originalContent,
-      enhancedContent,
-      journalDate: new Date().toISOString(),
-      highlights,
-    });
+    let resultId: string;
+    
+    // Check if we're updating an existing journal or creating a new one
+    if (journalId) {
+      // Update existing journal
+      await journalService.updateJournal(journalId, {
+        title,
+        content: enhancedContent || originalContent,
+        enhanced_version: enhancedContent,
+      });
+      resultId = journalId;
+    } else {
+      // Create new journal from feedback
+      const result = await journalService.createJournalFromFeedback(userId, {
+        title,
+        originalContent,
+        enhancedContent,
+        journalDate: new Date().toISOString(),
+        highlights,
+      });
+      resultId = result.id;
+    }
     
     // Save feedback details if available
     if (feedback.fb_details?.length > 0) {
@@ -95,7 +119,7 @@ async function saveJournalAndHighlights({
     if (highlights && highlights.length > 0) {
       try {
         const result = await flashcardGenerationService.generateFromJournal(
-          userId,
+          { id: userId, name: 'User', english_level: 'intermediate', style: 'conversational' },
           title,
           enhancedContent || originalContent,
           highlights
@@ -107,7 +131,7 @@ async function saveJournalAndHighlights({
     }
     
     return { 
-      id: result.id, 
+      id: resultId, 
       success: true,
       flashcards: flashcardData 
     };
@@ -120,7 +144,7 @@ async function saveJournalAndHighlights({
 export default function JournalFeedbackPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const { feedback, error } = useJournalFeedback();
+  const { feedback, journalId, error } = useJournalFeedback();
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -142,6 +166,7 @@ export default function JournalFeedbackPage() {
         feedback,
         highlights,
         title: editableTitle,
+        journalId, // Pass journal ID for updating existing journal
       });
 
       if (redirectToFlashcards && highlights.length && data.flashcards) {

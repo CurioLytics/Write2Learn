@@ -154,7 +154,9 @@ export default function NewJournalPage() {
       const result = await journalFeedbackService.getFeedback(content, title);
 
       if (result.success && result.data) {
-        router.push(`/journal/feedback?feedback=${encodeURIComponent(JSON.stringify(result.data))}`);
+        // Store feedback in sessionStorage for cleaner URL
+        sessionStorage.setItem('journalFeedback', JSON.stringify(result.data));
+        router.push('/journal/feedback');
       } else {
         setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
       }
