@@ -36,7 +36,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userPreferences: cachedPreferences } = useAuth();
   const { speak, stop, isPlaying, playingMessageId } = useTTS();
 
   // Generate unique session ID for this conversation
@@ -49,6 +49,14 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use cached preferences from auth context with defaults
+  const userPreferences = {
+    name: cachedPreferences?.name || 'User',
+    english_level: cachedPreferences?.english_level || 'intermediate',
+    style: cachedPreferences?.style || 'conversational',
+  };
+
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -138,7 +146,8 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
       const reply = await roleplayConversationService.getBotResponse(
         scenario,
         [...messages, userMsg],
-        sessionId
+        sessionId,
+        userPreferences
       );
       const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,

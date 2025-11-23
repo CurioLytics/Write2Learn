@@ -35,7 +35,7 @@ interface VoiceModeChatInterfaceProps {
 
 export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userPreferences: cachedPreferences } = useAuth();
 
   // Generate unique session ID for this conversation
   const [sessionId] = useState(() => {
@@ -49,6 +49,13 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const [showTextInput, setShowTextInput] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use cached preferences from auth context with defaults
+  const userPreferences = {
+    name: cachedPreferences?.name || 'User',
+    english_level: cachedPreferences?.english_level || 'intermediate',
+    style: cachedPreferences?.style || 'conversational',
+  };
 
   const endRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
@@ -71,7 +78,8 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
       const reply = await roleplayConversationService.getBotResponse(
         scenario,
         [...messages, userMsg],
-        sessionId
+        sessionId,
+        userPreferences
       );
       const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,

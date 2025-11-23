@@ -13,9 +13,16 @@ export function useAuth() {
   return context;
 }
 
+export interface UserPreferences {
+  name: string | null;
+  english_level: string | null;
+  style: string | null;
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
   onboardingCompleted: boolean;
+  userPreferences: UserPreferences | null;
 }

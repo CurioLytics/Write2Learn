@@ -17,6 +17,7 @@ export const AuthContext = createContext<AuthContextType>({
   loading: true,
   signOut: async () => {},
   onboardingCompleted: false,
+  userPreferences: null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -117,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signOut,
     onboardingCompleted,
+    userPreferences,
   };
 
   return (
