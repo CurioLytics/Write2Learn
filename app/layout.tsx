@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/stores/auth-store";
-import { UserProvider } from "@/components/providers/user-provider";
 import { Toaster } from "sonner";
 
 const bricolage = Bricolage_Grotesque({
@@ -29,10 +28,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${bricolage.variable} antialiased`}>
         <AuthProvider>
-          <UserProvider>
-            {children}
-            <Toaster />
-          </UserProvider>
+          {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

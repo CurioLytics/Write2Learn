@@ -47,29 +47,9 @@ export function AuthForm() {
           setError(error.message);
         } else if (data?.user) {
           setUser(data.user);
-          
-          // Check onboarding status directly using Supabase client
-          try {
-            const supabase = createClientComponentClient();
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', data.user.id)
-              .single();
-            
-            if (profileError) {
-              console.error('Error checking onboarding status:', profileError);
-              // If we can't check onboarding, redirect to onboarding to be safe
-              router.push('/onboarding');
-            } else {
-              // Redirect based on onboarding status
-              router.push(profile?.onboarding_completed ? '/home' : '/onboarding');
-            }
-          } catch (dbError) {
-            console.error('Database error:', dbError);
-            setError('Unable to check onboarding status. Please try again.');
-            setLoading(false);
-          }
+          // AuthProvider will handle onboarding check and redirect via middleware
+          // Just redirect to home, middleware will handle the rest
+          router.push('/home');
         }
       } else {
         const { error, data } = await signUpWithEmail(email, password);
