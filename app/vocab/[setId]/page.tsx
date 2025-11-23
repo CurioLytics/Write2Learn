@@ -344,7 +344,6 @@ export default function VocabularySetPage() {
                 <Button
                   onClick={handleSave}
                   disabled={isSaving || !editTitle.trim()}
-                  className="bg-gray-900 hover:bg-gray-800 text-white"
                 >
                   {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </Button>

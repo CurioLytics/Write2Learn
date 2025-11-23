@@ -24,6 +24,11 @@ export default function VocabLayout({
             --accent: var(--primary-blue-light);
             --ring: var(--primary-blue);
           }
+          .vocab-section button[data-slot="button"]:not([class*="variant"]),
+          .vocab-section button[data-slot="button"][class*="default"] {
+            background-color: var(--primary-blue) !important;
+            color: white !important;
+          }
         `}</style>
         {children}
       </div>
@@ -39,6 +44,11 @@ export default function VocabLayout({
             --primary-foreground: oklch(1 0 0);
             --accent: var(--primary-blue-light);
             --ring: var(--primary-blue);
+          }
+          .vocab-section button[data-slot="button"]:not([class*="variant"]),
+          .vocab-section button[data-slot="button"][class*="default"] {
+            background-color: var(--primary-blue) !important;
+            color: white !important;
           }
         `}</style>
         {children}
