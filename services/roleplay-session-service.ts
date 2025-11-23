@@ -13,7 +13,7 @@ class RoleplaySessionService {
     userId: string, 
     scenario: RoleplayScenario, 
     messages: RoleplayMessage[],
-    userPreferences: { name: string; english_level: string; style: string }
+    userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<string> {
     const supabase = createClientComponentClient();
     
@@ -51,7 +51,7 @@ class RoleplaySessionService {
    */
   async retryFeedback(
     sessionId: string,
-    userPreferences: { name: string; english_level: string; style: string }
+    userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<RoleplayFeedback> {
     const supabase = createClientComponentClient();
     

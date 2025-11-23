@@ -109,9 +109,10 @@ export default function RoleplaySummaryPage() {
     }, 2000);
     
     try {
+      // Pass preferences even if null - service will use defaults
       const feedback = await roleplaySessionService.retryFeedback(
         params.sessionId as string,
-        userPreferences
+        cachedPreferences
       );
       
       // Clear interval IMMEDIATELY when response arrives
@@ -217,7 +218,7 @@ export default function RoleplaySummaryPage() {
                 <h3 className="text-lg font-semibold text-gray-800">Phản hồi</h3>
                 <button
                   onClick={handleRetryFeedback}
-                  disabled={retrying}
+                  disabled={retrying || !cachedPreferences}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
                   title="Tạo lại phản hồi"
                 >
@@ -301,7 +302,7 @@ export default function RoleplaySummaryPage() {
               <p className="text-gray-500 mb-3">Chưa có phản hồi</p>
               <Button
                 onClick={handleRetryFeedback}
-                disabled={retrying}
+                disabled={retrying || !cachedPreferences}
                 size="sm"
                 variant="outline"
               >

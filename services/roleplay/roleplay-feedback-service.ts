@@ -14,16 +14,23 @@ class RoleplayFeedbackService {
   async generateFeedback(
     scenario: RoleplayScenario, 
     messages: RoleplayMessage[],
-    userPreferences: { name: string; english_level: string; style: string }
+    userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<RoleplayFeedback> {
     try {
+      // Safe defaults if preferences are not provided
+      const safePreferences = {
+        name: userPreferences?.name || 'User',
+        english_level: userPreferences?.english_level || 'intermediate',
+        style: userPreferences?.style || 'conversational',
+      };
+      
       const payload = {
         body: {
           query: {
             user: {
-              name: userPreferences.name,
-              english_level: userPreferences.english_level,
-              style: userPreferences.style,
+              name: safePreferences.name,
+              english_level: safePreferences.english_level,
+              style: safePreferences.style,
             },
             title: scenario.name,
             level: scenario.level,
