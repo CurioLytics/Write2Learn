@@ -151,9 +151,9 @@ export default function VocabPage() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('sets')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'sets'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-[oklch(0.55_0.22_250)] text-[oklch(0.55_0.22_250)]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -161,9 +161,9 @@ export default function VocabPage() {
             </button>
             <button
               onClick={() => setActiveTab('starred-words')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'starred-words'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-[oklch(0.55_0.22_250)] text-[oklch(0.55_0.22_250)]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >

@@ -16,7 +16,15 @@ export default function VocabLayout({
   
   if (!shouldHaveSidebar) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white vocab-section">
+        <style jsx global>{`
+          .vocab-section {
+            --primary: var(--primary-blue);
+            --primary-foreground: oklch(1 0 0);
+            --accent: var(--primary-blue-light);
+            --ring: var(--primary-blue);
+          }
+        `}</style>
         {children}
       </div>
     );
@@ -24,7 +32,17 @@ export default function VocabLayout({
 
   return (
     <AppLayout>
-      {children}
+      <div className="vocab-section">
+        <style jsx global>{`
+          .vocab-section {
+            --primary: var(--primary-blue);
+            --primary-foreground: oklch(1 0 0);
+            --accent: var(--primary-blue-light);
+            --ring: var(--primary-blue);
+          }
+        `}</style>
+        {children}
+      </div>
     </AppLayout>
   );
 }

@@ -86,17 +86,7 @@ export default function RoleplayPage() {
                   />
                 </div>
               ))}
-            </div>
-
-            <div className="flex flex-col justify-center items-center mt-2">
-              <svg width="32" height="32" viewBox="0 0 32 32">
-                <path d="M8 16H24M24 16L18 10M24 16L18 22"
-                  stroke="#2563eb" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-xs text-blue-600 mt-1">Kéo sang phải để xem thêm</span>
-            </div>
+</div>
           </>
         ) : (
           <div className="text-center text-gray-600 py-8">

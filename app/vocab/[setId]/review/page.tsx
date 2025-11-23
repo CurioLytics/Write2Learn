@@ -183,7 +183,7 @@ return (
           <div className="flex items-center gap-2">
             <button
               onClick={handleShuffle}
-              className="p-3 text-gray-600 hover:text-blue-600 transition-colors"
+              className="p-3 text-gray-600 hover:text-[var(--primary)] transition-colors"
               aria-label="Shuffle front and back"
               title="Exchange front and back content"
             >

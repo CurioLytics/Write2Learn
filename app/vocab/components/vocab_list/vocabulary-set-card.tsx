@@ -103,14 +103,14 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
       <div className="mt-auto flex justify-between items-center">
         <div className="flex items-center gap-1 text-sm">
-          <span className="text-blue-500 font-medium">{vocabularySet.flashcards_due}</span>
+          <span className="text-[var(--primary)] font-medium">{vocabularySet.flashcards_due}</span>
           <span className="text-gray-400">/</span>
           <span className="text-gray-500">{vocabularySet.total_flashcards}</span>
         </div>
 
         {vocabularySet.flashcards_due > 0 && (
           <button
-            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+            className="text-xs px-2 py-1 bg-[var(--primary-blue-light)] text-[var(--primary)] rounded hover:bg-[var(--primary-blue-lighter)] transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               console.log(`Review ${vocabularySet.title} vocabulary`);

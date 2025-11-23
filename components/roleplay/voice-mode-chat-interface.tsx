@@ -227,34 +227,27 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-gradient-to-b from-gray-50 to-white rounded-lg shadow-sm overflow-hidden">
         
         {/* Header */}
-        <div className="p-4 border-b flex justify-between items-center bg-white">
-          <div className="flex items-center gap-2">
-            <h2 className="font-medium text-gray-800">{scenario.name}</h2>
-            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-              Voice Mode
-            </span>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <button
-                  aria-label="Show roleplay task"
-                  className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
-                >
-                  <Lightbulb className="w-3 h-3" />
-                </button>
-              </DialogTrigger>
-              <DialogContent className="bg-white max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Roleplay Task</DialogTitle>
-                </DialogHeader>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {scenario.task || 'No task available'}
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+        <div className="p-3 border-b flex justify-between items-center bg-white">
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                aria-label="Show roleplay task"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+              >
+                <Lightbulb className="w-4 h-4" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="bg-white max-w-md">
+              <DialogHeader>
+                <DialogTitle>Roleplay Task</DialogTitle>
+              </DialogHeader>
+              <div className="mt-4">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {scenario.task || 'No task available'}
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <div className="flex items-center gap-2">
             {hasUserMessages ? (
@@ -291,7 +284,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               variant="outline"
               size="sm"
             >
-              {finishing ? 'Finishing...' : 'Done'}
+              {finishing ? 'Finishing...' : 'Finish'}
             </Button>
           </div>
         </div>

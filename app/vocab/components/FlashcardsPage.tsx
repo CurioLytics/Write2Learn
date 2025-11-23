@@ -280,7 +280,7 @@ ${supaErr.message}
             Good
           </button>
           <button
-            className="px-4 py-2 rounded border text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+            className="px-4 py-2 rounded border text-[var(--primary)] hover:bg-[var(--primary-blue-light)] disabled:opacity-50"
             onClick={() => handleRate(4)}
             disabled={loading}
           >

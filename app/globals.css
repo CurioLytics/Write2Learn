@@ -23,6 +23,13 @@
   --cta: oklch(0.1 0 0);
   --cta-gold: #fccc41;
 
+  /* === Blue Theme (for vocab/roleplay/report sections) === */
+  --primary-blue: oklch(0.55 0.22 250); /* blue-600 */
+  --primary-blue-hover: oklch(0.48 0.24 255); /* blue-700 */
+  --primary-blue-light: oklch(0.94 0.05 250); /* blue-50 */
+  --primary-blue-lighter: oklch(0.9 0.08 250); /* blue-100 */
+  --accent-blue: oklch(0.62 0.25 255); /* blue-500 */
+
   /* === Grays === */
   --secondary: oklch(0.92 0 0);
   --secondary-foreground: oklch(0.1 0 0);
