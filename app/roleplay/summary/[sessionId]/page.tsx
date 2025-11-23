@@ -17,7 +17,7 @@ import { RefreshCw } from 'lucide-react';
 export default function RoleplaySummaryPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, userPreferences: cachedPreferences } = useAuth();
+  const { user, loading: authLoading, userPreferences: cachedPreferences } = useAuth();
   const [sessionData, setSessionData] = useState<RoleplaySessionData | null>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,9 @@ export default function RoleplaySummaryPage() {
   const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'improved version'];
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking user
+    if (authLoading) return;
+    
     if (!user) {
       router.push('/auth');
       return;
@@ -54,7 +57,7 @@ export default function RoleplaySummaryPage() {
     };
 
     loadSession();
-  }, [user, params.sessionId, router]);
+  }, [user, authLoading, params.sessionId, router]);
 
   const addHighlight = (text: string) => {
     if (!highlights.includes(text)) {
