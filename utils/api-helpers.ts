@@ -3,6 +3,15 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 /**
+ * User preferences structure for webhooks
+ */
+export interface UserPreferences {
+  name: string;
+  english_level: string;
+  style: string;
+}
+
+/**
  * Authenticate user from request and return user object
  * Throws error if user is not authenticated
  */
@@ -64,4 +73,25 @@ export function createSuccessResponse(data: any, message?: string) {
     ...data,
     ...(message && { message })
   });
+}
+
+/**
+ * Get user preferences (name, english_level, style) from profiles table
+ * Returns default values if profile not found or fields are null
+ * Default: { name: "User", english_level: "intermediate", style: "conversational" }
+ */
+export async function getUserPreferences(userId: string): Promise<UserPreferences> {
+  const supabase = createRouteHandlerClient({ cookies });
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('name, english_level, style')
+    .eq('id', userId)
+    .single();
+  
+  return {
+    name: profile?.name || 'User',
+    english_level: profile?.english_level || 'intermediate',
+    style: profile?.style || 'conversational',
+  };
 }

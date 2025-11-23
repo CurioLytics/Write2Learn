@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authenticateUser, getUserPreferences } from '@/utils/api-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate user and get preferences
+    const user = await authenticateUser();
+    const userPreferences = await getUserPreferences(user.id);
+    
     const { errorData } = await request.json();
 
     if (!errorData || !Array.isArray(errorData) || errorData.length === 0) {
@@ -11,23 +16,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send only the description content from error data
-    const payloadText = errorData
-      .map(error => error.description || 'Grammar error detected')
-      .filter(description => description && description.trim())
-      .join(' ');
+    // Build structured JSON payload with user preferences
+    const payload = {
+      user: {
+        name: userPreferences.name,
+        english_level: userPreferences.english_level,
+        style: userPreferences.style,
+      },
+      errors: errorData.map(error => ({
+        description: error.description || 'Grammar error detected'
+      }))
+    };
 
-    console.log('Real error data payload:', payloadText);
+    console.log('Exercise generation payload:', JSON.stringify(payload, null, 2));
 
-    console.log('Calling webhook with payload:', payloadText);
-
-    // Call webhook with plain text payload
+    // Call webhook with JSON payload
     const response = await fetch('https://auto2.elyandas.com/webhook/gen-exercise', {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/json',
       },
-      body: payloadText
+      body: JSON.stringify(payload)
     });
 
     console.log('Webhook response status:', response.status);

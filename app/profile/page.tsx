@@ -120,6 +120,11 @@ export default function ProfilePage() {
       }
 
       setOriginalData(profileData);
+      
+      // Trigger auth state refresh to update cached preferences
+      // This will cause AuthProvider to re-fetch user preferences
+      await supabase.auth.refreshSession();
+      
       toast.success("Profile updated successfully.");
     } catch (error) {
       console.error('Error updating profile:', error);

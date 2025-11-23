@@ -8,7 +8,7 @@ import {
   WebhookFeedbackResponse,
   FeedbackServiceResult 
 } from '@/types/journal-feedback';
-import { authenticateUser, handleApiError } from '@/utils/api-helpers';
+import { authenticateUser, handleApiError, getUserPreferences } from '@/utils/api-helpers';
 
 /**
  * Configuration for the feedback service
@@ -46,23 +46,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Fetch user's English level from profiles table
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('english_level')
-      .eq('id', user.id)
-      .single();
+    // Get user preferences (cached from profiles table)
+    const userPreferences = await getUserPreferences(user.id);
 
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError);
-      // Continue without level if profile fetch fails
-    }
-
-    const userLevel = profile?.english_level || null;
-
-    // Make the request with user level included
-    const feedback = await requestFeedbackWithRetry(body, userLevel);
+    // Make the request with user preferences included
+    const feedback = await requestFeedbackWithRetry(body, userPreferences);
     
     return NextResponse.json(feedback, { status: 200 });
     
@@ -76,7 +64,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
  */
 async function requestFeedbackWithRetry(
   body: JournalFeedbackRequest,
-  userLevel: string | null = null,
+  userPreferences: { name: string; english_level: string; style: string },
   retryCount = 0
 ): Promise<JournalFeedbackResponse> {
   try {
@@ -93,9 +81,13 @@ async function requestFeedbackWithRetry(
         'User-Agent': 'journal-feedback/1.0'
       },
       body: JSON.stringify({
+        user: {
+          name: userPreferences.name,
+          english_level: userPreferences.english_level,
+          style: userPreferences.style,
+        },
         content: body.content,
         title: body.title || '',
-        level: userLevel
       }),
       signal: controller.signal,
     });
@@ -121,7 +113,7 @@ async function requestFeedbackWithRetry(
     // Retry once if it's the first attempt and not an abort error
     if (retryCount < FEEDBACK_CONFIG.MAX_RETRIES && !isAbortError(error)) {
       console.log('Retrying request...');
-      return requestFeedbackWithRetry(body, userLevel, retryCount + 1);
+      return requestFeedbackWithRetry(body, userPreferences, retryCount + 1);
     }
     
     // Throw the error instead of returning fallback data

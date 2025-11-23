@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authenticateUser, getUserPreferences } from '@/utils/api-helpers';
 
 // The actual webhook URL - kept on server side to prevent exposure
 // Using environment variable for webhook URL
@@ -10,6 +11,10 @@ const WEBHOOK_URL = process.env.GET_ROLEPLAY_WEBHOOK_URL || "https://auto2.elyan
  */
 export async function POST(request: Request) {
   try {
+    // Authenticate user and get preferences
+    const user = await authenticateUser();
+    const userPreferences = await getUserPreferences(user.id);
+    
     // Get the JSON body from the request
     const body = await request.json();
     
@@ -92,6 +97,11 @@ export async function POST(request: Request) {
       const formattedPayload = {
         body: {
           query: {
+            user: {
+              name: userPreferences.name,
+              english_level: userPreferences.english_level,
+              style: userPreferences.style,
+            },
             title: query.title,
             level: query.level,
             ai_role: query.ai_role,

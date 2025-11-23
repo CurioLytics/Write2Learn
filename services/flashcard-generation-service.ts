@@ -6,11 +6,15 @@
  */
 
 interface FlashcardGenerationPayload {
-  userId: string;
+  user: {
+    id: string;
+    name: string;
+    english_level: string;
+    style: string;
+  };
   title: string;
   context: string;
   highlights: string[];
-  level?: string | null;
 }
 
 interface GeneratedFlashcard {
@@ -94,40 +98,37 @@ class FlashcardGenerationService {
   /**
    * Generate flashcards for journal content
    * 
-   * @param userId - User ID
+   * @param user - User object with id, name, english_level, style
    * @param title - Journal title
    * @param content - Journal content (improved/enhanced version)
    * @param highlights - Selected highlights
-   * @param level - User's English level (optional)
    * @returns Promise with generated flashcards
    */
   async generateFromJournal(
-    userId: string,
+    user: { id: string; name: string; english_level: string; style: string },
     title: string,
     content: string,
-    highlights: string[],
-    level?: string | null
+    highlights: string[]
   ): Promise<FlashcardGenerationResult> {
     return this.generateFlashcards({
-      userId,
+      user,
       title,
       context: content,
-      highlights,
-      level
+      highlights
     });
   }
 
   /**
    * Generate flashcards for roleplay feedback
    * 
-   * @param userId - User ID
+   * @param user - User object with id, name, english_level, style
    * @param scenarioName - Roleplay scenario name
    * @param feedback - Roleplay feedback object
    * @param highlights - Selected highlights
    * @returns Promise with generated flashcards
    */
   async generateFromRoleplay(
-    userId: string,
+    user: { id: string; name: string; english_level: string; style: string },
     scenarioName: string,
     feedback: any,
     highlights: string[]
@@ -142,7 +143,7 @@ class FlashcardGenerationService {
     ].filter(Boolean).join('\n\n');
 
     return this.generateFlashcards({
-      userId,
+      user,
       title: `Roleplay: ${scenarioName}`,
       context: feedbackContext,
       highlights

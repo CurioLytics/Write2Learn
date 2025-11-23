@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authenticateUser, getUserPreferences } from '@/utils/api-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate user and get preferences
+    const user = await authenticateUser();
+    const userPreferences = await getUserPreferences(user.id);
+    
     const { exercises } = await request.json();
 
     if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
@@ -11,17 +16,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Format payload for grading webhook: questions + user answers
-    const gradingPayload = exercises.map(ex => 
-      `Question: ${ex.question}\nUser Answer: ${ex.userAnswer}`
-    ).join('\n\n');
+    // Build structured JSON payload with user preferences
+    const payload = {
+      user: {
+        name: userPreferences.name,
+        english_level: userPreferences.english_level,
+        style: userPreferences.style,
+      },
+      exercises: exercises.map(ex => ({
+        question: ex.question,
+        userAnswer: ex.userAnswer
+      }))
+    };
 
     const response = await fetch('https://auto2.elyandas.com/webhook/grade-exercise', {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/json',
       },
-      body: gradingPayload,
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

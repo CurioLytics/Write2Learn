@@ -16,7 +16,7 @@
 - `/journal/feedback` ✅ (Processing/review focus)
 - `/vocab/[setId]/review` ✅ (Study session focus)
 - `/roleplay/session/*` ✅ (Immersive roleplay sessions)
-- `/flashcards/create` ✅ (Creation flow focus)
+- `/flashcards/generate` ✅ (auto flashcard generation flow focus)
 - `/onboarding` (Authentication flow)
 - `/auth/*` (Authentication pages)
 

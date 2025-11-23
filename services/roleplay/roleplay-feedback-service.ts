@@ -11,11 +11,20 @@ class RoleplayFeedbackService {
    * Generate feedback for a roleplay conversation
    * Calls external webhook to analyze conversation and return structured feedback
    */
-  async generateFeedback(scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<RoleplayFeedback> {
+  async generateFeedback(
+    scenario: RoleplayScenario, 
+    messages: RoleplayMessage[],
+    userPreferences: { name: string; english_level: string; style: string }
+  ): Promise<RoleplayFeedback> {
     try {
       const payload = {
         body: {
           query: {
+            user: {
+              name: userPreferences.name,
+              english_level: userPreferences.english_level,
+              style: userPreferences.style,
+            },
             title: scenario.name,
             level: scenario.level,
             ai_role: scenario.ai_role,

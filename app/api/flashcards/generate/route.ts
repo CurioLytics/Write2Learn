@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { authenticateUser, parseRequestBody, createSuccessResponse, handleApiError } from '@/utils/api-helpers';
+import { authenticateUser, parseRequestBody, createSuccessResponse, handleApiError, getUserPreferences } from '@/utils/api-helpers';
 
 interface FlashcardGenerationRequest {
   highlights: string[];
@@ -40,21 +40,20 @@ export async function POST(request: Request) {
       );
     }
     
-    // Get user's English level for context
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('level')
-      .eq('id', user.id)
-      .single();
+    // Get user preferences (cached from profiles table)
+    const userPreferences = await getUserPreferences(user.id);
     
-    // Prepare webhook payload
+    // Prepare webhook payload with consistent structure
     const webhookPayload = {
+      user: {
+        id: user.id,
+        name: userPreferences.name,
+        english_level: userPreferences.english_level,
+        style: userPreferences.style,
+      },
       highlights,
       context: content, // The improved/enhanced version of the journal
       title: title || 'Untitled Journal',
-      level: profile?.level || null,
-      userId: user.id
     };
     
     // Call external webhook

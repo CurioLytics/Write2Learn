@@ -1,9 +1,6 @@
 import { RoleplayMessage, RoleplayScenario } from '@/types/roleplay';
 
-/**
- * Service for handling real-time bot responses during roleplay conversations
- */
-class RoleplayConversationService {
+class RoleplayWebhookService {
   async getBotResponse(
     scenario: RoleplayScenario, 
     messages: RoleplayMessage[], 
@@ -54,4 +51,4 @@ class RoleplayConversationService {
   }
 }
 
-export const roleplayConversationService = new RoleplayConversationService();
+export const roleplayWebhookService = new RoleplayWebhookService();

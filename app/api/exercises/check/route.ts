@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authenticateUser, getUserPreferences } from '@/utils/api-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate user and get preferences
+    const user = await authenticateUser();
+    const userPreferences = await getUserPreferences(user.id);
+    
     const { exercises } = await request.json();
 
     if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
@@ -11,19 +16,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert exercises to plain text format similar to gen-exercise
-    const payloadText = exercises
-      .map(exercise => `Question: ${exercise.question} Answer: ${exercise.answer}`)
-      .join(' ');
+    // Build structured JSON payload with user preferences
+    const payload = {
+      user: {
+        name: userPreferences.name,
+        english_level: userPreferences.english_level,
+        style: userPreferences.style,
+      },
+      exercises: exercises.map(exercise => ({
+        question: exercise.question,
+        answer: exercise.answer
+      }))
+    };
 
-    console.log('Exercise check payload:', payloadText);
+    console.log('Exercise check payload:', JSON.stringify(payload, null, 2));
 
     const response = await fetch('https://auto2.elyandas.com/webhook/exercise-check', {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/json',
       },
-      body: payloadText
+      body: JSON.stringify(payload)
     });
 
     console.log('Webhook response status:', response.status);

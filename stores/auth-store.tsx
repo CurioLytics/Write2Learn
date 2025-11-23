@@ -6,6 +6,12 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { getCurrentUser, signOut as authSignOut } from '@/services/auth-service';
 import { AuthContextType } from '@/hooks/auth/use-auth';
 
+export interface UserPreferences {
+  name: string | null;
+  english_level: string | null;
+  style: string | null;
+}
+
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
@@ -17,6 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
   useEffect(() => {
     // Track mounted state to prevent state updates after unmount
@@ -33,12 +40,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const supabase = createClientComponentClient();
           const { data: profile } = await supabase
             .from('profiles')
-            .select('onboarding_completed')
+            .select('onboarding_completed, name, english_level, style')
             .eq('id', user.id)
             .single();
 
           if (mounted) {
             setOnboardingCompleted(Boolean(profile?.onboarding_completed));
+            setUserPreferences({
+              name: profile?.name || null,
+              english_level: profile?.english_level || null,
+              style: profile?.style || null,
+            });
           }
         }
 
@@ -67,17 +79,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Update user state when auth state changes
         setUser(session?.user || null);
         
-        // Check onboarding status if user exists
+        // Check onboarding status and preferences if user exists
         if (session?.user) {
           (async () => {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('onboarding_completed')
+              .select('onboarding_completed, name, english_level, style')
               .eq('id', session.user.id)
               .single();
               
             if (mounted) {
               setOnboardingCompleted(Boolean(profile?.onboarding_completed));
+              setUserPreferences({
+                name: profile?.name || null,
+                english_level: profile?.english_level || null,
+                style: profile?.style || null,
+              });
             }
           })();
         }

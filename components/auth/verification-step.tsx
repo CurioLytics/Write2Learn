@@ -67,11 +67,14 @@ export function VerificationStep({ user, isNewUser }: VerificationStepProps) {
 
   const email = user.email;
   const isEmailVerified = user.email_confirmed_at;
+  
+  // Auto-pass verification for test emails (emails starting with 'test')
+  const isTestEmail = email?.toLowerCase().startsWith('test');
 
   return (
     <div className="text-center p-5 sm:p-6 bg-gray-50 rounded-lg">
       <div className="mb-6">
-        {isEmailVerified ? (
+        {isEmailVerified || isTestEmail ? (
           <div className="text-green-600">
             <svg
               className="w-16 h-16 sm:w-12 sm:h-12 mx-auto mb-4"
@@ -89,7 +92,7 @@ export function VerificationStep({ user, isNewUser }: VerificationStepProps) {
             </svg>
             <h3 className="text-xl sm:text-lg font-medium">Email Verified</h3>
             <p className="text-base sm:text-sm text-gray-600 mt-2">
-              Your email has been verified successfully.
+              {isTestEmail ? 'Test account - verification bypassed' : 'Your email has been verified successfully.'}
             </p>
           </div>
         ) : (
@@ -130,7 +133,7 @@ export function VerificationStep({ user, isNewUser }: VerificationStepProps) {
         )}
       </div>
 
-      {!isEmailVerified && (
+      {!isEmailVerified && !isTestEmail && (
         <div className="mt-6 text-base sm:text-sm text-gray-600 pt-4 border-t border-gray-200">
           <p>Didn't receive the email?</p>
           <ResendButton email={email} />
