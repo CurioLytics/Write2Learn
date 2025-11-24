@@ -2,13 +2,19 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { RoleplayMessage, RoleplayScenario, RoleplayFeedback, RoleplaySessionData } from '@/types/roleplay';
 import { errorLog } from '@/utils/roleplay-utils';
 import { roleplayFeedbackService } from './roleplay-feedback-service';
+import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import { flashcardGenerationService } from '@/services/flashcard-generation-service';
 
 class RoleplaySessionService {
   /**
    * Complete session workflow: Save + Generate feedback
    */
-  async completeSession(userId: string, scenario: RoleplayScenario, messages: RoleplayMessage[]): Promise<string> {
+  async completeSession(
+    userId: string, 
+    scenario: RoleplayScenario, 
+    messages: RoleplayMessage[],
+    userPreferences?: { name?: string; english_level?: string; style?: string } | null
+  ): Promise<string> {
     const supabase = createClientComponentClient();
     
     // Save session
@@ -28,10 +34,14 @@ class RoleplaySessionService {
     
     // Generate feedback
     try {
-      const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages);
+      const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages, userPreferences);
       
-      if (feedback && feedback.output) {
+      if (feedback && feedback.output?.clarity) {
+        // Save to sessions table (legacy format)
         await this.saveFeedback(sessionId, feedback);
+        
+        // Save to feedbacks and feedback_grammar_items tables
+        await this.saveFeedbackToTables(userId, sessionId, feedback);
       }
     } catch (feedbackError) {
       errorLog('completeSession', feedbackError);
@@ -53,6 +63,7 @@ class RoleplaySessionService {
     const { data: session, error } = await supabase
       .from('sessions')
       .select(`
+        profile_id,
         conversation_json,
         roleplays(id, name, level, ai_role, partner_prompt)
       `)
@@ -85,8 +96,15 @@ class RoleplaySessionService {
     );
     
     // Save feedback
-    if (feedback && feedback.output) {
+    if (feedback && feedback.output?.clarity) {
+      // Save to sessions table (legacy format)
       await this.saveFeedback(sessionId, feedback);
+      
+      // Get userId from session
+      const userId = session.profile_id || (await supabase.auth.getUser()).data.user?.id;
+      if (userId) {
+        await this.saveFeedbackToTables(userId, sessionId, feedback);
+      }
     }
     
     return feedback;
@@ -212,6 +230,29 @@ class RoleplaySessionService {
 
     if (error) {
       throw new Error(`Failed to save feedback: ${error.message}`);
+    }
+  }
+
+  /**
+   * Save feedback to feedbacks and feedback_grammar_items tables
+   */
+  private async saveFeedbackToTables(userId: string, sessionId: string, feedback: RoleplayFeedback): Promise<void> {
+    try {
+      await feedbackLogsService.saveFeedback({
+        userId,
+        sourceId: sessionId,
+        sourceType: 'roleplay',
+        feedbackData: {
+          clarity: feedback.output?.clarity,
+          vocabulary: feedback.output?.vocabulary,
+          ideas: feedback.output?.ideas,
+          enhanced_version: feedback.enhanced_version,
+        },
+        grammarDetails: feedback.grammar_details || [],
+      });
+    } catch (error) {
+      console.error('Failed to save feedback to tables:', error);
+      // Don't throw - feedback is already saved to sessions table
     }
   }
 }
