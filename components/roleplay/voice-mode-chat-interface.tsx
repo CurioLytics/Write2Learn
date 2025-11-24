@@ -199,6 +199,10 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   };
 
   const handleFinish = async () => {
+    // Stop all ongoing actions first
+    stopListening();
+    stopBotSpeaking();
+    
     setFinishing(true);
     setError(null);
 
@@ -293,7 +297,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               variant="outline"
               size="sm"
             >
-              {finishing ? 'Finishing...' : 'Finish'}
+              {finishing ? 'Saving...' : 'Finish'}
             </Button>
           </div>
         </div>
@@ -348,7 +352,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   value={backupInput}
                   onChange={(e) => setBackupInput(e.target.value)}
                   placeholder="Type your message..."
-                  disabled={isThinking}
+                  disabled={isThinking || finishing}
                   className="flex-1 px-4 py-2 text-sm border rounded-full focus:ring-2 focus:ring-[var(--primary-purple-lighter)] outline-none bg-white"
                   autoFocus
                 />
@@ -356,7 +360,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                 {/* Send Button */}
                 <Button
                   type="submit"
-                  disabled={!backupInput.trim() || isThinking}
+                  disabled={!backupInput.trim() || isThinking || finishing}
                   size="sm"
                   className="bg-[var(--primary-purple)] hover:bg-[var(--primary-purple-hover)] rounded-full h-9 w-9 p-0 flex-shrink-0"
                 >
@@ -401,7 +405,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
             {/* Mic Button with Subtle Pulse Animation */}
             <button
               onClick={handleMicClick}
-              disabled={isThinking || voiceState === 'timeout-prompt'}
+              disabled={isThinking || voiceState === 'timeout-prompt' || finishing}
               className={`
                 w-20 h-20 rounded-full flex items-center justify-center
                 transition-all duration-200

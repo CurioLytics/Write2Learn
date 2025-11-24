@@ -174,6 +174,9 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   };
 
   const handleFinish = async () => {
+    // Stop all ongoing actions first
+    stop();
+    
     setFinishing(true);
     setError(null);
 
@@ -278,7 +281,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
               variant="outline"
               size="sm"
             >
-              {finishing ? 'Finishing...' : 'Finish'}
+              {finishing ? 'Saving...' : 'Finish'}
             </Button>
           </div>
         </div>
@@ -323,19 +326,19 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
-            disabled={isLoading}
+            disabled={isLoading || finishing}
             className="flex-1 px-4 py-2 border rounded-full focus:ring-2 focus:ring-gray-300 outline-none"
           />
 
           {/* Voice Input Button */}
           <VoiceInputButton 
             onTranscript={handleVoiceTranscript}
-            disabled={isLoading}
+            disabled={isLoading || finishing}
           />
 
           <Button
             type="submit"
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!inputValue.trim() || isLoading || finishing}
             className="bg-gray-900 hover:bg-gray-800 rounded-full w-10 h-10 p-0 text-white flex items-center justify-center"
           >
             →
