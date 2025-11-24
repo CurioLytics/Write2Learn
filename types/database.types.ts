@@ -88,6 +88,10 @@ export type Database = {
           },
         ]
       }
+      /**
+       * @deprecated This table is no longer used. 
+       * Replaced by 'feedbacks' and 'grammar_feedback_items' tables.
+       */
       feedback_logs: {
         Row: {
           details: string | null

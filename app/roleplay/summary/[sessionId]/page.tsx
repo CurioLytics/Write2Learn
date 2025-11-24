@@ -33,7 +33,7 @@ export default function RoleplaySummaryPage() {
     style: cachedPreferences?.style || 'conversational',
   };
 
-  const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'improved version'];
+  const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'enhanced version'];
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
@@ -232,7 +232,7 @@ export default function RoleplaySummaryPage() {
                   <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
                   <TabsTrigger value="grammar">Grammar</TabsTrigger>
                   <TabsTrigger value="ideas">Ideas</TabsTrigger>
-                  <TabsTrigger value="improved">Improved</TabsTrigger>
+                  <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="clarity" className="mt-4">
@@ -279,10 +279,10 @@ export default function RoleplaySummaryPage() {
                   />
                 </TabsContent>
                 
-                <TabsContent value="improved" className="mt-4">
-                  <div id="improved-content" className="space-y-2 p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.improved_version && sessionData.feedback.improved_version.length > 0 ? (
-                      sessionData.feedback.improved_version.map((item: string, index: number) => (
+                <TabsContent value="enhanced" className="mt-4">
+                  <div id="enhanced-content" className="space-y-2 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.enhanced_version && sessionData.feedback.enhanced_version.length > 0 ? (
+                      sessionData.feedback.enhanced_version.map((item: string, index: number) => (
                         <p key={index} className="text-gray-800 leading-relaxed">{item}</p>
                       ))
                     ) : (
@@ -290,7 +290,7 @@ export default function RoleplaySummaryPage() {
                     )}
                   </div>
                   <HighlightSelector
-                    containerId="improved-content"
+                    containerId="enhanced-content"
                     onHighlightSaved={addHighlight}
                     highlights={highlights}
                   />

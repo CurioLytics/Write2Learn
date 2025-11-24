@@ -23,7 +23,7 @@ export interface RoleplayFeedback {
   vocabulary: string;
   grammar: string;
   ideas: string;
-  improved_version: string[];
+  enhanced_version: string[];
 }
 
 export interface RoleplaySessionData {

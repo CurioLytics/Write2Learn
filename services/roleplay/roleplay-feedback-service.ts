@@ -1,7 +1,6 @@
 'use client';
 
 import { RoleplayMessage, RoleplayScenario, RoleplayFeedback } from '@/types/roleplay';
-import { handleServiceError, parseFeedbackResponse } from '@/utils/roleplay-utils';
 
 /**
  * Service for generating AI feedback on roleplay conversations
@@ -51,14 +50,24 @@ class RoleplayFeedbackService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'No error details');
-        throw new Error(`Webhook returned ${response.status}: ${errorText}`);
+        throw new Error(`Webhook returned ${response.status}`);
       }
 
       const data = await response.json();
-      return parseFeedbackResponse(data);
+      
+      // Handle nested structure: [{ action: "parse", response: { output: {...} } }]
+      if (Array.isArray(data) && data[0]?.action === 'parse' && data[0]?.response?.output) {
+        return data[0].response.output;
+      }
+      
+      // Fallback to direct structure: [{ output: {...} }]
+      if (Array.isArray(data) && data[0]?.output) {
+        return data[0].output;
+      }
+      
+      throw new Error('Invalid feedback response structure');
     } catch (error) {
-      handleServiceError('generateFeedback', error, 'Failed to generate feedback');
+      throw new Error(error instanceof Error ? error.message : 'Failed to generate feedback');
     }
   }
 }
