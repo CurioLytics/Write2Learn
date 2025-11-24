@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     const body = await parseRequestBody(req);
     
     const result = await vocabularySetService.createVocabularySet(user.id, body as any);
+    
     return createSuccessResponse(result);
   } catch (error) {
     return handleApiError(error);

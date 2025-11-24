@@ -164,13 +164,17 @@ export class VocabularyManagementService {
         }));
 
       if (wordsToInsert.length > 0) {
-        const { error: insertError } = await this.supabase
+        const { data: insertedWords, error: insertError } = await this.supabase
           .from('vocabulary')
-          .insert(wordsToInsert);
+          .insert(wordsToInsert)
+          .select('id');
 
         if (insertError) {
           throw new Error(`Failed to insert vocabulary words: ${insertError.message}`);
         }
+        
+        // Log vocab_created event for each new word
+        // vocab_created events are automatically logged by database triggers
       }
     }
 

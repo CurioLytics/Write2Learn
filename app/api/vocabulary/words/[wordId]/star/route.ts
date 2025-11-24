@@ -20,7 +20,8 @@ export async function POST(
     }
 
     // Use server-side Supabase client with authenticated user
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get current starred status
     const { data: currentData } = await supabase

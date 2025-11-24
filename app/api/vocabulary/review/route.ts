@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await vocabularyReviewService.submitReview(vocabulary_id, rating);
+    const result = await vocabularyReviewService.submitReview(vocabulary_id, rating, user.id);
     return createSuccessResponse(result);
   } catch (error) {
     return handleApiError(error);

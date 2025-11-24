@@ -112,8 +112,8 @@ export default function VocabPage() {
         throw new Error('Failed to toggle star');
       }
 
-      const data = await response.json();
-      const newStarredStatus = data.isStarred;
+      const result = await response.json();
+      const newStarredStatus = result.data?.isStarred;
       
       // Invalidate cache and refresh starred words
       const cacheKey = `starred-words-${user.id}`;

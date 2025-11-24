@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleReview } from "@/lib/fsrs/handler";
+import { authenticateUser } from "@/utils/api-helpers";
 
 export async function POST(req: Request) {
   try {
+    const user = await authenticateUser();
     const { vocabulary_id, flashcard_id, rating } = await req.json();
 
     // Support both new vocabulary_id and legacy flashcard_id

@@ -3,7 +3,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { RoleplayMessage, RoleplayScenario, RoleplayFeedback, RoleplaySessionData } from '@/types/roleplay';
 import { errorLog } from '@/utils/roleplay-utils';
-import { roleplayFeedbackService } from './roleplay-feedback-service';
+import { roleplayFeedbackService } from './roleplay/roleplay-feedback-service';
 
 class RoleplaySessionService {
   /**
@@ -36,7 +36,7 @@ class RoleplaySessionService {
     try {
       const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages, userPreferences);
       
-      if (feedback && feedback.clarity) {
+      if (feedback && feedback.output?.clarity) {
         await this.saveFeedback(sessionId, feedback);
       }
     } catch (feedbackError) {
@@ -91,7 +91,7 @@ class RoleplaySessionService {
     );
     
     // Save feedback
-    if (feedback && feedback.clarity) {
+    if (feedback && feedback.output?.clarity) {
       await this.saveFeedback(sessionId, feedback);
     }
     

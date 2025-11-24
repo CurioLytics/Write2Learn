@@ -88,10 +88,6 @@ export type Database = {
           },
         ]
       }
-      /**
-       * @deprecated This table is no longer used. 
-       * Replaced by 'feedbacks' and 'grammar_feedback_items' tables.
-       */
       feedback_logs: {
         Row: {
           details: string | null
@@ -422,6 +418,41 @@ export type Database = {
           },
         ]
       }
+      learning_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["learning_event_type"]
+          id: string
+          metadata: Json | null
+          profile_id: string
+          reference_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["learning_event_type"]
+          id?: string
+          metadata?: Json | null
+          profile_id: string
+          reference_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["learning_event_type"]
+          id?: string
+          metadata?: Json | null
+          profile_id?: string
+          reference_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_events_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_progress: {
         Row: {
           last_update: string | null
@@ -457,6 +488,8 @@ export type Database = {
       profiles: {
         Row: {
           daily_review_goal: number | null
+          daily_roleplay_goal: number | null
+          daily_journal_goal: number | null
           english_challenges: string[] | null
           english_improvement_reasons: string[] | null
           english_level: string | null
@@ -843,151 +876,37 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      grammar_feedback_view: {
+        Row: {
+          created_at: string | null
+          error_description: string | null
+          profile_id: string | null
+          tags: string[] | null
+          topic_level: string | null
+          topic_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedbacks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      get_flashcard_set_stats: {
-        Args: { user_uuid: string }
-        Returns: {
-          flashcards_due: number
-          set_id: string
-          title: string
-          total_flashcards: number
-        }[]
-      }
-      get_flashcard_sets:
-        | {
-            Args: { profile: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_flashcard_sets(profile => text), public.get_flashcard_sets(profile => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
-          }
-        | {
-            Args: { profile: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_flashcard_sets(profile => text), public.get_flashcard_sets(profile => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
-          }
-      get_flashcards_for_review: {
-        Args: { set_uuid: string; user_uuid: string }
-        Returns: {
-          ease_factor: number
-          example: string
-          flashcard_id: string
-          interval: number
-          meaning: string
-          next_review_at: string
-          state: string
-          word: string
-        }[]
-      }
-      get_journal_stats: {
-        Args: { user_uuid: string }
-        Returns: {
-          current_streak: number
-          total_entries: number
-        }[]
-      }
-      get_journals: {
-        Args: { _user_id: string }
-        Returns: {
-          content: string
-          id: string
-          journal_date: string
-          title: string
-        }[]
-      }
-      get_vocabulary_for_review: {
-        Args: { set_uuid: string; user_uuid: string }
-        Returns: {
-          ease_factor: number
-          example: string
-          interval: number
-          meaning: string
-          next_review_at: string
-          state: string
-          vocabulary_id: string
-          word: string
-        }[]
-      }
-      get_vocabulary_set_stats: {
-        Args: { user_uuid: string }
-        Returns: {
-          set_id: string
-          title: string
-          total_vocabulary: number
-          vocabulary_due: number
-        }[]
-      }
-      get_vocabulary_sets: {
-        Args: { profile: string }
-        Returns: {
-          set_id: string
-          set_title: string
-          total_vocabulary: number
-          vocabulary_due: number
-        }[]
-      }
-      insert_flashcards_into_journal_vocab: {
-        Args: { p_flashcards: Json; p_user_id: string }
-        Returns: {
-          example: string
-          flashcard_id: string
-          meaning: string
-          word: string
-        }[]
-      }
-      insert_vocabulary_into_journal_vocab: {
-        Args: { p_user_id: string; p_vocabulary: Json }
-        Returns: {
-          example: string
-          meaning: string
-          vocabulary_id: string
-          word: string
-        }[]
-      }
-      test_get_journal_vocab_set_id:
-        | {
-            Args: { p_user_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.test_get_journal_vocab_set_id(p_user_id => text), public.test_get_journal_vocab_set_id(p_user_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { p_user_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.test_get_journal_vocab_set_id(p_user_id => text), public.test_get_journal_vocab_set_id(p_user_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-      update_flashcard_review: {
-        Args: {
-          card_id: string
-          difficulty: number
-          ease_factor: number
-          interval: number
-          next_review: string
-          rating: string
-          stability: number
-          user_uuid: string
-        }
-        Returns: undefined
-      }
-      update_vocabulary_review: {
-        Args: {
-          card_id: string
-          difficulty: number
-          ease_factor: number
-          interval: number
-          next_review: string
-          rating: string
-          stability: number
-          user_uuid: string
-        }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       feedback_source_type: "journal" | "roleplay"
+      learning_event_type:
+        | "vocab_created"
+        | "vocab_reviewed"
+        | "journal_created"
+        | "roleplay_completed"
+        | "session_active"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1116,6 +1035,13 @@ export const Constants = {
   public: {
     Enums: {
       feedback_source_type: ["journal", "roleplay"],
+      learning_event_type: [
+        "vocab_created",
+        "vocab_reviewed",
+        "journal_created",
+        "roleplay_completed",
+        "session_active",
+      ],
     },
   },
 } as const

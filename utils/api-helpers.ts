@@ -16,7 +16,8 @@ export interface UserPreferences {
  * Throws error if user is not authenticated
  */
 export async function authenticateUser() {
-  const supabase = createRouteHandlerClient({ cookies });
+  const cookieStore = await cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
   
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -70,7 +71,7 @@ export async function parseRequestBody<T>(request: Request): Promise<T> {
 export function createSuccessResponse(data: any, message?: string) {
   return NextResponse.json({
     success: true,
-    ...data,
+    data,
     ...(message && { message })
   });
 }
@@ -81,7 +82,8 @@ export function createSuccessResponse(data: any, message?: string) {
  * Default: { name: "User", english_level: "intermediate", style: "conversational" }
  */
 export async function getUserPreferences(userId: string): Promise<UserPreferences> {
-  const supabase = createRouteHandlerClient({ cookies });
+  const cookieStore = await cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
   
   const { data: profile } = await supabase
     .from('profiles')

@@ -61,7 +61,7 @@ export class VocabularyReviewService {
   /**
    * Submit a review rating for a vocabulary word
    */
-  async submitReview(vocabularyId: string, rating: number): Promise<ReviewResult> {
+  async submitReview(vocabularyId: string, rating: number, userId?: string): Promise<ReviewResult> {
     if (!vocabularyId || rating === undefined) {
       throw new Error('vocabulary_id and rating are required');
     }
