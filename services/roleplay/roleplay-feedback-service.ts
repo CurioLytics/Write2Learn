@@ -55,14 +55,57 @@ class RoleplayFeedbackService {
 
       const data = await response.json();
       
-      // Handle nested structure: [{ action: "parse", response: { output: {...} } }]
-      if (Array.isArray(data) && data[0]?.action === 'parse' && data[0]?.response?.output) {
-        return data[0].response.output;
-      }
+      // Flexible parsing - handle both old and new webhook formats
+      const findFeedback = (obj: any): RoleplayFeedback | null => {
+        // NEW FORMAT: { enhanced_version, grammar_details, output: {clarity, vocabulary, ideas} }
+        if (obj?.enhanced_version && obj?.grammar_details && obj?.output) {
+          return {
+            enhanced_version: obj.enhanced_version,
+            grammar_details: obj.grammar_details || [],
+            output: {
+              clarity: obj.output.clarity || '',
+              vocabulary: obj.output.vocabulary || '',
+              ideas: obj.output.ideas || ''
+            }
+          };
+        }
+        
+        // OLD FORMAT: { output: {clarity, vocabulary, ideas, enhanced_version} }
+        // Convert to new format
+        if (obj?.output && (obj.output.clarity || obj.output.vocabulary || obj.output.ideas)) {
+          return {
+            enhanced_version: Array.isArray(obj.output.enhanced_version) 
+              ? obj.output.enhanced_version.join('\n\n') 
+              : (obj.output.enhanced_version || ''),
+            grammar_details: obj.grammar_details || [],
+            output: {
+              clarity: obj.output.clarity || '',
+              vocabulary: obj.output.vocabulary || '',
+              ideas: obj.output.ideas || ''
+            }
+          };
+        }
+        
+        // Search in nested fields
+        if (obj?.response) {
+          const result = findFeedback(obj.response);
+          if (result) return result;
+        }
+        
+        // Search in array elements
+        if (Array.isArray(obj)) {
+          for (const item of obj) {
+            const result = findFeedback(item);
+            if (result) return result;
+          }
+        }
+        
+        return null;
+      };
       
-      // Fallback to direct structure: [{ output: {...} }]
-      if (Array.isArray(data) && data[0]?.output) {
-        return data[0].output;
+      const feedback = findFeedback(data);
+      if (feedback) {
+        return feedback;
       }
       
       throw new Error('Invalid feedback response structure');

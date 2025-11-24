@@ -11,8 +11,9 @@ import { HighlightList } from '@/components/features/journal/editor/highlight-li
 import { MessageBubble } from '@/components/roleplay/message-bubble';
 import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
 import { RoleplaySessionData } from '@/types/roleplay';
-import { RoleplayFeedback } from '@/types/roleplay';
+import { RoleplayFeedback, GrammarDetail } from '@/types/roleplay';
 import { RefreshCw } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function RoleplaySummaryPage() {
   const router = useRouter();
@@ -227,17 +228,16 @@ export default function RoleplaySummaryPage() {
               </div>
               
               <Tabs defaultValue="clarity" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="clarity">Clarity</TabsTrigger>
                   <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
-                  <TabsTrigger value="grammar">Grammar</TabsTrigger>
                   <TabsTrigger value="ideas">Ideas</TabsTrigger>
                   <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="clarity" className="mt-4">
                   <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.clarity || 'Không có nội dung'}
+                    {sessionData.feedback.output?.clarity || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
                     containerId="clarity-content"
@@ -248,7 +248,7 @@ export default function RoleplaySummaryPage() {
                 
                 <TabsContent value="vocabulary" className="mt-4">
                   <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.vocabulary || 'Không có nội dung'}
+                    {sessionData.feedback.output?.vocabulary || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
                     containerId="vocabulary-content"
@@ -257,20 +257,9 @@ export default function RoleplaySummaryPage() {
                   />
                 </TabsContent>
                 
-                <TabsContent value="grammar" className="mt-4">
-                  <div id="grammar-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.grammar || 'Không có nội dung'}
-                  </div>
-                  <HighlightSelector
-                    containerId="grammar-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </TabsContent>
-                
                 <TabsContent value="ideas" className="mt-4">
                   <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.ideas || 'Không có nội dung'}
+                    {sessionData.feedback.output?.ideas || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
                     containerId="ideas-content"
@@ -280,14 +269,8 @@ export default function RoleplaySummaryPage() {
                 </TabsContent>
                 
                 <TabsContent value="enhanced" className="mt-4">
-                  <div id="enhanced-content" className="space-y-2 p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.enhanced_version && sessionData.feedback.enhanced_version.length > 0 ? (
-                      sessionData.feedback.enhanced_version.map((item: string, index: number) => (
-                        <p key={index} className="text-gray-800 leading-relaxed">{item}</p>
-                      ))
-                    ) : (
-                      'Không có nội dung'
-                    )}
+                  <div id="enhanced-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {sessionData.feedback.enhanced_version || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
                     containerId="enhanced-content"
@@ -296,6 +279,32 @@ export default function RoleplaySummaryPage() {
                   />
                 </TabsContent>
               </Tabs>
+              
+              {/* Grammar Details */}
+              {sessionData.feedback.grammar_details?.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Grammar Corrections</h3>
+                  <div className="space-y-4">
+                    {sessionData.feedback.grammar_details.map((detail: GrammarDetail, index: number) => (
+                      <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className="text-sm font-medium text-blue-600">
+                              {detail.grammar_topic_id.replace(/_/g, ' ')}
+                            </span>
+                            {detail.tags?.map(tag => (
+                              <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-gray-800 whitespace-pre-wrap">{detail.description}</div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="mb-8 p-8 bg-gray-50 rounded-lg text-center">

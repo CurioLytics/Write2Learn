@@ -133,13 +133,12 @@ class FlashcardGenerationService {
     feedback: any,
     highlights: string[]
   ): Promise<FlashcardGenerationResult> {
-    // Build context from all feedback sections
+    // Build context from all feedback sections (new structure)
     const feedbackContext = [
-      feedback?.clarity ? `Clarity: ${feedback.clarity}` : '',
-      feedback?.vocabulary ? `Vocabulary: ${feedback.vocabulary}` : '',
-      feedback?.grammar ? `Grammar: ${feedback.grammar}` : '',
-      feedback?.ideas ? `Ideas: ${feedback.ideas}` : '',
-      feedback?.improved_version?.length ? `Improved Version:\n${feedback.improved_version.join('\n')}` : ''
+      feedback?.output?.clarity ? `Clarity: ${feedback.output.clarity}` : '',
+      feedback?.output?.vocabulary ? `Vocabulary: ${feedback.output.vocabulary}` : '',
+      feedback?.output?.ideas ? `Ideas: ${feedback.output.ideas}` : '',
+      feedback?.enhanced_version ? `Enhanced Version:\n${feedback.enhanced_version}` : ''
     ].filter(Boolean).join('\n\n');
 
     return this.generateFlashcards({

@@ -30,7 +30,7 @@ class RoleplaySessionService {
     try {
       const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages);
       
-      if (feedback && feedback.clarity) {
+      if (feedback && feedback.output) {
         await this.saveFeedback(sessionId, feedback);
       }
     } catch (feedbackError) {
@@ -43,7 +43,10 @@ class RoleplaySessionService {
   /**
    * Retry feedback generation for a session
    */
-  async retryFeedback(sessionId: string): Promise<RoleplayFeedback> {
+  async retryFeedback(
+    sessionId: string, 
+    userPreferences?: { name?: string; english_level?: string; style?: string } | null
+  ): Promise<RoleplayFeedback> {
     const supabase = createClientComponentClient();
     
     // Get session data
@@ -63,7 +66,7 @@ class RoleplaySessionService {
     const scenario = session.roleplays as any;
     const messages = session.conversation_json?.messages || [];
     
-    // Generate feedback
+    // Generate feedback with user preferences
     const feedback = await roleplayFeedbackService.generateFeedback(
       {
         id: scenario.id,
@@ -77,11 +80,12 @@ class RoleplaySessionService {
         topic: '',
         image: null
       },
-      messages
+      messages,
+      userPreferences
     );
     
     // Save feedback
-    if (feedback && feedback.clarity) {
+    if (feedback && feedback.output) {
       await this.saveFeedback(sessionId, feedback);
     }
     
@@ -112,7 +116,16 @@ class RoleplaySessionService {
       try {
         parsedFeedback = typeof data.feedback === 'string' ? JSON.parse(data.feedback) : data.feedback;
       } catch {
-        parsedFeedback = { clarity: data.feedback, vocabulary: '', grammar: '', ideas: '', improved_version: [] };
+        // Fallback for old format - convert to new structure
+        parsedFeedback = { 
+          enhanced_version: '',
+          grammar_details: [],
+          output: {
+            clarity: typeof data.feedback === 'string' ? data.feedback : '', 
+            vocabulary: '', 
+            ideas: ''
+          }
+        };
       }
     }
 

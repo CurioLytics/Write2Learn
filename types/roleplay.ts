@@ -18,12 +18,20 @@ export interface RoleplayMessage {
   timestamp: number;
 }
 
+export interface GrammarDetail {
+  grammar_topic_id: string;
+  tags: string[];
+  description: string;
+}
+
 export interface RoleplayFeedback {
-  clarity: string;
-  vocabulary: string;
-  grammar: string;
-  ideas: string;
-  enhanced_version: string[];
+  enhanced_version: string;
+  grammar_details: GrammarDetail[];
+  output: {
+    clarity: string;
+    vocabulary: string;
+    ideas: string;
+  };
 }
 
 export interface RoleplaySessionData {
@@ -38,15 +46,6 @@ export interface RoleplaySessionData {
   messages: RoleplayMessage[];
   highlights: string[];
   created_at: string;
-}
-
-// Type định nghĩa cho một phiên hội thoại
-export interface RoleplaySession {
-  id: string;
-  scenarioId: string;
-  messages: RoleplayMessage[];
-  startedAt: number; // Timestamp
-  feedback?: string; // Assessment feedback from AI
 }
 
 // Enum cho các level hiển thị màu khác nhau
