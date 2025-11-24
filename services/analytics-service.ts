@@ -32,6 +32,7 @@ export interface WeeklyActivityData {
 
 export interface GrammarErrorSummary {
   topic_name: string;
+  topic_id: string | null;
   topic_level: string | null;
   error_count: number;
   recent_errors: string[];
@@ -234,15 +235,17 @@ export class AnalyticsService {
 
       // Group by topic and aggregate
       const topicMap = new Map<string, {
+        topic_id: string | null;
         topic_level: string | null;
         errors: string[];
       }>();
 
-      data?.forEach((item: GrammarFeedbackView) => {
+      data?.forEach((item: any) => {
         if (!item.topic_name) return;
 
         if (!topicMap.has(item.topic_name)) {
           topicMap.set(item.topic_name, {
+            topic_id: item.grammar_topic_id || null,
             topic_level: item.topic_level,
             errors: [],
           });
@@ -258,6 +261,7 @@ export class AnalyticsService {
       return Array.from(topicMap.entries())
         .map(([topic_name, data]) => ({
           topic_name,
+          topic_id: data.topic_id,
           topic_level: data.topic_level,
           error_count: data.errors.length,
           recent_errors: data.errors,

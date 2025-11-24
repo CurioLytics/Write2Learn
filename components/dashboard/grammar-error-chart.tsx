@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { GrammarErrorSummary } from '@/services/analytics-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { PracticeDialog } from '@/app/report/components/PracticeDialog';
+import { ErrorData } from '@/types/exercise';
 
 interface GrammarErrorChartProps {
   data: GrammarErrorSummary[];
@@ -25,6 +28,24 @@ const ERROR_COLORS = [
 ];
 
 export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
+  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
+  const [selectedErrorData, setSelectedErrorData] = useState<ErrorData[]>([]);
+
+  const handlePracticeClick = () => {
+    // Map grammar error data to ErrorData format for the practice dialog
+    const errorData: ErrorData[] = data.flatMap(error => 
+      error.recent_errors.map(description => ({
+        topicName: error.topic_name,
+        grammarId: error.topic_id || '',
+        frequency: error.error_count,
+        detectedAt: new Date().toISOString(), // Use current date as fallback
+        description: description
+      }))
+    );
+    setSelectedErrorData(errorData);
+    setIsPracticeOpen(true);
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -59,11 +80,21 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
 
   return (
     <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold">Grammar Error Analysis</h3>
-        <p className="text-sm text-muted-foreground">
-          Most common grammar issues to focus on
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Grammar Error Analysis</h3>
+          <p className="text-sm text-muted-foreground">
+            Most common grammar issues to focus on
+          </p>
+        </div>
+        <Button
+          onClick={handlePracticeClick}
+          disabled={!data || data.length === 0}
+          size="sm"
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Ôn tập từ lỗi sai
+        </Button>
       </div>
 
       <div className="mb-6">
@@ -146,6 +177,12 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
           ))}
         </Accordion>
       </div>
+
+      <PracticeDialog
+        isOpen={isPracticeOpen}
+        onClose={() => setIsPracticeOpen(false)}
+        errorData={selectedErrorData}
+      />
     </Card>
   );
 }
