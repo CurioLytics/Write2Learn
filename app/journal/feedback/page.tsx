@@ -173,9 +173,23 @@ export default function JournalFeedbackPage() {
   };
 
   const handleEdit = () => {
-    localStorage.setItem('editJournalContent', feedback.fixed_typo || feedback.originalVersion || '');
-    localStorage.setItem('editJournalTitle', editableTitle || '');
-    router.push('/journal/new?edit=true');
+    // Check if we have a journalId in the draft to determine which page to navigate to
+    const draftJson = sessionStorage.getItem('journalDraft');
+    
+    if (draftJson) {
+      try {
+        const draft = JSON.parse(draftJson);
+        if (draft.journalId) {
+          router.push(`/journal/${draft.journalId}`);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to parse journal draft:', e);
+      }
+    }
+    
+    // Default to new page if no journalId
+    router.push('/journal/new');
   };
 
   if (loading || processing) {

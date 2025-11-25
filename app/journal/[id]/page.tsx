@@ -1,55 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { useJournalAutosave } from '@/hooks/journal/use-journal-autosave';
 import { journalService } from '@/services/journal-service';
 import { journalFeedbackService } from '@/services/journal-feedback-service';
 import { Button } from '@/components/ui/button';
 import { JournalEditorLayout } from '@/components/journal/journal-editor-layout';
 import { formatDateInput } from '@/utils/date-utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function JournalEditPage() {
   const router = useRouter();
   const params = useParams();
   const { user, loading: authLoading } = useAuth();
   const journalId = params?.id as string;
+  const hasLoadedData = useRef(false);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [journalDate, setJournalDate] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGettingFeedback, setIsGettingFeedback] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialTitle, setInitialTitle] = useState('');
   const [initialContent, setInitialContent] = useState('');
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
-  const autoSave = async () => {
-    if (!journalId || !title || !content) return;
-    
-    try {
-      await journalService.updateJournal(journalId, {
-        title,
-        content,
-        journal_date: journalDate,
-      });
-      await journalService.saveJournalTags(journalId, tags);
-    } catch (err) {
-      console.error('Auto-save failed:', err);
-    }
-  };
-
-  const { clearDraft } = useJournalAutosave({
-    title,
-    content,
-    journalDate,
-    tags,
-    journalId,
-    onSave: autoSave,
-    draftKey: `journal_edit_${journalId}`
-  });
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useCallback(() => {
+    return (title !== initialTitle || content !== initialContent) && (title || content);
+  }, [title, content, initialTitle, initialContent]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,12 +51,10 @@ export default function JournalEditPage() {
     }
   }, [user, authLoading, router]);
 
-  // #9 & #13: Warn on unsaved changes
+  // Warn on unsaved changes when trying to leave page
   useEffect(() => {
-    const hasUnsavedChanges = (title !== initialTitle || content !== initialContent) && (title || content);
-    
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges()) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -70,19 +62,46 @@ export default function JournalEditPage() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [title, content, initialTitle, initialContent]);
+  }, [hasUnsavedChanges]);
 
   useEffect(() => {
     const fetchJournal = async () => {
-      if (!journalId || !user) return;
+      if (!journalId || !user || hasLoadedData.current) return;
 
       try {
-        setIsLoading(false);
+        // Check if loading draft from feedback page
+        const draftJson = sessionStorage.getItem('journalDraft');
+        if (draftJson) {
+          try {
+            const draft = JSON.parse(draftJson);
+            console.log('Loading journal draft:', draft);
+            
+            // Verify this draft belongs to current journal
+            if (draft.journalId === journalId) {
+              setTitle(draft.title || '');
+              setContent(draft.content || '');
+              setInitialTitle(draft.title || '');
+              setInitialContent(draft.content || '');
+              setJournalDate(draft.journalDate || formatDateInput(new Date()));
+              setTags(draft.tags || []);
+              
+              sessionStorage.removeItem('journalDraft');
+              hasLoadedData.current = true;
+              setIsLoadingData(false);
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse journal draft:', e);
+          }
+        }
+
+        // Normal flow: fetch from database
         const journals = await journalService.getJournals(user.id);
         const journalData = journals.find(j => j.id === journalId);
         
         if (!journalData) {
           setError('Journal not found');
+          hasLoadedData.current = true;
           return;
         }
         
@@ -96,11 +115,13 @@ export default function JournalEditPage() {
         setInitialContent(loadedContent);
         setJournalDate(journalData.journal_date || formatDateInput(new Date()));
         setTags(journalTags);
+        hasLoadedData.current = true;
       } catch (error) {
         console.error('Error fetching journal:', error);
         setError('Không thể tải nhật ký. Vui lòng thử lại.');
+        hasLoadedData.current = true;
       } finally {
-        setIsLoading(false);
+        setIsLoadingData(false);
       }
     };
 
@@ -111,7 +132,7 @@ export default function JournalEditPage() {
     if (!journalId || !user) return;
 
     setError(null);
-    setIsLoading(true);
+    setIsSaving(true);
 
     try {
       await journalService.updateJournal(journalId, {
@@ -124,33 +145,41 @@ export default function JournalEditPage() {
         await journalService.saveJournalTags(journalId, tags);
       }
       
-      clearDraft();
+      // Mark as saved by updating initial values
+      setInitialTitle(title);
+      setInitialContent(content);
       router.push('/journal');
     } catch (error) {
       console.error('Error updating journal:', error);
       setError('Không thể lưu nhật ký');
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleGetFeedback = async () => {
     if (!content.trim()) return setError('Vui lòng viết nội dung trước');
 
-    setIsLoading(true);
+    setIsGettingFeedback(true);
     setError(null);
 
     try {
-      // Store current content in sessionStorage for recovery if needed
-      sessionStorage.setItem('unsavedJournal', JSON.stringify({ title, content, journalDate, tags, journalId }));
-      
       const result = await journalFeedbackService.getFeedback(content, title);
 
       if (result.success && result.data) {
-        // Store feedback in sessionStorage instead of URL
+        // Store BOTH draft and feedback for recovery when clicking "Sửa"
+        const journalDraft = {
+          title,
+          content,
+          journalDate,
+          tags,
+          journalId,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('journalDraft', JSON.stringify(journalDraft));
         sessionStorage.setItem('journalFeedback', JSON.stringify(result.data));
-        // Pass only journal ID in URL for cleaner routing
-        router.push(`/journal/feedback?id=${journalId}`);
+        
+        router.push('/journal/feedback');
       } else {
         setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
       }
@@ -158,22 +187,42 @@ export default function JournalEditPage() {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
       setError(`Lỗi: ${errorMessage}`);
     } finally {
-      setIsLoading(false);
+      setIsGettingFeedback(false);
     }
   };
 
   const handleDelete = async () => {
     try {
       await journalService.deleteJournal(journalId);
-      clearDraft();
+      setInitialTitle('');
+      setInitialContent('');
       router.push('/journal');
     } catch (error) {
       setError('Không thể xóa nhật ký');
     }
   };
 
-  const handleVoiceTranscript = (text: string, isFinal: boolean) => {
-    // No additional logic needed here, the layout handles it
+  // Handle navigation with unsaved changes check
+  const handleNavigation = (path: string) => {
+    if (hasUnsavedChanges()) {
+      setPendingNavigation(path);
+      setShowExitDialog(true);
+    } else {
+      router.push(path);
+    }
+  };
+
+  const confirmExit = () => {
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+    }
+    setShowExitDialog(false);
+    setPendingNavigation(null);
+  };
+
+  const cancelExit = () => {
+    setShowExitDialog(false);
+    setPendingNavigation(null);
   };
 
   if (error && !content) {
@@ -190,23 +239,51 @@ export default function JournalEditPage() {
     );
   }
 
+  if (isLoadingData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-gray-600">Đang tải nhật ký...</div>
+      </div>
+    );
+  }
+
   return (
-    <JournalEditorLayout
-      title={title}
-      content={content}
-      journalDate={journalDate}
-      tags={tags}
-      journalId={journalId}
-      isLoading={isLoading}
-      error={error}
-      onTitleChange={setTitle}
-      onContentChange={setContent}
-      onDateChange={setJournalDate}
-      onTagsChange={setTags}
-      onSave={handleSave}
-      onGetFeedback={handleGetFeedback}
-      onDelete={handleDelete}
-      onVoiceTranscript={handleVoiceTranscript}
-    />
+    <>
+      <JournalEditorLayout
+        title={title}
+        content={content}
+        journalDate={journalDate}
+        tags={tags}
+        journalId={journalId}
+        isSaving={isSaving}
+        isGettingFeedback={isGettingFeedback}
+        error={error}
+        onTitleChange={setTitle}
+        onContentChange={setContent}
+        onDateChange={setJournalDate}
+        onTagsChange={setTags}
+        onSave={handleSave}
+        onGetFeedback={handleGetFeedback}
+        onDelete={handleDelete}
+        onNavigate={handleNavigation}
+      />
+
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có thay đổi chưa lưu</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn rời khỏi trang này không? Tất cả những thay đổi chưa lưu sẽ bị mất.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelExit}>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmExit}>
+              Rời khỏi trang
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

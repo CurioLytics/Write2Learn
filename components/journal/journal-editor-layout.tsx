@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
 import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
+import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { Loader2 } from 'lucide-react';
 
 interface JournalEditorLayoutProps {
@@ -14,8 +15,10 @@ interface JournalEditorLayoutProps {
   journalDate: string;
   tags: string[];
   journalId?: string;
-  isLoading: boolean;
+  isSaving: boolean;
+  isGettingFeedback: boolean;
   error: string | null;
+  hasContent?: boolean;
   onTitleChange: (title: string) => void;
   onContentChange: (content: string) => void;
   onDateChange: (date: string) => void;
@@ -23,7 +26,7 @@ interface JournalEditorLayoutProps {
   onSave: () => void;
   onGetFeedback: () => void;
   onDelete: () => void;
-  onVoiceTranscript: (text: string, isFinal: boolean) => void;
+  onNavigate?: (path: string) => void;
 }
 
 export function JournalEditorLayout({
@@ -32,8 +35,10 @@ export function JournalEditorLayout({
   journalDate,
   tags,
   journalId,
-  isLoading,
+  isSaving,
+  isGettingFeedback,
   error,
+  hasContent = true,
   onTitleChange,
   onContentChange,
   onDateChange,
@@ -41,7 +46,7 @@ export function JournalEditorLayout({
   onSave,
   onGetFeedback,
   onDelete,
-  onVoiceTranscript,
+  onNavigate,
 }: JournalEditorLayoutProps) {
   const editorRef = useRef<LiveMarkdownEditorRef>(null);
 
@@ -49,14 +54,36 @@ export function JournalEditorLayout({
     if (isFinal && editorRef.current) {
       editorRef.current.insertTextAtCursor(text);
     }
-    onVoiceTranscript(text, isFinal);
   };
+
+  const handleBackClick = (e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate('/journal');
+    }
+  };
+
+  // Show breathing loader when getting feedback
+  if (isGettingFeedback) {
+    return (
+      <div className="bg-white px-6 py-8 min-h-screen flex items-center justify-center">
+        <BreathingLoader 
+          message="Đang phân tích nhật ký của bạn..."
+          className="max-w-md"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white px-6 py-8">
       <main className="max-w-3xl w-full mx-auto flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/journal" className="text-blue-600 text-sm hover:underline">
+          <Link 
+            href="/journal" 
+            className="text-blue-600 text-sm hover:underline"
+            onClick={handleBackClick}
+          >
             ⬅ Back to Journal
           </Link>
           <div className="flex items-center gap-3">
@@ -68,18 +95,18 @@ export function JournalEditorLayout({
               onTagsChange={onTagsChange}
               onDelete={onDelete}
             />
-            <Button onClick={onSave} variant="outline" disabled={isLoading}>
-              Lưu
-            </Button>
-            <Button onClick={onGetFeedback} disabled={!content || !title || isLoading}>
-              {isLoading ? (
+            <Button onClick={onSave} variant="outline" disabled={!hasContent || isSaving || isGettingFeedback}>
+              {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang xử lý...
+                  Đang lưu...
                 </>
               ) : (
-                'Nhận phản hồi'
+                'Lưu'
               )}
+            </Button>
+            <Button onClick={onGetFeedback} disabled={!hasContent || !content || !title || isSaving || isGettingFeedback}>
+              Nhận phản hồi
             </Button>
           </div>
         </div>
@@ -104,7 +131,7 @@ export function JournalEditorLayout({
 
         {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
       </main>
-      {!isLoading && <FloatingVoiceButton onTranscript={handleVoiceTranscript} />}
+      {!isSaving && !isGettingFeedback && <FloatingVoiceButton onTranscript={handleVoiceTranscript} />}
     </div>
   );
 }

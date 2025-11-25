@@ -21,15 +21,21 @@ export function AuthForm() {
   const [user, setUser] = useState<User | null>(null);
   const [onboardingMessage, setOnboardingMessage] = useState<string | null>(null);
 
-  // Kiểm tra xem người dùng có vừa hoàn thành onboarding hay không
+  // Check for mode and onboarding query parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Kiểm tra query param onboardingComplete
       const urlParams = new URLSearchParams(window.location.search);
-      const onboardingComplete = urlParams.get('onboardingComplete');
       
+      // Check for mode parameter (signup/signin)
+      const modeParam = urlParams.get('mode');
+      if (modeParam === 'signup' || modeParam === 'signin') {
+        setMode(modeParam as AuthMode);
+      }
+      
+      // Check for onboarding completion
+      const onboardingComplete = urlParams.get('onboardingComplete');
       if (onboardingComplete === 'true') {
-        setMode('signup'); // Tự động chuyển sang chế độ đăng ký
+        setMode('signup');
         setOnboardingMessage('Tuyệt vời! Bạn đã hoàn thành các bước khởi đầu. Hãy tạo tài khoản để lưu lại thông tin của bạn.');
       }
     }

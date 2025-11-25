@@ -306,6 +306,7 @@ class JournalService {
 
   /**
    * Save tags for a journal entry
+   * Ensures tags exist in journal_tags table before creating associations
    * 
    * @param journalId The journal ID
    * @param tags Array of tag names
@@ -317,26 +318,42 @@ class JournalService {
       
       const supabase = createSupabaseClient();
       
-      // First, delete existing tags for this journal
+      // First, delete existing tag associations for this journal
       await supabase
         .from('journal_tag')
         .delete()
         .eq('journal_id', journalId);
       
-      // Then insert new tags
+      // Then insert new tags (if any)
       if (tags.length > 0) {
+        // Step 1: Ensure all tags exist in journal_tags table
+        // Use upsert to avoid conflicts if tag already exists
+        const tagRecords = tags.map(tag => ({ name: tag }));
+        const { error: tagError } = await supabase
+          .from('journal_tags')
+          .upsert(tagRecords, { 
+            onConflict: 'name',
+            ignoreDuplicates: true 
+          });
+        
+        if (tagError) {
+          console.error('Error ensuring tags exist in journal_tags:', tagError);
+          throw tagError;
+        }
+        
+        // Step 2: Create associations in journal_tag junction table
         const tagInserts = tags.map(tag => ({
           journal_id: journalId,
           tag_id: tag
         }));
         
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('journal_tag')
           .insert(tagInserts);
         
-        if (error) {
-          console.error('Error inserting journal tags:', error);
-          throw error;
+        if (insertError) {
+          console.error('Error inserting journal tag associations:', insertError);
+          throw insertError;
         }
       }
       

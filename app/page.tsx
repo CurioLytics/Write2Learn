@@ -61,7 +61,7 @@ export default function LandingPage() {
   // Footer links
   const footerLinks = [
     { text: "Đăng nhập", href: "/auth" },
-    { text: "Đăng ký", href: "/auth" },
+    { text: "Đăng ký", href: "/auth?mode=signup" },
     { text: "Quyền riêng tư", href: "#" },
     { text: "Điều khoản", href: "#" },
   ];
@@ -73,7 +73,7 @@ export default function LandingPage() {
         logoSrc="/images/logo.svg"
         logoText="W2L"
         buttonText="Đăng ký"
-        buttonLink="/auth"
+        buttonLink="/auth?mode=signup"
       />
 
       {/* Hero Section */}
@@ -81,8 +81,8 @@ export default function LandingPage() {
         title="W2L – Viết để Học"
         subtitle="Biến từng dòng chữ thành bước tiến trong hành trình ngôn ngữ của bạn."
         description="Viết suy nghĩ, nhận phản hồi tức thì và lưu lại những từ vựng mang ý nghĩa với riêng bạn."
-        buttonText="Bắt đầu hành trình của bạn"
-        buttonLink="/auth"
+        buttonText="Khám phá hành trình của bạn"
+        buttonLink="/auth?mode=signup"
       />
 
       {/* Features Section */}
