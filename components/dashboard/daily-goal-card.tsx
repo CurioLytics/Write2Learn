@@ -5,19 +5,41 @@ import { Card } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 import { DailyGoalStatus } from '@/services/analytics-service';
 import { cn } from '@/utils/ui';
+import { useUserProfileStore } from '@/stores/user-profile-store';
 
 interface DailyGoalCardProps {
   data: DailyGoalStatus | null;
   isLoading?: boolean;
 }
 
-const GOALS = [
-  { key: 'vocab_created', label: 'Add Vocabulary', icon: '📚', color: 'blue' },
-  { key: 'journal_created', label: 'Write Journal', icon: '✍️', color: 'purple' },
-  { key: 'roleplay_completed', label: 'Complete Roleplay', icon: '🎭', color: 'pink' },
-] as const;
-
 export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
+  const profile = useUserProfileStore(state => state.profile);
+  
+  // Use cached profile goals or fallback to API data targets
+  const goals = [
+    { 
+      key: 'vocab_created' as const, 
+      label: 'Add Vocabulary', 
+      icon: '📚', 
+      color: 'blue',
+      target: profile?.daily_vocab_goal || data?.vocab_created.target || 10
+    },
+    { 
+      key: 'journal_created' as const, 
+      label: 'Write Journal', 
+      icon: '✍️', 
+      color: 'purple',
+      target: profile?.daily_journal_goal || data?.journal_created.target || 3
+    },
+    { 
+      key: 'roleplay_completed' as const, 
+      label: 'Complete Roleplay', 
+      icon: '🎭', 
+      color: 'pink',
+      target: profile?.daily_roleplay_goal || data?.roleplay_completed.target || 2
+    },
+  ];
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -29,13 +51,13 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   }
 
   const totalCompleted = data
-    ? GOALS.filter(goal => {
+    ? goals.filter(goal => {
         const goalData = data[goal.key];
-        return goalData.completed >= goalData.target;
+        return goalData.completed >= goal.target;
       }).length
     : 0;
 
-  const totalGoals = GOALS.length;
+  const totalGoals = goals.length;
 
   return (
     <Card className="p-6">
@@ -47,10 +69,11 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
       </div>
 
       <div className="space-y-4">
-        {GOALS.map(goal => {
-          const goalData = data?.[goal.key] || { completed: 0, target: 0 };
-          const isCompleted = goalData.completed >= goalData.target;
-          const progress = Math.min((goalData.completed / goalData.target) * 100, 100);
+        {goals.map(goal => {
+          const completed = data?.[goal.key]?.completed || 0;
+          const target = goal.target;
+          const isCompleted = completed >= target;
+          const progress = Math.min((completed / target) * 100, 100);
           
           return (
             <div key={goal.key} className="space-y-2">
@@ -64,7 +87,7 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
                     "text-sm font-semibold",
                     isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
                   )}>
-                    {goalData.completed}/{goalData.target}
+                    {completed}/{target}
                   </span>
                   {isCompleted && (
                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">

@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { getCurrentUser, signOut as authSignOut } from '@/services/auth-service';
 import { AuthContextType } from '@/hooks/auth/use-auth';
+import { useUserProfileStore } from '@/stores/user-profile-store';
 
 export interface UserPreferences {
   name: string | null;
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const fetchProfile = useUserProfileStore(state => state.fetchProfile);
 
   useEffect(() => {
     // Track mounted state to prevent state updates after unmount
@@ -52,6 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               english_level: profile?.english_level || null,
               style: profile?.style || null,
             });
+            
+            // Cache full profile data including goals
+            await fetchProfile(user.id);
           }
         }
 
@@ -96,6 +101,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 english_level: profile?.english_level || null,
                 style: profile?.style || null,
               });
+              
+              // Cache full profile data including goals
+              await fetchProfile(session.user.id);
             }
           })();
         }

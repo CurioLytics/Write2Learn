@@ -78,7 +78,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <Hero 
-        title="W2L – Viết để Học"
+        title={<><span className="text-black">W</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">L</span> – Viết để Học</>}
         subtitle="Biến từng dòng chữ thành bước tiến trong hành trình ngôn ngữ của bạn."
         description="Viết suy nghĩ, nhận phản hồi tức thì và lưu lại những từ vựng mang ý nghĩa với riêng bạn."
         buttonText="Khám phá hành trình của bạn"
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <Section 
-        title="Bạn có thể làm gì với W2L?" 
+        title={<>Bạn có thể làm gì với <span className="text-black">W</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">L</span>?</>}
         bgColor="bg-blue-50"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -104,7 +104,7 @@ export default function LandingPage() {
 
       {/* How It Works Section */}
       <Section 
-        title="Cách W2L đồng hành cùng bạn"
+        title={<>Cách <span className="text-black">W</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">L</span> đồng hành cùng bạn</>}
         bgColor="bg-white"
       >
         <div className="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-8">

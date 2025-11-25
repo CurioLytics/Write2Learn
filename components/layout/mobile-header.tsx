@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { UserProfileDisplay } from './user-profile-display';
+import { BrandedText } from '@/components/ui/branded-text';
 import { User, Settings, MessageSquare, LogOut, LogIn } from 'lucide-react';
 
 export function MobileHeader() {
@@ -28,8 +29,8 @@ export function MobileHeader() {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center z-40">
       <Link href="/home">
-        <h1 className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">
-          Write2Learn
+        <h1 className="text-lg cursor-pointer hover:opacity-80 transition-opacity">
+          <BrandedText variant="full" />
         </h1>
       </Link>
       

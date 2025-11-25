@@ -11,6 +11,9 @@ export interface UserProfileData {
   english_level: string | null;
   style: string | null;
   daily_review_goal: number | null;
+  daily_vocab_goal: number | null;
+  daily_journal_goal: number | null;
+  daily_roleplay_goal: number | null;
   updated_at: string | null;
   onboarding_completed: boolean;
 }
@@ -40,7 +43,7 @@ export const useUserProfileStore = create<UserProfileState>()(
           const supabase = createClientComponentClient();
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, english_level, style, daily_review_goal, updated_at, onboarding_completed')
+            .select('id, name, english_level, style, daily_review_goal, daily_vocab_goal, daily_journal_goal, daily_roleplay_goal, updated_at, onboarding_completed')
             .eq('id', userId)
             .single();
             

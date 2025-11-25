@@ -17,6 +17,9 @@ export async function saveOnboardingData(userId: string, data: OnboardingData) {
       english_level: data.english_level,
       style: data.english_tone,
       daily_review_goal: data.daily_review_goal,
+      daily_vocab_goal: data.daily_vocab_goal,
+      daily_journal_goal: data.daily_journal_goal,
+      daily_roleplay_goal: data.daily_roleplay_goal,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),
     })

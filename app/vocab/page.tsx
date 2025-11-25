@@ -196,11 +196,15 @@ export default function VocabPage() {
               error={flashcardError}
               onSelectSet={handleSelectSet}
               onStarToggle={(setId: string, newStarredStatus: boolean) => {
+                console.log('[VocabPage] Star toggled:', { setId, newStarredStatus });
                 setFlashcardSets(prev => prev.map(set => 
                   set.set_id === setId 
                     ? { ...set, is_starred: newStarredStatus }
                     : set
                 ));
+              }}
+              onDelete={(setId: string) => {
+                setFlashcardSets(prev => prev.filter(set => set.set_id !== setId));
               }}
             />
 

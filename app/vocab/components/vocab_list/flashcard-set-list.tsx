@@ -11,6 +11,7 @@ interface VocabularySetListProps {
   error?: string | null;
   onSelectSet?: (setId: string) => void;
   onStarToggle?: (setId: string, newStarredStatus: boolean) => void;
+  onDelete?: (setId: string) => void;
 }
 
 // Legacy alias for backward compatibility
@@ -23,7 +24,8 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   isLoading = false,
   error = null,
   onSelectSet,
-  onStarToggle
+  onStarToggle,
+  onDelete
 }) => {
   if (isLoading) {
     return (
@@ -87,6 +89,7 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
               }
             }}
             onStarToggle={onStarToggle}
+            onDelete={onDelete}
           />
         ))}
       </div>

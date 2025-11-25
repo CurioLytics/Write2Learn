@@ -15,6 +15,9 @@ interface ProfileData {
   english_level: string;
   style: string;
   daily_review_goal: number;
+  daily_vocab_goal: number;
+  daily_journal_goal: number;
+  daily_roleplay_goal: number;
 }
 
 const ENGLISH_LEVELS = [
@@ -49,13 +52,19 @@ export default function ProfilePage() {
     name: '',
     english_level: '',
     style: '',
-    daily_review_goal: 10
+    daily_review_goal: 10,
+    daily_vocab_goal: 10,
+    daily_journal_goal: 1,
+    daily_roleplay_goal: 2
   });
   const [originalData, setOriginalData] = useState<ProfileData>({
     name: '',
     english_level: '',
     style: '',
-    daily_review_goal: 10
+    daily_review_goal: 10,
+    daily_vocab_goal: 10,
+    daily_journal_goal: 1,
+    daily_roleplay_goal: 2
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -73,7 +82,7 @@ export default function ProfilePage() {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, english_level, style, daily_review_goal')
+          .select('name, english_level, style, daily_review_goal, daily_vocab_goal, daily_journal_goal, daily_roleplay_goal')
           .eq('id', user.id)
           .single();
 
@@ -86,7 +95,10 @@ export default function ProfilePage() {
           name: (profile as any)?.name || '',
           english_level: (profile as any)?.english_level || '',
           style: (profile as any)?.style || '',
-          daily_review_goal: (profile as any)?.daily_review_goal || 10
+          daily_review_goal: (profile as any)?.daily_review_goal || 10,
+          daily_vocab_goal: (profile as any)?.daily_vocab_goal || 10,
+          daily_journal_goal: (profile as any)?.daily_journal_goal || 1,
+          daily_roleplay_goal: (profile as any)?.daily_roleplay_goal || 2
         };
         
         setProfileData(profileData);
@@ -112,6 +124,9 @@ export default function ProfilePage() {
           english_level: profileData.english_level,
           style: profileData.style,
           daily_review_goal: profileData.daily_review_goal,
+          daily_vocab_goal: profileData.daily_vocab_goal,
+          daily_journal_goal: profileData.daily_journal_goal,
+          daily_roleplay_goal: profileData.daily_roleplay_goal,
           updated_at: new Date().toISOString()
         } as any);
 
@@ -185,95 +200,173 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Settings */}
-        <div className="space-y-6">
-          {/* Name */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Name</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Input
-                value={profileData.name}
-                onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter your name"
-                readOnly={!isEditing}
-                className={!isEditing ? "bg-gray-50 cursor-default" : ""}
-              />
-            </CardContent>
-          </Card>
-
-          {/* English Level */}
-          <Card>
-            <CardHeader>
-              <CardTitle>English Level</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {ENGLISH_LEVELS.map((level) => (
-                  <Button
-                    key={level}
-                    variant={profileData.english_level === level ? "default" : "outline"}
-                    className={`text-sm ${
-                      profileData.english_level === level 
-                        ? "bg-gray-800 hover:bg-gray-900 text-white" 
-                        : "hover:bg-gray-100"
-                    } ${!isEditing ? "cursor-default" : ""}`}
-                    onClick={() => isEditing && setProfileData(prev => ({ ...prev, english_level: level }))}
-                    disabled={!isEditing}
-                  >
-                    {ENGLISH_LEVEL_LABELS[level]}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Daily Review Goal */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Review Goal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label>Number of flashcards to review per day</Label>
+        <div className="space-y-8">
+          {/* Profile Information Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Profile Information</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>Name</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={profileData.daily_review_goal}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, daily_review_goal: parseInt(e.target.value) || 10 }))}
+                  value={profileData.name}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter your name"
                   readOnly={!isEditing}
                   className={!isEditing ? "bg-gray-50 cursor-default" : ""}
                 />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Tone and Style Preference */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Tone and Style Preference</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {ENGLISH_TONES.map((tone) => (
-                  <button
-                    key={tone.value}
-                    onClick={() => isEditing && setProfileData(prev => ({ ...prev, style: tone.value }))}
-                    disabled={!isEditing}
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                      profileData.style === tone.value
-                        ? 'border-gray-800 bg-gray-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    } ${!isEditing ? 'cursor-default' : 'cursor-pointer'}`}
-                  >
-                    <div className="font-medium text-gray-900">{tone.label}</div>
-                    <div className="text-sm text-gray-600 mt-1">{tone.description}</div>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* English Level & Preferences Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">English Level & Preferences</h2>
+            <div className="space-y-6">
+              {/* English Level */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>English Level</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {ENGLISH_LEVELS.map((level) => (
+                      <Button
+                        key={level}
+                        variant={profileData.english_level === level ? "default" : "outline"}
+                        className={`text-sm ${
+                          profileData.english_level === level 
+                            ? "bg-gray-800 hover:bg-gray-900 text-white" 
+                            : "hover:bg-gray-100"
+                        } ${!isEditing ? "cursor-default" : ""}`}
+                        onClick={() => isEditing && setProfileData(prev => ({ ...prev, english_level: level }))}
+                        disabled={!isEditing}
+                      >
+                        {ENGLISH_LEVEL_LABELS[level]}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tone and Style Preference */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tone and Style Preference</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {ENGLISH_TONES.map((tone) => (
+                      <button
+                        key={tone.value}
+                        onClick={() => isEditing && setProfileData(prev => ({ ...prev, style: tone.value }))}
+                        disabled={!isEditing}
+                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                          profileData.style === tone.value
+                            ? 'border-gray-800 bg-gray-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        } ${!isEditing ? 'cursor-default' : 'cursor-pointer'}`}
+                      >
+                        <div className="font-medium text-gray-900">{tone.label}</div>
+                        <div className="text-sm text-gray-600 mt-1">{tone.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Learning Goals Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Learning Goals</h2>
+            <div className="space-y-6">
+              {/* Daily Vocabulary Goal */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Vocabulary Goal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label>Number of new words to learn per day</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={profileData.daily_vocab_goal}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, daily_vocab_goal: parseInt(e.target.value) || 10 }))}
+                      readOnly={!isEditing}
+                      className={!isEditing ? "bg-gray-50 cursor-default" : ""}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daily Journal Goal */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Journal Goal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label>Number of journal entries to write per day</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={profileData.daily_journal_goal}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, daily_journal_goal: parseInt(e.target.value) || 1 }))}
+                      readOnly={!isEditing}
+                      className={!isEditing ? "bg-gray-50 cursor-default" : ""}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daily Roleplay Goal */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Roleplay Goal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label>Number of roleplay sessions per day</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={profileData.daily_roleplay_goal}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, daily_roleplay_goal: parseInt(e.target.value) || 2 }))}
+                      readOnly={!isEditing}
+                      className={!isEditing ? "bg-gray-50 cursor-default" : ""}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daily Review Goal */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Review Goal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label>Number of vocabulary flashcards to review per day</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={profileData.daily_review_goal}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, daily_review_goal: parseInt(e.target.value) || 10 }))}
+                      readOnly={!isEditing}
+                      className={!isEditing ? "bg-gray-50 cursor-default" : ""}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           {/* Save Button - Only show when editing */}
           {isEditing && (

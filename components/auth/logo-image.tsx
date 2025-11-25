@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { BrandedText } from '@/components/ui/branded-text';
 
 export function LogoImage() {
   const [errorLoading, setErrorLoading] = useState(false);
@@ -23,7 +24,7 @@ export function LogoImage() {
       />
       {errorLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-semibold text-lg">Write2Learn</span>
+          <BrandedText variant="full" className="text-lg" />
         </div>
       )}
     </div>

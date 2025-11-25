@@ -144,6 +144,46 @@ class VocabularyService {
       throw error;
     }
   }
+
+  /**
+   * Delete vocabulary set and all associated words
+   */
+  async deleteVocabularySet(setId: string): Promise<{ success: boolean }> {
+    try {
+      console.log('[VocabularyService] Deleting vocabulary set:', setId);
+      
+      const supabase = createSupabaseClient();
+      
+      // Delete vocabulary words first (foreign key constraint)
+      const { error: deleteWordsError } = await supabase
+        .from('vocabulary')
+        .delete()
+        .eq('set_id', setId);
+      
+      if (deleteWordsError) {
+        console.error('[VocabularyService] Error deleting words:', deleteWordsError);
+        throw new Error(`Failed to delete vocabulary words: ${deleteWordsError.message}`);
+      }
+      
+      // Delete vocabulary set
+      const { error: deleteSetError } = await supabase
+        .from('vocabulary_set')
+        .delete()
+        .eq('id', setId);
+      
+      if (deleteSetError) {
+        console.error('[VocabularyService] Error deleting set:', deleteSetError);
+        throw new Error(`Failed to delete vocabulary set: ${deleteSetError.message}`);
+      }
+      
+      console.log('[VocabularyService] Successfully deleted vocabulary set:', setId);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('[VocabularyService] Error in deleteVocabularySet:', error);
+      throw error;
+    }
+  }
 }
 
 export const vocabularyService = new VocabularyService();

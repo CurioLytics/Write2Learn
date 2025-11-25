@@ -490,6 +490,7 @@ export type Database = {
           daily_review_goal: number | null
           daily_roleplay_goal: number | null
           daily_journal_goal: number | null
+          daily_vocab_goal: number | null
           english_challenges: string[] | null
           english_improvement_reasons: string[] | null
           english_level: string | null
@@ -503,6 +504,9 @@ export type Database = {
         }
         Insert: {
           daily_review_goal?: number | null
+          daily_roleplay_goal?: number | null
+          daily_journal_goal?: number | null
+          daily_vocab_goal?: number | null
           english_challenges?: string[] | null
           english_improvement_reasons?: string[] | null
           english_level?: string | null
@@ -516,6 +520,9 @@ export type Database = {
         }
         Update: {
           daily_review_goal?: number | null
+          daily_roleplay_goal?: number | null
+          daily_journal_goal?: number | null
+          daily_vocab_goal?: number | null
           english_challenges?: string[] | null
           english_improvement_reasons?: string[] | null
           english_level?: string | null

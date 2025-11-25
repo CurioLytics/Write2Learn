@@ -9,6 +9,9 @@ export interface OnboardingData {
   english_level: string;
   english_tone: string;
   daily_review_goal: number;
+  daily_vocab_goal: number;
+  daily_journal_goal: number;
+  daily_roleplay_goal: number;
 }
 
 export type OnboardingStep = 
@@ -22,7 +25,11 @@ export type OnboardingStep =
   | 'english-challenges'
   | 'english-level'
   | 'english-tone'
-  | 'daily-goal';
+  | 'daily-goal'
+  | 'goals-intro'
+  | 'vocab-goal'
+  | 'journal-goal'
+  | 'roleplay-goal';
 
 export interface StepConfig {
   id: OnboardingStep;
@@ -102,13 +109,7 @@ export const ENGLISH_TONES = [
   },
 ];
 
-// Daily review goals
-export const DAILY_REVIEW_GOALS = [
-  { value: 5, label: '5 words per day' },
-  { value: 10, label: '10 words per day' },
-  { value: 15, label: '15 words per day' },
-  { value: 20, label: '20 words per day' },
-];
+
 
 // Onboarding steps configuration
 export const ONBOARDING_STEPS: StepConfig[] = [
@@ -190,9 +191,35 @@ export const ONBOARDING_STEPS: StepConfig[] = [
     id: 'daily-goal',
     title: 'Daily review goal',
     description: 'How many words do you want to review each day?',
-    type: 'single-select',
-    options: DAILY_REVIEW_GOALS,
+    type: 'text-input',
     dataKey: 'daily_review_goal',
+  },
+  {
+    id: 'goals-intro',
+    title: 'Set Your Learning Goals',
+    description: 'Let\'s define what success looks like for you.',
+    type: 'section-intro',
+  },
+  {
+    id: 'vocab-goal',
+    title: 'Vocabulary Goal',
+    description: 'How many new words do you want to learn per day?',
+    type: 'text-input',
+    dataKey: 'daily_vocab_goal',
+  },
+  {
+    id: 'journal-goal',
+    title: 'Journaling Goal',
+    description: 'How many entries do you want to write per day?',
+    type: 'text-input',
+    dataKey: 'daily_journal_goal',
+  },
+  {
+    id: 'roleplay-goal',
+    title: 'Conversation Practice Goal',
+    description: 'How many roleplay sessions do you want per day?',
+    type: 'text-input',
+    dataKey: 'daily_roleplay_goal',
   },
 ];
 

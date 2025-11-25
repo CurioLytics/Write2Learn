@@ -69,7 +69,7 @@ export default function FeedbackPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-900">Cảm ơn bạn!</h1>
             <p className="text-gray-600">
-              Chúng mình chắc chắn sẽ xem xét phản hồi của bạn để cải thiện Write2Learn.
+              Chúng mình chắc chắn sẽ xem xét phản hồi của bạn để cải thiện <span className="text-black">Write</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">Learn</span>.
             </p>
           </div>
 
@@ -109,7 +109,7 @@ export default function FeedbackPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Gửi phản hồi</h1>
           <p className="text-gray-600 text-sm">
-            Chia sẻ ý kiến của bạn để giúp chúng tôi cải thiện Write2Learn
+            Chia sẻ ý kiến của bạn để giúp chúng tôi cải thiện <span className="text-black">Write</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">Learn</span>
           </p>
         </div>
 

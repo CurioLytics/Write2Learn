@@ -30,6 +30,9 @@ export default function OnboardingPage() {
     english_level: '',
     english_tone: '',
     daily_review_goal: 10,
+    daily_vocab_goal: 10,
+    daily_journal_goal: 3,
+    daily_roleplay_goal: 2,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSetup, setIsLoadingSetup] = useState(false);
@@ -46,7 +49,8 @@ export default function OnboardingPage() {
   
   const hasSelection = currentStep.dataKey ? 
     (currentStep.type === 'text-input' ?
-      !!(data[currentStep.dataKey] as string)?.trim() :
+      !!(data[currentStep.dataKey] as string | number) && 
+      (typeof data[currentStep.dataKey] === 'number' ? data[currentStep.dataKey] > 0 : (data[currentStep.dataKey] as string).trim() !== '') :
       Array.isArray(data[currentStep.dataKey]) ? 
         (data[currentStep.dataKey] as any[]).length > 0 : 
         !!data[currentStep.dataKey]) : 
@@ -141,7 +145,6 @@ export default function OnboardingPage() {
         : [...current, value];
       setData({ ...data, [key]: updated });
     } else {
-      // single-select
       setData({ ...data, [key]: value });
     }
   };
@@ -194,6 +197,8 @@ export default function OnboardingPage() {
         );
 
       case 'text-input':
+        const isNumberInput = ['daily_review_goal', 'daily_vocab_goal', 'daily_journal_goal', 'daily_roleplay_goal'].includes(currentStep.dataKey || '');
+        
         return (
           <div className="py-8">
             <div className="mb-8 text-center">
@@ -208,14 +213,16 @@ export default function OnboardingPage() {
             </div>
             <div className="max-w-md mx-auto">
               <input
-                type="text"
-                value={(currentStep.dataKey ? data[currentStep.dataKey] : '') as string}
+                type={isNumberInput ? 'number' : 'text'}
+                min={isNumberInput ? '1' : undefined}
+                value={(currentStep.dataKey ? data[currentStep.dataKey] : '') as string | number}
                 onChange={(e) => {
                   if (currentStep.dataKey) {
-                    setData({ ...data, [currentStep.dataKey]: e.target.value });
+                    const value = isNumberInput ? parseInt(e.target.value) || 0 : e.target.value;
+                    setData({ ...data, [currentStep.dataKey]: value });
                   }
                 }}
-                placeholder={currentStep.placeholder}
+                placeholder={currentStep.placeholder || (isNumberInput ? 'e.g., 10' : '')}
                 className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 autoFocus
               />
