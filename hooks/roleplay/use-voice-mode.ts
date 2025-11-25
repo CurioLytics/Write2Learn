@@ -4,18 +4,20 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { voiceService } from '@/services/voice-service';
 import { ttsService } from '@/services/tts-service';
 
-type VoiceState = 'idle' | 'bot-speaking' | 'listening' | 'user-speaking' | 'thinking' | 'timeout-prompt';
+type VoiceState = 'idle' | 'bot-speaking' | 'listening' | 'user-speaking' | 'thinking';
 
 interface UseVoiceModeOptions {
   onUserMessage: (text: string) => void;
   autoActivateDelay?: number; // Delay after bot finishes (ms)
   listeningTimeout?: number; // Timeout for user silence (ms)
+  autoSendDelay?: number; // Auto-send after user pauses (ms)
 }
 
 export function useVoiceMode({
   onUserMessage,
   autoActivateDelay = 1500, // 1.5 seconds
   listeningTimeout = 12000, // 12 seconds
+  autoSendDelay = 2000, // 2 seconds after user pauses
 }: UseVoiceModeOptions) {
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +26,8 @@ export function useVoiceMode({
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const autoActivateRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSendRef = useRef<NodeJS.Timeout | null>(null);
+  const lastInterimTextRef = useRef<string>('');
 
   // Clear all timers
   const clearTimers = useCallback(() => {
@@ -34,6 +38,10 @@ export function useVoiceMode({
     if (autoActivateRef.current) {
       clearTimeout(autoActivateRef.current);
       autoActivateRef.current = null;
+    }
+    if (autoSendRef.current) {
+      clearTimeout(autoSendRef.current);
+      autoSendRef.current = null;
     }
   }, []);
 
@@ -59,14 +67,14 @@ export function useVoiceMode({
     // Start timeout for user silence
     timeoutRef.current = setTimeout(() => {
       voiceService.stopListening();
-      setVoiceState('timeout-prompt');
+      setVoiceState('idle');
       setInterimText('');
     }, listeningTimeout);
 
     voiceService.startListening(
       (text, isFinal) => {
         if (isFinal) {
-          // Clear timeout
+          // Clear all timers
           clearTimers();
           
           // Stop listening
@@ -82,14 +90,33 @@ export function useVoiceMode({
             setVoiceState('user-speaking');
           }
           setInterimText(text);
+          lastInterimTextRef.current = text;
+          
+          // Clear previous auto-send timer
+          if (autoSendRef.current) {
+            clearTimeout(autoSendRef.current);
+            autoSendRef.current = null;
+          }
+          
+          // Set auto-send timer - if user pauses for 2 seconds, send message
+          autoSendRef.current = setTimeout(() => {
+            if (lastInterimTextRef.current.trim()) {
+              voiceService.stopListening();
+              onUserMessage(lastInterimTextRef.current);
+              setInterimText('');
+              setVoiceState('thinking');
+              lastInterimTextRef.current = '';
+            }
+          }, autoSendDelay);
           
           // Reset timeout on speech activity
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = setTimeout(() => {
               voiceService.stopListening();
-              setVoiceState('timeout-prompt');
+              setVoiceState('idle');
               setInterimText('');
+              lastInterimTextRef.current = '';
             }, listeningTimeout);
           }
         }
@@ -100,7 +127,7 @@ export function useVoiceMode({
         setVoiceState('idle');
       }
     );
-  }, [onUserMessage, voiceState, listeningTimeout, clearTimers]);
+  }, [onUserMessage, voiceState, listeningTimeout, autoSendDelay, clearTimers]);
 
   // Stop listening manually (user clicks mic button)
   const stopListening = useCallback(() => {
@@ -116,6 +143,7 @@ export function useVoiceMode({
     }
     
     setInterimText('');
+    lastInterimTextRef.current = '';
   }, [interimText, onUserMessage, clearTimers]);
 
   // Play bot message with auto-activation
@@ -146,17 +174,6 @@ export function useVoiceMode({
     setVoiceState('idle');
   }, [clearTimers]);
 
-  // Handle timeout continuation
-  const continueAfterTimeout = useCallback(() => {
-    setVoiceState('idle');
-    startListening();
-  }, [startListening]);
-
-  // Handle timeout cancellation
-  const cancelAfterTimeout = useCallback(() => {
-    setVoiceState('idle');
-  }, []);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -175,8 +192,6 @@ export function useVoiceMode({
     stopListening,
     playBotMessage,
     stopBotSpeaking,
-    continueAfterTimeout,
-    cancelAfterTimeout,
     isSupported: voiceService.isSupported() && ttsService.isSupported(),
   };
 }

@@ -105,11 +105,13 @@ class JournalService {
           title,
           content,
           journal_date,
+          created_at,
           journal_tag!inner(tag_id)
         `)
         .eq('user_id', userId)
         .eq('journal_tag.tag_id', tagName)
-        .order('journal_date', { ascending: false });
+        .order('journal_date', { ascending: false })
+        .order('created_at', { ascending: false });
       
       console.log('getJournalsByTag - Response from Supabase:', { data, error });
       
@@ -127,7 +129,8 @@ class JournalService {
         id: String(journal.id),
         title: journal.title,
         content: journal.content,
-        journal_date: journal.journal_date ?? new Date().toISOString()
+        journal_date: journal.journal_date ?? new Date().toISOString(),
+        created_at: journal.created_at
       }));
     } catch (error) {
       console.error('Error in getJournalsByTag:', error);
@@ -166,13 +169,21 @@ class JournalService {
       
       console.log('getJournals - Processed data to return:', data?.length, 'entries');
       
-      return data.map((journal: any) => ({
+      // Map and sort by journal_date DESC, then created_at DESC
+      const mappedData = data.map((journal: any) => ({
         id: String(journal.id),
         title: journal.title,
         content: journal.content,
         journal_date: journal.journal_date ?? journal.created_at ?? new Date().toISOString(),
         created_at: journal.created_at
       }));
+      
+      // Sort: newest journal_date first, then newest created_at
+      return mappedData.sort((a, b) => {
+        const dateCompare = new Date(b.journal_date).getTime() - new Date(a.journal_date).getTime();
+        if (dateCompare !== 0) return dateCompare;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
     } catch (error) {
       console.error('Error in getJournals:', error);
       throw error;

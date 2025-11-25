@@ -113,8 +113,6 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
     stopBotSpeaking,
     startListening,
     stopListening,
-    continueAfterTimeout,
-    cancelAfterTimeout,
     isSupported,
   } = useVoiceMode({
     onUserMessage: handleUserMessage,
@@ -309,7 +307,13 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               key={m.id}
               message={m}
               roleName={m.sender === 'bot' ? scenario.ai_role : 'You'}
-              onSpeakToggle={() => {}} // No manual control in voice mode
+              onSpeakToggle={(msgId, text) => {
+                if (playingMessageId === msgId) {
+                  stopBotSpeaking();
+                } else {
+                  playBotMessage(text, msgId);
+                }
+              }}
               isPlaying={playingMessageId === m.id}
             />
           ))}
@@ -376,54 +380,70 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               {isThinking && (
                 <p className="text-sm text-gray-600 animate-pulse">Đang nghĩ...</p>
               )}
-              {isBotSpeaking && (
-                <p className="text-sm text-[var(--primary)] font-medium">AI đang nói...</p>
-              )}
               {voiceState === 'listening' && (
-                <p className="text-sm text-[var(--primary-purple)] font-medium animate-pulse">Lắng nghe...</p>
+                <p className="text-sm text-blue-600 font-medium animate-pulse">Lắng nghe...</p>
               )}
               {voiceState === 'user-speaking' && (
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
-                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-1 h-4 bg-[var(--primary-purple)] rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
+                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
+                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
+                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
                   </div>
-                  <p className="text-sm text-[var(--primary-purple)] font-medium">Bạn đang nói...</p>
+                  <p className="text-sm text-blue-600 font-medium">Bạn đang nói...</p>
                 </div>
               )}
             </div>
 
             {/* Interim Text Display - Directly Above Mic */}
             {interimText && (
-              <div className="max-w-md px-4 py-2 bg-[var(--primary-purple-light)] border border-[var(--primary-purple-lighter)] rounded-lg text-sm text-gray-700 mb-2">
+              <div className="max-w-md px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700 mb-2">
                 {interimText}
               </div>
             )}
 
-            {/* Mic Button with Subtle Pulse Animation */}
-            <button
-              onClick={handleMicClick}
-              disabled={isThinking || voiceState === 'timeout-prompt' || finishing}
-              className={`
-                w-20 h-20 rounded-full flex items-center justify-center
-                transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${isMicActive 
-                  ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-300 animate-[micPulse_1.5s_ease-in-out_infinite]' 
+            {/* Mic Button with Glow Effect - Same as Journal */}
+            <div className="relative">
+              {/* Outer glow rings */}
+              <div className={`absolute inset-0 rounded-full transition-all duration-700 ${
+                isMicActive 
+                  ? 'animate-ping-slow bg-blue-400/30' 
                   : isBotSpeaking
-                  ? 'bg-[var(--primary)] hover:opacity-90 animate-pulse'
-                  : 'bg-gray-900 hover:bg-gray-800 hover:scale-105 shadow-lg'
-                }
-              `}
-            >
-              {isMicActive ? (
-                <MicOff className="w-9 h-9 text-white" />
-              ) : (
-                <Mic className="w-9 h-9 text-white" />
-              )}
-            </button>
+                  ? 'animate-pulse bg-gray-400/20'
+                  : 'bg-gray-900/20'
+              }`} style={{ padding: '20px' }}></div>
+              
+              <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
+                isMicActive 
+                  ? 'animate-pulse-glow bg-blue-500/20' 
+                  : isBotSpeaking
+                  ? 'bg-gray-400/10'
+                  : 'bg-gray-800/10'
+              }`} style={{ padding: '10px' }}></div>
+
+              {/* Main button */}
+              <button
+                onClick={handleMicClick}
+                disabled={isThinking || finishing}
+                className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${
+                  isMicActive
+                    ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 scale-110 shadow-blue-500/50 animate-breathe'
+                    : isBotSpeaking
+                    ? 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 scale-105 shadow-gray-500/30 animate-pulse'
+                    : 'bg-gradient-to-br from-gray-800 via-gray-900 to-black hover:scale-110 hover:shadow-gray-900/50 shadow-gray-900/30'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {/* Inner glow */}
+                <div className={`absolute inset-0 rounded-full transition-opacity duration-500 ${
+                  isMicActive ? 'opacity-100 bg-white/10 animate-pulse' : 'opacity-0'
+                }`}></div>
+                
+                <Mic className={`relative z-10 h-8 w-8 text-white mx-auto transition-transform duration-300 ${
+                  isMicActive ? 'animate-bounce-subtle' : ''
+                }`} />
+              </button>
+            </div>
 
             {/* Tap to stop hint */}
             {isMicActive && (
@@ -432,32 +452,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
             </div>
           )}
 
-          {/* Timeout Prompt Dialog */}
-          {voiceState === 'timeout-prompt' && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-xl">
-                <h3 className="font-medium text-gray-800 mb-2">Bạn còn ở đây không?</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Tôi không nghe thấy bạn nói gì. Bạn có muốn tiếp tục không?
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={cancelAfterTimeout}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Không
-                  </Button>
-                  <Button
-                    onClick={continueAfterTimeout}
-                    className="flex-1 bg-[var(--primary-purple)] hover:bg-[var(--primary-purple-hover)]"
-                  >
-                    Tiếp tục
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {/* Error Display */}
           {(error || voiceError) && (
@@ -480,9 +475,51 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
           0%, 100% { height: 1rem; }
           50% { height: 1.5rem; }
         }
-        @keyframes micPulse {
-          0%, 100% { transform: scale(0.95); }
-          50% { transform: scale(1); }
+        @keyframes ping-slow {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          75%, 100% {
+            transform: scale(1.5);
+            opacity: 0;
+          }
+        }
+        @keyframes pulse-glow {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+        @keyframes breathe {
+          0%, 100% {
+            transform: scale(1.1);
+          }
+          50% {
+            transform: scale(1.15);
+          }
+        }
+        @keyframes bounce-subtle {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
+        }
+        .animate-ping-slow {
+          animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .animate-breathe {
+          animation: breathe 3s ease-in-out infinite;
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 1s ease-in-out infinite;
         }
       `}</style>
     </>
