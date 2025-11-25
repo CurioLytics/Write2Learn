@@ -23,6 +23,8 @@ export default function JournalEditPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialTitle, setInitialTitle] = useState('');
+  const [initialContent, setInitialContent] = useState('');
 
   const autoSave = async () => {
     if (!journalId || !title || !content) return;
@@ -55,6 +57,21 @@ export default function JournalEditPage() {
     }
   }, [user, authLoading, router]);
 
+  // #9 & #13: Warn on unsaved changes
+  useEffect(() => {
+    const hasUnsavedChanges = (title !== initialTitle || content !== initialContent) && (title || content);
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [title, content, initialTitle, initialContent]);
+
   useEffect(() => {
     const fetchJournal = async () => {
       if (!journalId || !user) return;
@@ -71,8 +88,12 @@ export default function JournalEditPage() {
         
         const journalTags = await journalService.getJournalEntryTags(journalId);
         
-        setTitle(journalData.title || '');
-        setContent(journalData.content || '');
+        const loadedTitle = journalData.title || '';
+        const loadedContent = journalData.content || '';
+        setTitle(loadedTitle);
+        setContent(loadedContent);
+        setInitialTitle(loadedTitle);
+        setInitialContent(loadedContent);
         setJournalDate(journalData.journal_date || formatDateInput(new Date()));
         setTags(journalTags);
       } catch (error) {
@@ -120,6 +141,9 @@ export default function JournalEditPage() {
     setError(null);
 
     try {
+      // Store current content in sessionStorage for recovery if needed
+      sessionStorage.setItem('unsavedJournal', JSON.stringify({ title, content, journalDate, tags, journalId }));
+      
       const result = await journalFeedbackService.getFeedback(content, title);
 
       if (result.success && result.data) {

@@ -331,10 +331,10 @@ export default function RoleplaySummaryPage() {
           {/* Actions */}
           <div className="flex justify-end gap-4 w-full">
             <Button variant="outline" onClick={handleBack}>
-              Quay lại hội thoại
+              Hủy
             </Button>
             <Button onClick={handleSave} disabled={processing}>
-              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' :' Lưu'}
+              {highlights.length > 0 ? 'Lưu session & Tạo Flashcard' : 'Lưu session'}
             </Button>
           </div>
         </div>

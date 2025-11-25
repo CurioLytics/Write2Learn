@@ -82,7 +82,7 @@ export default function LandingPage() {
         subtitle="Biến từng dòng chữ thành bước tiến trong hành trình ngôn ngữ của bạn."
         description="Viết suy nghĩ, nhận phản hồi tức thì và lưu lại những từ vựng mang ý nghĩa với riêng bạn."
         buttonText="Bắt đầu hành trình của bạn"
-        buttonLink="/onboarding"
+        buttonLink="/auth"
       />
 
       {/* Features Section */}

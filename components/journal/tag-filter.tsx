@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { journalService } from '@/services/journal-service';
 
 interface TagFilterProps {
@@ -10,6 +11,7 @@ interface TagFilterProps {
 
 export function TagFilter({ onFilterChange, currentTag }: TagFilterProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const router = useRouter();
   
   useEffect(() => {
     async function fetchTags() {
@@ -28,7 +30,17 @@ export function TagFilter({ onFilterChange, currentTag }: TagFilterProps) {
   
   return (
     <div className="mb-6 bg-white rounded-2xl p-4 shadow">
-      <h3 className="text-md font-medium text-gray-700 mb-3">Filter by Tag</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-md font-medium text-gray-700">Lọc theo Tag</h3>
+        {currentTag && (
+          <button
+            onClick={() => router.push(`/journal/new?tag=${currentTag}`)}
+            className="text-xs px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+          >
+            + Tạo mới với tag này
+          </button>
+        )}
+      </div>
       
       <div className="flex flex-wrap gap-2">
         {availableTags.map(tag => (

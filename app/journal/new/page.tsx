@@ -25,6 +25,7 @@ export default function NewJournalPage() {
   const templateName = searchParams?.get('templateName');
   const customContent = searchParams?.get('customContent');
   const isEdit = searchParams?.get('edit') === 'true';
+  const prefilledTag = searchParams?.get('tag');
 
   const autoSave = async () => {
     if (!user || !title || !content) return;
@@ -68,10 +69,29 @@ export default function NewJournalPage() {
     }
   }, [user, loading, router]);
 
+  // #9 & #13: Warn on unsaved changes
+  useEffect(() => {
+    const hasUnsavedChanges = (title !== initialTitle || content !== initialContent) && (title || content);
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [title, content, initialTitle, initialContent]);
+
   useEffect(() => {
     if (isEdit) {
-      setTitle(localStorage.getItem('editJournalTitle') || '');
-      setContent(localStorage.getItem('editJournalContent') || '');
+      const editTitle = localStorage.getItem('editJournalTitle') || '';
+      const editContent = localStorage.getItem('editJournalContent') || '';
+      setTitle(editTitle);
+      setContent(editContent);
+      setInitialTitle(editTitle);
+      setInitialContent(editContent);
       localStorage.removeItem('editJournalTitle');
       localStorage.removeItem('editJournalContent');
       return;
@@ -95,7 +115,12 @@ export default function NewJournalPage() {
       setJournalDate(draft.journalDate || formatDateInput(new Date()));
       setTags(draft.tags || []);
     }
-  }, [templateName, customContent, isEdit, loadDraft]);
+    
+    // Pre-fill tag if coming from tag filter
+    if (prefilledTag && !tags.includes(prefilledTag)) {
+      setTags(prev => [...prev, prefilledTag]);
+    }
+  }, [templateName, customContent, isEdit, loadDraft, prefilledTag]);
 
   const handleSave = async () => {
     setError(null);
@@ -151,6 +176,9 @@ export default function NewJournalPage() {
     setError(null);
 
     try {
+      // Store current content in sessionStorage for recovery if needed
+      sessionStorage.setItem('unsavedJournal', JSON.stringify({ title, content, journalDate, tags }));
+      
       const result = await journalFeedbackService.getFeedback(content, title);
 
       if (result.success && result.data) {

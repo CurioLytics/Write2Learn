@@ -170,7 +170,8 @@ class JournalService {
         id: String(journal.id),
         title: journal.title,
         content: journal.content,
-        journal_date: journal.journal_date ?? journal.created_at ?? new Date().toISOString()
+        journal_date: journal.journal_date ?? journal.created_at ?? new Date().toISOString(),
+        created_at: journal.created_at
       }));
     } catch (error) {
       console.error('Error in getJournals:', error);

@@ -216,30 +216,30 @@ export default function JournalFeedbackPage() {
             
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tiêu đề</label>
             <Input
               value={editableTitle}
               onChange={(e) => setEditableTitle(e.target.value)}
-              placeholder="Enter journal title..."
+              placeholder="Nhập tiêu đề nhật ký..."
               className="text-lg"
             />
           </div>
 
           {/* Summary */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Summary</h3>
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="whitespace-pre-wrap text-gray-800">{feedback.summary}</div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Tóm tắt</h3>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="whitespace-pre-wrap text-blue-600">{feedback.summary}</div>
             </div>
           </div>
 
           {/* Fixed Typo Accordion */}
           <Accordion type="single" collapsible>
             <AccordionItem value="fixed-typo">
-              <AccordionTrigger>Fixed Typo Version</AccordionTrigger>
+              <AccordionTrigger>Phiên bản đã sửa lỗi chính tả</AccordionTrigger>
               <AccordionContent>
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg">
-                  {feedback.fixed_typo || feedback.originalVersion || 'No content'}
+                <div className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg">
+                  {feedback.fixed_typo || feedback.originalVersion || 'Không có nội dung'}
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -257,8 +257,8 @@ export default function JournalFeedbackPage() {
               </TabsList>
               
               <TabsContent value="clarity" className="mt-4">
-                <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.clarity || 'No content'}
+                <div id="clarity-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.clarity || 'Không có nội dung'}
                 </div>
                 <HighlightSelector
                   containerId="clarity-content"
@@ -268,8 +268,8 @@ export default function JournalFeedbackPage() {
               </TabsContent>
               
               <TabsContent value="vocabulary" className="mt-4">
-                <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.vocabulary || 'No content'}
+                <div id="vocabulary-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.vocabulary || 'Không có nội dung'}
                 </div>
                 <HighlightSelector
                   containerId="vocabulary-content"
@@ -279,8 +279,8 @@ export default function JournalFeedbackPage() {
               </TabsContent>
               
               <TabsContent value="ideas" className="mt-4">
-                <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.ideas || 'No content'}
+                <div id="ideas-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
+                  {feedback.output?.ideas || 'Không có nội dung'}
                 </div>
                 <HighlightSelector
                   containerId="ideas-content"
@@ -290,8 +290,8 @@ export default function JournalFeedbackPage() {
               </TabsContent>
               
               <TabsContent value="enhanced" className="mt-4">
-                <div id="enhanced-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                  {feedback.enhanced_version || feedback.improvedVersion || 'No content'}
+                <div id="enhanced-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
+                  {feedback.enhanced_version || feedback.improvedVersion || 'Không có nội dung'}
                 </div>
                 <HighlightSelector
                   containerId="enhanced-content"
@@ -309,7 +309,7 @@ export default function JournalFeedbackPage() {
 
           {/* Highlights */}
           <div>
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Highlighted</h3>
+            <h3 className="text-base font-semibold text-gray-800 mb-3">Đã đánh dấu</h3>
             <HighlightList highlights={highlights} onRemove={removeHighlight} />
           </div>
 
@@ -334,7 +334,7 @@ export default function JournalFeedbackPage() {
 function GrammarDetailsSection({ details }: { details: GrammarDetail[] }) {
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-4">Grammar Corrections</h3>
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Chi tiết ngữ pháp</h3>
       <div className="space-y-4">
         {details.map((detail, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">

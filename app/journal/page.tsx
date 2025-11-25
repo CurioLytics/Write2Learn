@@ -105,6 +105,11 @@ export default function JournalPage() {
         journalDate.getMonth() === date.getMonth() &&
         journalDate.getFullYear() === date.getFullYear()
       );
+    }).sort((a, b) => {
+      // #17: Sort by journal_date DESC, then created_at DESC
+      const dateCompare = new Date(b.journal_date).getTime() - new Date(a.journal_date).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
     
     // If journals exist for this date, select the first one

@@ -3,10 +3,10 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { BreathingLoader } from '@/components/ui/breathing-loader';
 import { LiveMarkdownEditor, type LiveMarkdownEditorRef } from '@/components/features/journal/editor';
 import { JournalActionsMenu } from '@/components/journal/journal-actions-menu';
 import { FloatingVoiceButton } from '@/components/journal/floating-voice-button';
+import { Loader2 } from 'lucide-react';
 
 interface JournalEditorLayoutProps {
   title: string;
@@ -68,11 +68,18 @@ export function JournalEditorLayout({
               onTagsChange={onTagsChange}
               onDelete={onDelete}
             />
-            <Button onClick={onSave} variant="outline">
+            <Button onClick={onSave} variant="outline" disabled={isLoading}>
               Lưu
             </Button>
-            <Button onClick={onGetFeedback} disabled={!content || !title}>
-              Nhận phản hồi
+            <Button onClick={onGetFeedback} disabled={!content || !title || isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                'Nhận phản hồi'
+              )}
             </Button>
           </div>
         </div>
@@ -96,15 +103,6 @@ export function JournalEditorLayout({
         />
 
         {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
-
-        {isLoading && (
-          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <BreathingLoader 
-              message="Getting personalized feedback..."
-              className="bg-white rounded-lg shadow-lg p-8"
-            />
-          </div>
-        )}
       </main>
       {!isLoading && <FloatingVoiceButton onTranscript={handleVoiceTranscript} />}
     </div>

@@ -138,7 +138,7 @@ export function AuthForm() {
           className="w-full mobile-btn tap-highlight-none py-6 sm:py-4 text-base"
           disabled={loading}
         >
-          {loading ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
+          {loading ? 'Đang xử lý...' : mode === 'signin' ? 'Đăng nhập' : 'Đăng ký'}
         </Button>
       </form>
 
@@ -147,7 +147,7 @@ export function AuthForm() {
           <div className="w-full border-t border-gray-300" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-gray-500 text-sm">Or continue with</span>
+          <span className="bg-white px-3 text-gray-500 text-sm">Hoặc tiếp tục với</span>
         </div>
       </div>
 
@@ -156,24 +156,24 @@ export function AuthForm() {
       <div className="text-center text-sm pt-4">
         {mode === 'signin' ? (
           <p>
-            Don't have an account?{' '}
+            Chưa có tài khoản?{' '}
             <button
               onClick={() => setMode('signup')}
               className="text-blue-600 hover:underline mobile-btn tap-highlight-none font-medium py-2 px-3 inline-block"
-              style={{ minHeight: '44px' }} // Mobile-friendly touch target
+              style={{ minHeight: '44px' }}
             >
-              Sign up
+              Đăng ký
             </button>
           </p>
         ) : (
           <p>
-            Already have an account?{' '}
+            Đã có tài khoản?{' '}
             <button
               onClick={() => setMode('signin')}
               className="text-blue-600 hover:underline mobile-btn tap-highlight-none font-medium py-2 px-3 inline-block"
-              style={{ minHeight: '44px' }} // Mobile-friendly touch target
+              style={{ minHeight: '44px' }}
             >
-              Sign in
+              Đăng nhập
             </button>
           </p>
         )}
