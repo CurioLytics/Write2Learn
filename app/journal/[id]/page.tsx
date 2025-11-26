@@ -164,7 +164,9 @@ export default function JournalEditPage() {
     setError(null);
 
     try {
+      console.log('📤 Requesting feedback for:', { title, contentLength: content.length });
       const result = await journalFeedbackService.getFeedback(content, title);
+      console.log('📥 Feedback result:', result);
 
       if (result.success && result.data) {
         // Store BOTH draft and feedback for recovery when clicking "Sửa"
@@ -176,14 +178,18 @@ export default function JournalEditPage() {
           journalId,
           timestamp: Date.now()
         };
+        console.log('💾 Storing to sessionStorage:', { draft: journalDraft, feedback: result.data });
         sessionStorage.setItem('journalDraft', JSON.stringify(journalDraft));
         sessionStorage.setItem('journalFeedback', JSON.stringify(result.data));
         
+        console.log('✅ Navigation to /journal/feedback');
         router.push('/journal/feedback');
       } else {
+        console.error('❌ Feedback failed:', result.error);
         setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
       }
     } catch (error) {
+      console.error('❌ Exception in handleGetFeedback:', error);
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
       setError(`Lỗi: ${errorMessage}`);
     } finally {

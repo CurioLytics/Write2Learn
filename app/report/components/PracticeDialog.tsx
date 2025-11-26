@@ -10,19 +10,23 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { exerciseService } from '@/services/exercise-service-new';
-import { ErrorData } from '@/types/exercise';
+import { ErrorData, TopicExercise } from '@/types/exercise';
 
 interface PracticeDialogProps {
   isOpen: boolean;
   onClose: () => void;
   errorData: ErrorData[];
+  grammarTopics?: Record<string, string[]>; // { grammar_topic_id: [tags] }
 }
 
-export function PracticeDialog({ isOpen, onClose, errorData }: PracticeDialogProps) {
-  const [questions, setQuestions] = useState<string[]>([]);
-  const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
+export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: PracticeDialogProps) {
+  const [exercises, setExercises] = useState<TopicExercise[]>([]);
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [corrections, setCorrections] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -35,173 +39,164 @@ export function PracticeDialog({ isOpen, onClose, errorData }: PracticeDialogPro
   }, [isOpen, errorData]);
 
   const loadExercises = async () => {
+    console.log('🎯 [Dialog] loadExercises called');
+    console.log('🎯 [Dialog] grammarTopics prop:', JSON.stringify(grammarTopics, null, 2));
+    console.log('🎯 [Dialog] grammarTopics type:', typeof grammarTopics);
+    console.log('🎯 [Dialog] grammarTopics keys:', grammarTopics ? Object.keys(grammarTopics) : 'null/undefined');
+    
     try {
       setIsLoading(true);
       setError(null);
       
-      const result = await exerciseService.generateExercises(errorData);
+      console.log('🚀 [Dialog] Calling exerciseService.generateExercises');
+      const result = await exerciseService.generateExercises(errorData, grammarTopics);
+      
+      console.log('✅ [Dialog] Result received:', result);
       
       if (!result.success) {
-        setError(result.error?.message || 'Lỗi tạo bài tập');
+        setError('Tạm thời đang có lỗi, bạn học phần khác trước nhé');
         return;
       }
 
-      if (!result.data?.questions || result.data.questions.length === 0) {
-        setError('Không có bài tập nào được tạo');
+      if (!result.data?.exercises || result.data.exercises.length === 0) {
+        setError('Tạm thời đang có lỗi, bạn học phần khác trước nhé');
         return;
       }
 
-      setQuestions(result.data.questions);
+      setExercises(result.data.exercises);
       setUserAnswers({});
       setCorrections([]);
     } catch (error) {
-      console.error('Error loading exercises:', error);
-      setError(error instanceof Error ? error.message : 'Lỗi không xác định');
+      console.error('❌ [Dialog] Error loading exercises:', error);
+      setError('Tạm thời đang có lỗi, bạn học phần khác trước nhé');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAnswerChange = (questionIndex: number, value: string) => {
+  const handleAnswerChange = (topicIndex: number, quizIndex: number, value: string) => {
+    const key = `${topicIndex}-${quizIndex}`;
     setUserAnswers(prev => ({
       ...prev,
-      [questionIndex]: value
+      [key]: value
     }));
   };
 
-  const handleCheck = async () => {
-    try {
-      setIsChecking(true);
-      setError(null);
-
-      const exerciseData = questions.map((question, index) => ({
-        question,
-        answer: userAnswers[index] || ''
-      }));
-
-      const result = await exerciseService.checkExercises(exerciseData);
-
-      if (!result.success) {
-        setError(result.error?.message || 'Lỗi kiểm tra bài tập');
-        return;
-      }
-
-      setCorrections(result.data?.corrections || []);
-    } catch (error) {
-      console.error('Error checking exercises:', error);
-      setError(error instanceof Error ? error.message : 'Lỗi không xác định khi kiểm tra bài tập');
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  const handleRetry = () => {
-    setCorrections([]);
-    setError(null);
-  };
-
   const handleClose = () => {
-    setQuestions([]);
+    setExercises([]);
     setUserAnswers({});
     setCorrections([]);
     setError(null);
     onClose();
   };
 
+  // Calculate total number of quizzes across all topics
+  const totalQuizzes = exercises.reduce((sum, topic) => sum + topic.quizzes.length, 0);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Ôn tập từ lỗi sai</DialogTitle>
+          {totalQuizzes > 0 && (
+            <DialogDescription>
+              {exercises.length} chủ đề • {totalQuizzes} bài tập
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {isLoading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>Sắp có cái làm rùii</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <span className="text-red-700 flex-1">{error}</span>
-              </div>
-              <div className="flex justify-center">
-                <Button onClick={loadExercises} variant="outline">
-                  Tải lại
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!isLoading && !error && questions.map((question, index) => (
-            <div key={index} className="p-4 bg-gray-50 rounded-lg border">
-              <div className="flex items-start gap-3 mb-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-sm">
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <p className="text-gray-900">{question}</p>
-                </div>
-              </div>
-              
-              <Input
-                type="text"
-                value={userAnswers[index] || ''}
-                onChange={(e) => handleAnswerChange(index, e.target.value)}
-                placeholder="Nhập câu trả lời..."
-                className="w-full mb-3"
-              />
-
-              {corrections[index] && (
-                <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="text-sm text-orange-800">
-                    <strong>Feedback:</strong> {corrections[index]}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-          <div className="flex gap-3 justify-end pt-4">
-            {corrections.length === 0 ? (
-              <>
-                <Button
-                  onClick={handleCheck}
-                  disabled={isChecking || questions.length === 0}
-                >
-                  {isChecking ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Đang kiểm tra...
-                    </>
-                  ) : (
-                    'Xong'
-                  )}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setUserAnswers({});
-                    setCorrections([]);
-                    loadExercises();
-                  }}
-                >
-                  Làm lại
-                </Button>
-                <Button onClick={handleClose}>
-                  Xong
-                </Button>
-              </>
-            )}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+            <span>Đang cook bài tập cho bạn</span>
           </div>
-        </div>
+        )}
+
+        {error && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <span className="text-red-700 flex-1">{error}</span>
+            </div>
+            <div className="flex justify-center">
+              <Button onClick={loadExercises} variant="outline">
+                Thử lại
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !error && exercises.length > 0 && (
+          <>
+            <ScrollArea className="h-[calc(85vh-220px)] pr-4">
+              <div className="space-y-6 py-2">
+                {exercises.map((topic, topicIndex) => (
+                  <Card key={topicIndex} className="border-2">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-lg">{topic.topic_name}</CardTitle>
+                        <Badge variant="secondary" className="shrink-0">
+                          {topic.exercise_type}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {topic.quizzes.map((quiz, quizIndex) => {
+                        const answerKey = `${topicIndex}-${quizIndex}`;
+                        const globalIndex = exercises
+                          .slice(0, topicIndex)
+                          .reduce((sum, t) => sum + t.quizzes.length, 0) + quizIndex + 1;
+                        
+                        return (
+                          <div key={quizIndex} className="space-y-2">
+                            <div className="flex gap-3">
+                              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                                {globalIndex}
+                              </span>
+                              <div className="flex-1">
+                                <p className="text-gray-900 mb-2">{quiz}</p>
+                                <Input
+                                  type="text"
+                                  value={userAnswers[answerKey] || ''}
+                                  onChange={(e) => handleAnswerChange(topicIndex, quizIndex, e.target.value)}
+                                  placeholder="Nhập câu trả lời..."
+                                  className="w-full"
+                                />
+                                {corrections[globalIndex - 1] && (
+                                  <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                    <div className="text-sm text-orange-800">
+                                      <strong>Feedback:</strong> {corrections[globalIndex - 1]}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              <Button
+                onClick={() => {
+                  setUserAnswers({});
+                  setCorrections([]);
+                  loadExercises();
+                }}
+                variant="outline"
+              >
+                Làm lại
+              </Button>
+              <Button onClick={handleClose}>
+                Xong
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

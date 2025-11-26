@@ -6,13 +6,20 @@ export interface Exercise {
   grammarType?: string;
 }
 
+// New webhook response structure with topics
+export interface TopicExercise {
+  topic_name: string;
+  exercise_type: string;
+  quizzes: string[];
+}
+
 // Webhook response structure
 export interface WebhookExerciseResponse {
   questions: string[];
 }
 
 export interface ExerciseResponse {
-  questions: string[];
+  exercises: TopicExercise[];
 }
 
 export interface UserAnswer {

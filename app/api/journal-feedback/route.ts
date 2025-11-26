@@ -103,9 +103,12 @@ async function requestFeedbackWithRetry(
     }
 
     const data = await response.json();
-    console.log('Webhook response:', JSON.stringify(data, null, 2));
+    console.log('Webhook raw response:', JSON.stringify(data, null, 2));
     
-    return normalizeFeedbackResponse(data, body);
+    const normalized = normalizeFeedbackResponse(data, body);
+    console.log('Normalized response:', JSON.stringify(normalized, null, 2));
+    
+    return normalized;
     
   } catch (error) {
     console.error(`Feedback request failed (attempt ${retryCount + 1}):`, error);
@@ -138,21 +141,46 @@ function normalizeFeedbackResponse(
     throw new Error('Webhook returned empty or invalid response');
   }
 
-  // For new webhook format, return as-is if it has the expected structure
-  if (feedback.fixed_typo || feedback.enhanced_version || feedback.fb_details) {
-    return feedback;
+  console.log('Normalizing feedback response:', JSON.stringify(feedback, null, 2));
+
+  // For new webhook format, return normalized structure
+  if (feedback.fixed_typo || feedback.enhanced_version || feedback.grammar_details) {
+    const normalized: JournalFeedbackResponse = {
+      title: feedback.title || originalRequest.title || '',
+      summary: feedback.summary || '',
+      fixed_typo: feedback.fixed_typo || '',
+      enhanced_version: feedback.enhanced_version || '',
+      grammar_details: Array.isArray(feedback.grammar_details) ? feedback.grammar_details : [],
+      output: feedback.output || {
+        clarity: '',
+        vocabulary: '',
+        ideas: '',
+      },
+    };
+    console.log('✅ Normalized to new format:', JSON.stringify(normalized, null, 2));
+    return normalized;
   }
 
   // For legacy format, normalize to expected structure
-  return {
+  const legacy: JournalFeedbackResponse = {
     title: feedback.title || originalRequest.title || '',
     summary: feedback.summary || '',
+    fixed_typo: feedback.originalVersion || originalRequest.content || '',
+    enhanced_version: feedback.improvedVersion || '',
+    grammar_details: [],
+    output: {
+      clarity: '',
+      vocabulary: '',
+      ideas: '',
+    },
     improvedVersion: feedback.improvedVersion || '',
     originalVersion: feedback.originalVersion || originalRequest.content || '',
     vocabSuggestions: Array.isArray(feedback.vocabSuggestions) 
       ? feedback.vocabSuggestions 
       : [],
   };
+  console.log('✅ Normalized to legacy format:', JSON.stringify(legacy, null, 2));
+  return legacy;
 }
 
 /**

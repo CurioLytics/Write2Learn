@@ -36,6 +36,7 @@ export interface GrammarErrorSummary {
   topic_level: string | null;
   error_count: number;
   recent_errors: string[];
+  all_tags: string[]; // All tags from all errors in this topic
 }
 
 export interface StreakData {
@@ -238,6 +239,7 @@ export class AnalyticsService {
         topic_id: string | null;
         topic_level: string | null;
         errors: string[];
+        tags: Set<string>;
       }>();
 
       data?.forEach((item: any) => {
@@ -248,12 +250,18 @@ export class AnalyticsService {
             topic_id: item.grammar_topic_id || null,
             topic_level: item.topic_level,
             errors: [],
+            tags: new Set(),
           });
         }
 
         const topicData = topicMap.get(item.topic_name)!;
         if (item.error_description && topicData.errors.length < 5) {
           topicData.errors.push(item.error_description);
+        }
+        
+        // Collect all tags
+        if (item.tags && Array.isArray(item.tags)) {
+          item.tags.forEach((tag: string) => topicData.tags.add(tag));
         }
       });
 
@@ -265,6 +273,7 @@ export class AnalyticsService {
           topic_level: data.topic_level,
           error_count: data.errors.length,
           recent_errors: data.errors,
+          all_tags: Array.from(data.tags),
         }))
         .sort((a, b) => b.error_count - a.error_count);
     } catch (error) {

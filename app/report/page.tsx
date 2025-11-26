@@ -49,8 +49,8 @@ export default function ReportPage() {
         const result = await response.json();
         
         if (result.success && result.data?.goalStatuses) {
-          // Convert object back to Map
-          const statusMap = new Map(Object.entries(result.data.goalStatuses));
+          // Convert object back to Map with proper typing
+          const statusMap = new Map(Object.entries(result.data.goalStatuses)) as Map<string, DailyGoalStatus>;
           setMonthlyGoals(statusMap);
         }
       } catch (err) {

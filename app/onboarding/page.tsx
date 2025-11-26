@@ -172,7 +172,7 @@ export default function OnboardingPage() {
               size="lg"
               className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-normal"
             >
-              Start your journey
+              Bắt đầu hành trình
             </Button>
           </div>
         );
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
               size="lg"
               className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
             >
-              Continue
+              Tiếp tục
             </Button>
           </div>
         );
@@ -271,10 +271,10 @@ export default function OnboardingPage() {
           <div className="flex flex-col items-center justify-center text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
             <h2 className="text-2xl font-normal text-gray-900 mb-2">
-              Setting up your profile...
+              Đang thiết lập hồ sơ...
             </h2>
             <p className="text-gray-600 max-w-md italic">
-              Great — let's build a journal that fits your mind and learning journey.
+              Tuyệt! Giờ cùng xây nhật ký phù hợp với suy nghĩ và hành trình học của bạn.
             </p>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                     variant="ghost"
                     className="text-gray-600 hover:text-gray-900"
                   >
-                    ← Back
+                    ← Quay lại
                   </Button>
                 )}
 
@@ -320,7 +320,7 @@ export default function OnboardingPage() {
                       variant="ghost"
                       className="text-gray-600"
                     >
-                      Skip
+                      Bỏ qua
                     </Button>
                   )}
                   
@@ -330,7 +330,7 @@ export default function OnboardingPage() {
                       disabled={isSubmitting}
                       className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
                     >
-                      {isSubmitting ? 'Saving...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Complete' : 'Continue'}
+                      {isSubmitting ? 'Đang lưu...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Hoàn tất' : 'Tiếp tục'}
                     </Button>
                   )}
                 </div>
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
                   disabled={!hasSelection}
                   className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue
+                  Tiếp tục
                 </Button>
               </div>
             </div>

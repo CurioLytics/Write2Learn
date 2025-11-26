@@ -25,7 +25,7 @@ export default function VocabPage() {
 
   // Filter sets based on starred status
   const filteredSets = showStarredOnly 
-    ? flashcardSets.filter(set => set.is_starred)
+    ? flashcardSets.filter(set => (set as any).is_starred)
     : flashcardSets;
 
   useEffect(() => {
@@ -191,7 +191,7 @@ export default function VocabPage() {
             </div>
 
             <VocabularySetList
-              vocabularySets={filteredSets}
+              vocabularySets={filteredSets as any}
               isLoading={isLoadingFlashcards}
               error={flashcardError}
               onSelectSet={handleSelectSet}
@@ -199,7 +199,7 @@ export default function VocabPage() {
                 console.log('[VocabPage] Star toggled:', { setId, newStarredStatus });
                 setFlashcardSets(prev => prev.map(set => 
                   set.set_id === setId 
-                    ? { ...set, is_starred: newStarredStatus }
+                    ? { ...set, is_starred: newStarredStatus } as any
                     : set
                 ));
               }}
@@ -235,13 +235,15 @@ export default function VocabPage() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-medium text-gray-900">{word.word}</h3>
-                      <button
-                        onClick={() => handleStarToggle(word.id)}
-                        className="text-yellow-500 hover:text-yellow-600 transition-colors"
-                        title="Bỏ đánh dấu"
-                      >
-                        ⭐
-                      </button>
+                      {word.id && (
+                        <button
+                          onClick={() => handleStarToggle(word.id!)}
+                          className="text-yellow-500 hover:text-yellow-600 transition-colors"
+                          title="Bỏ đánh dấu"
+                        >
+                          ⭐
+                        </button>
+                      )}
                     </div>
                     <p className="text-gray-700 text-sm mb-2">{word.meaning}</p>
                     {word.example && (

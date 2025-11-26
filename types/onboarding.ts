@@ -43,69 +43,69 @@ export interface StepConfig {
 
 // Journaling reasons options
 export const JOURNALING_REASONS = [
-  { value: 'mental_clarity', label: 'I want mental clarity' },
-  { value: 'express_thoughts', label: 'I want to express my thoughts better' },
-  { value: 'build_habit', label: 'I want to build a writing habit' },
-  { value: 'explore_self', label: 'I want to explore myself through journaling' },
-  { value: 'organize_thoughts', label: 'I want help organizing my thoughts' },
-  { value: 'process_emotions', label: 'I want to process emotions' },
-  { value: 'reflect_insight', label: 'I want to reflect and gain insight' },
+  { value: 'mental_clarity', label: 'Mình muốn rõ ràng hơn về tinh thần' },
+  { value: 'express_thoughts', label: 'Mình muốn bày tỏ suy nghĩ tốt hơn' },
+  { value: 'build_habit', label: 'Mình muốn xây thói quen viết' },
+  { value: 'explore_self', label: 'Mình muốn khám phá bản thân qua viết nhật ký' },
+  { value: 'organize_thoughts', label: 'Mình muốn sắp xếp suy nghĩ tốt hơn' },
+  { value: 'process_emotions', label: 'Mình muốn xử lý cảm xúc' },
+  { value: 'reflect_insight', label: 'Mình muốn phản ánh và nhận ra điều mới' },
 ];
 
 // Journaling challenges options
 export const JOURNALING_CHALLENGES = [
-  { value: 'staying_consistent', label: 'Staying consistent' },
-  { value: 'coming_up_ideas', label: 'Coming up with ideas' },
-  { value: 'organizing_thoughts', label: 'Organizing my thoughts' },
-  { value: 'feeling_stuck', label: 'Feeling stuck' },
-  { value: 'emotions_to_words', label: 'Turning emotions into words' },
+  { value: 'staying_consistent', label: 'Giữ thói quen đều đặn' },
+  { value: 'coming_up_ideas', label: 'Khó nghĩ ra ý tưởng' },
+  { value: 'organizing_thoughts', label: 'Khó sắp xếp suy nghĩ' },
+  { value: 'feeling_stuck', label: 'Cảm giác bế tắc' },
+  { value: 'emotions_to_words', label: 'Chuyển cảm xúc thành lời' },
 ];
 
 // English improvement reasons
 export const ENGLISH_IMPROVEMENT_REASONS = [
-  { value: 'travel', label: 'To travel more comfortably' },
-  { value: 'conversation', label: 'For everyday conversation' },
-  { value: 'study_exams', label: 'For study or exams' },
-  { value: 'professional', label: 'For professional communication' },
-  { value: 'express_better', label: 'To express myself better' },
-  { value: 'long_term_fluency', label: 'To build long-term fluency' },
+  { value: 'travel', label: 'Để đi du lịch thoải mái hơn' },
+  { value: 'conversation', label: 'Để giao tiếp hàng ngày' },
+  { value: 'study_exams', label: 'Để học tập hoặc thi cử' },
+  { value: 'professional', label: 'Để giao tiếp chuyên nghiệp' },
+  { value: 'express_better', label: 'Để thể hiện bản thân tốt hơn' },
+  { value: 'long_term_fluency', label: 'Để xây dựng khả năng thành thạo lâu dài' },
 ];
 
 // English challenges
 export const ENGLISH_CHALLENGES = [
-  { value: 'vocabulary', label: 'Vocabulary' },
-  { value: 'speaking_fluency', label: 'Speaking fluency' },
-  { value: 'grammar_accuracy', label: 'Grammar accuracy' },
-  { value: 'forming_ideas', label: 'Forming ideas in English' },
-  { value: 'native_content', label: 'Understanding native-level content' },
+  { value: 'vocabulary', label: 'Từ vựng' },
+  { value: 'speaking_fluency', label: 'Lưu loát khi nói' },
+  { value: 'grammar_accuracy', label: 'Ngữ pháp' },
+  { value: 'forming_ideas', label: 'Diễn đạt ý tưởng bằng tiếng Anh' },
+  { value: 'native_content', label: 'Hiểu nội dung ở mức người bản xứ' },
 ];
 
 // English levels (new detailed options)
 export const ENGLISH_LEVELS_NEW = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'elementary', label: 'Elementary' },
-  { value: 'pre-intermediate', label: 'Pre-intermediate' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'upper-intermediate', label: 'Upper-intermediate' },
-  { value: 'advanced', label: 'Advanced' },
+  { value: 'beginner', label: 'Mới bắt đầu' },
+  { value: 'elementary', label: 'Sơ cấp' },
+  { value: 'pre-intermediate', label: 'Tiền trung cấp' },
+  { value: 'intermediate', label: 'Trung cấp' },
+  { value: 'upper-intermediate', label: 'Trung cao cấp' },
+  { value: 'advanced', label: 'Cao cấp' },
 ];
 
 // English tone and style options
 export const ENGLISH_TONES = [
   { 
     value: 'conversational', 
-    label: 'Conversational English',
-    description: 'English for daily life — casual and friendly tone, informal style'
+    label: 'Tiếng Anh đời thường',
+    description: 'Dùng cho cuộc sống hằng ngày — giọng thân thiện, phong cách không chính thức'
   },
   { 
     value: 'professional', 
-    label: 'Professional English',
-    description: 'English for workplace — formal and polite tone, professional style'
+    label: 'Tiếng Anh chuyên nghiệp',
+    description: 'Dùng cho công việc — giọng lịch sự, phong cách chuyên nghiệp'
   },
   { 
     value: 'academic', 
-    label: 'Academic English',
-    description: 'English for academic writing — clear and precise tone, structured style'
+    label: 'Tiếng Anh học thuật',
+    description: 'Dùng cho viết học thuật — giọng rõ ràng, chính xác, cấu trúc tốt'
   },
 ];
 
@@ -115,109 +115,109 @@ export const ENGLISH_TONES = [
 export const ONBOARDING_STEPS: StepConfig[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Write2Learn',
-    description: "Let's understand what brings you here.",
+    title: 'Chào mừng đến với Write2Learn',
+    description: 'Cùng tìm hiểu lý do bạn đến đây nhé.',
     type: 'welcome',
   },
   {
     id: 'name-input',
-    title: 'How should I call you?',
-    description: 'Just your first name is fine',
+    title: 'Mình nên gọi bạn là gì?',
+    description: 'Chỉ cần tên riêng thôi là đủ',
     type: 'text-input',
     dataKey: 'name',
-    placeholder: 'Enter your name',
+    placeholder: 'Nhập tên của bạn',
   },
   {
     id: 'journaling-intro',
-    title: 'Journaling',
-    description: 'Discover the power of daily reflection and self-expression.',
+    title: 'Nhật ký',
+    description: 'Khám phá sức mạnh của việc viết nhật ký hàng ngày và tự bộc lộ bản thân.',
     type: 'section-intro',
   },
   {
     id: 'journaling-reasons',
-    title: (data) => data.name ? `Why are you here, ${data.name}?` : 'Why are you here?',
-    description: 'Choose what resonates with you',
+    title: (data) => data.name ? `Tại sao bạn ở đây, ${data.name}?` : 'Tại sao bạn ở đây?',
+    description: 'Chọn lý do phù hợp với bạn',
     type: 'multi-select',
     options: JOURNALING_REASONS,
     dataKey: 'journaling_reasons',
   },
   {
     id: 'journaling-challenges',
-    title: 'What feels hard for you when journaling?',
-    description: 'Select the challenges you face',
+    title: 'Bạn gặp khó khăn gì khi viết nhật ký?',
+    description: 'Chọn những thử thách bạn gặp phải',
     type: 'multi-select',
     options: JOURNALING_CHALLENGES,
     dataKey: 'journaling_challenges',
   },
   {
     id: 'language-intro',
-    title: 'Language Learning',
-    description: 'Build confidence in English through practice and feedback.',
+    title: 'Học ngôn ngữ',
+    description: 'Xây dựng sự tự tin tiếng Anh qua luyện tập và phản hồi.',
     type: 'section-intro',
   },
   {
     id: 'english-reasons',
-    title: 'Why do you want to improve your English?',
-    description: 'Select all that apply',
+    title: 'Tại sao bạn muốn cải thiện tiếng Anh?',
+    description: 'Chọn tất cả phù hợp',
     type: 'multi-select',
     options: ENGLISH_IMPROVEMENT_REASONS,
     dataKey: 'english_improvement_reasons',
   },
   {
     id: 'english-challenges',
-    title: 'What challenges you the most right now?',
-    description: 'Choose your biggest obstacles',
+    title: 'Hiện tại bạn gặp khó khăn nhất gì?',
+    description: 'Chọn những trở ngại lớn nhất',
     type: 'multi-select',
     options: ENGLISH_CHALLENGES,
     dataKey: 'english_challenges',
   },
   {
     id: 'english-level',
-    title: 'Your current English level',
-    description: 'Choose the level that best describes you',
+    title: 'Trình độ tiếng Anh hiện tại',
+    description: 'Chọn mức độ phù hợp với bạn',
     type: 'single-select',
     options: ENGLISH_LEVELS_NEW,
     dataKey: 'english_level',
   },
   {
     id: 'english-tone',
-    title: 'What tone do you want to focus on?',
-    description: 'Choose the style that matches your learning goal',
+    title: 'Bạn muốn tập trung vào giọng điệu nào?',
+    description: 'Chọn phong cách phù hợp mục tiêu học tập',
     type: 'single-select',
     options: ENGLISH_TONES,
     dataKey: 'english_tone',
   },
   {
     id: 'daily-goal',
-    title: 'Daily review goal',
-    description: 'How many words do you want to review each day?',
+    title: 'Mục tiêu ôn tập hằng ngày',
+    description: 'Bạn muốn ôn bao nhiêu từ mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_review_goal',
   },
   {
     id: 'goals-intro',
-    title: 'Set Your Learning Goals',
-    description: 'Let\'s define what success looks like for you.',
+    title: 'Đặt mục tiêu học tập',
+    description: 'Cùng xác định thế nào là thành công với bạn.',
     type: 'section-intro',
   },
   {
     id: 'vocab-goal',
-    title: 'Vocabulary Goal',
-    description: 'How many new words do you want to learn per day?',
+    title: 'Mục tiêu từ vựng',
+    description: 'Bạn muốn học bao nhiêu từ mới mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_vocab_goal',
   },
   {
     id: 'journal-goal',
-    title: 'Journaling Goal',
-    description: 'How many entries do you want to write per day?',
+    title: 'Mục tiêu viết nhật ký',
+    description: 'Bạn muốn viết bao nhiêu bài mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_journal_goal',
   },
   {
     id: 'roleplay-goal',
-    title: 'Conversation Practice Goal',
-    description: 'How many roleplay sessions do you want per day?',
+    title: 'Mục tiêu luyện giao tiếp',
+    description: 'Bạn muốn luyện bao nhiêu buổi roleplay mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_roleplay_goal',
   },

@@ -25,13 +25,21 @@ function useJournalFeedback() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Prevent double execution in React StrictMode
+    if (feedback) return;
+    
     try {
       // Get feedback from sessionStorage instead of URL
       const storedFeedback = sessionStorage.getItem('journalFeedback');
+      console.log('📦 Raw sessionStorage data:', storedFeedback);
+      
       if (!storedFeedback) throw new Error('No feedback data found.');
       
       const parsed = JSON.parse(storedFeedback);
+      console.log('📦 Parsed feedback:', parsed);
+      
       const feedbackData = Array.isArray(parsed) ? parsed[0] : parsed;
+      console.log('📦 Final feedback data:', feedbackData);
       
       // Validate freshness (within last hour)
       if (feedbackData.timestamp && Date.now() - feedbackData.timestamp > 3600000) {
@@ -45,16 +53,13 @@ function useJournalFeedback() {
       const id = searchParams?.get('id');
       setJournalId(id);
       
-      // Clear sessionStorage after reading to avoid stale data on subsequent visits
-      // Only clear if not coming from edit flow (which needs to preserve it)
-      const fromEdit = searchParams?.get('fromEdit');
-      if (!fromEdit) {
-        sessionStorage.removeItem('journalFeedback');
-      }
+      // DON'T clear sessionStorage immediately - let user navigate back if needed
+      // Only clear when explicitly saving or after component unmount
     } catch (err) {
+      console.error('❌ Error loading feedback:', err);
       setError('Failed to load feedback data.');
     }
-  }, [searchParams]);
+  }, [searchParams, feedback]);
 
   return { feedback, journalId, error };
 }
@@ -153,6 +158,23 @@ export default function JournalFeedbackPage() {
     if (feedback) setEditableTitle(feedback.title || '');
   }, [loading, user, router, feedback]);
 
+  // Cleanup sessionStorage on component unmount (user navigating away)
+  useEffect(() => {
+    return () => {
+      // Only clear if user is navigating away (not on save which clears it explicitly)
+      // This prevents stale data on next visit
+      const timer = setTimeout(() => {
+        const stillHasData = sessionStorage.getItem('journalFeedback');
+        if (stillHasData) {
+          console.log('🧹 Cleaning up stale sessionStorage on unmount');
+          sessionStorage.removeItem('journalFeedback');
+          sessionStorage.removeItem('journalDraft');
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    };
+  }, []);
+
   const handleSave = async (redirectToFlashcards: boolean) => {
     if (!user?.id || !feedback) return;
     setProcessing(true);
@@ -166,6 +188,10 @@ export default function JournalFeedbackPage() {
         title: editableTitle,
         journalId, // Pass journal ID for updating existing journal
       });
+
+      // Clear sessionStorage after successful save
+      sessionStorage.removeItem('journalFeedback');
+      sessionStorage.removeItem('journalDraft');
 
       if (redirectToFlashcards && highlights.length && data.flashcards) {
         // Store generated flashcards for the creation page

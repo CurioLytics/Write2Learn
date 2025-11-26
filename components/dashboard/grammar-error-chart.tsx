@@ -30,18 +30,53 @@ const ERROR_COLORS = [
 export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
   const [isPracticeOpen, setIsPracticeOpen] = useState(false);
   const [selectedErrorData, setSelectedErrorData] = useState<ErrorData[]>([]);
+  const [grammarTopics, setGrammarTopics] = useState<Record<string, string[]>>({});
 
   const handlePracticeClick = () => {
+    // Build topics structure: { topic_name: [tags] }
+    // NOTE: Using topic_name instead of topic_id because some records have null topic_id
+    // due to webhook returning IDs that don't exist in grammar_topics table
+    const topics: Record<string, string[]> = {};
+    
+    console.log('🔍 [Chart] Raw data received:', data);
+    console.log('🔍 [Chart] Data length:', data.length);
+    
+    data.forEach((error, index) => {
+      console.log(`🔍 [Chart] Processing item ${index}:`, {
+        topic_id: error.topic_id,
+        topic_name: error.topic_name,
+        all_tags: error.all_tags,
+        tags_length: error.all_tags?.length || 0,
+        tags_is_array: Array.isArray(error.all_tags)
+      });
+      
+      if (error.topic_name && error.all_tags && error.all_tags.length > 0) {
+        topics[error.topic_name] = error.all_tags;
+        console.log(`✅ [Chart] Added topic: ${error.topic_name} with ${error.all_tags.length} tags`);
+      } else {
+        console.log(`❌ [Chart] Skipped topic: ${error.topic_name || 'undefined'} (no tags or no topic_name)`);
+      }
+    });
+
+    console.log('📊 [Chart] Final topics object:', JSON.stringify(topics, null, 2));
+    console.log('📊 [Chart] Topics keys:', Object.keys(topics));
+    console.log('📊 [Chart] Topics count:', Object.keys(topics).length);
+    
     // Map grammar error data to ErrorData format for the practice dialog
     const errorData: ErrorData[] = data.flatMap(error => 
       error.recent_errors.map(description => ({
         topicName: error.topic_name,
-        grammarId: error.topic_id || '',
+        grammarId: error.topic_name, // Use topic_name as fallback since topic_id may be null
         frequency: error.error_count,
-        detectedAt: new Date().toISOString(), // Use current date as fallback
+        detectedAt: new Date().toISOString(),
         description: description
       }))
     );
+    
+    console.log('📊 [Chart] Error data count:', errorData.length);
+    
+    // Pass both errorData and topics structure
+    setGrammarTopics(topics);
     setSelectedErrorData(errorData);
     setIsPracticeOpen(true);
   };
@@ -76,6 +111,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
     fullTopic: item.topic_name,
     count: item.error_count,
     level: item.topic_level,
+    tags: item.all_tags || [],
   }));
 
   return (
@@ -123,12 +159,53 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
+                padding: '12px',
               }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value, name, props) => [
-                `${value} errors`,
-                props.payload.fullTopic
-              ]}
+              labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+              content={({ active, payload }) => {
+                if (!active || !payload || !payload.length) return null;
+                const data = payload[0].payload;
+                return (
+                  <div style={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    minWidth: '200px',
+                  }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'hsl(var(--foreground))' }}>
+                      {data.fullTopic}
+                    </div>
+                    <div style={{ marginBottom: '8px', color: 'hsl(var(--foreground))' }}>
+                      <strong>{data.count}</strong> lỗi
+                    </div>
+                    {data.tags && data.tags.length > 0 && (
+                      <div style={{ marginTop: '8px', borderTop: '1px solid hsl(var(--border))', paddingTop: '8px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: 'hsl(var(--muted-foreground))' }}>
+                          Tags:
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {data.tags.map((tag: string, idx: number) => (
+                            <span
+                              key={idx}
+                              style={{
+                                fontSize: '11px',
+                                padding: '2px 8px',
+                                backgroundColor: 'hsl(var(--muted))',
+                                color: 'hsl(var(--muted-foreground))',
+                                borderRadius: '12px',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
             />
             <Bar 
               dataKey="count" 
@@ -182,6 +259,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
         isOpen={isPracticeOpen}
         onClose={() => setIsPracticeOpen(false)}
         errorData={selectedErrorData}
+        grammarTopics={grammarTopics}
       />
     </Card>
   );

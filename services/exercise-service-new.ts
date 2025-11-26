@@ -1,5 +1,6 @@
 import { 
   ExerciseResponse,
+  TopicExercise,
   GradingResponse,
   ErrorData,
   GradingRequest
@@ -19,7 +20,17 @@ class ExerciseService {
   /**
    * Generate exercises based on error data with proper error handling
    */
-  async generateExercises(errorData: ErrorData[]): Promise<ExerciseServiceResult<ExerciseResponse>> {
+  async generateExercises(
+    errorData: ErrorData[],
+    grammarTopics?: Record<string, string[]>
+  ): Promise<ExerciseServiceResult<ExerciseResponse>> {
+    console.log('🚀 [Service] generateExercises called');
+    console.log('🚀 [Service] errorData:', errorData);
+    console.log('🚀 [Service] grammarTopics received:', JSON.stringify(grammarTopics, null, 2));
+    console.log('🚀 [Service] grammarTopics type:', typeof grammarTopics);
+    console.log('🚀 [Service] grammarTopics keys:', grammarTopics ? Object.keys(grammarTopics) : 'null/undefined');
+    console.log('🚀 [Service] grammarTopics entries:', grammarTopics ? Object.entries(grammarTopics) : 'null/undefined');
+    
     try {
       // Validation
       if (!errorData || !Array.isArray(errorData) || errorData.length === 0) {
@@ -32,11 +43,16 @@ class ExerciseService {
         };
       }
 
+      const payload = { errorData, grammarTopics };
+      console.log('📦 [Service] Payload to be sent:', JSON.stringify(payload, null, 2));
+
       const response = await fetch('/api/exercises/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ errorData }),
+        body: JSON.stringify(payload),
       });
+
+      console.log('📡 [Service] Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
