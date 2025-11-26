@@ -128,7 +128,7 @@ return (
     <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Không gian viết lách, học hỏi và phát triển của bạn
+        Viết nhật ký bằng tiếng Anh và nhận phản hồi chi tiết về ngữ pháp, từ vựng
       </p>
     </div>
 

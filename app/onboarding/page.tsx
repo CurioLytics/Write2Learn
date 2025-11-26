@@ -23,8 +23,6 @@ export default function OnboardingPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     name: '',
-    journaling_reasons: [],
-    journaling_challenges: [],
     english_improvement_reasons: [],
     english_challenges: [],
     english_level: '',
@@ -179,13 +177,46 @@ export default function OnboardingPage() {
 
       case 'section-intro':
         return (
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <h1 className="text-5xl font-normal text-gray-900 mb-4 tracking-tight italic">
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <h1 className="text-4xl font-normal text-gray-900 mb-6 tracking-tight">
               {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
             </h1>
-            <p className="text-lg text-gray-600 mb-8 max-w-md">
-              {currentStep.description}
-            </p>
+            {currentStep.id === 'features-intro' ? (
+              <div className="max-w-2xl space-y-6 mb-8 text-left">
+                <div className="flex gap-4 items-start p-4 bg-blue-50 rounded-xl">
+                  <span className="text-3xl">📝</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Viết nhật ký với phản hồi chi tiết</h3>
+                    <p className="text-sm text-gray-600">Nhận feedback về ngữ pháp, từ vựng và cách diễn đạt từ AI</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start p-4 bg-green-50 rounded-xl">
+                  <span className="text-3xl">📚</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Học từ vựng thông minh</h3>
+                    <p className="text-sm text-gray-600">Hệ thống spaced repetition giúp bạn nhớ lâu hơn</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start p-4 bg-purple-50 rounded-xl">
+                  <span className="text-3xl">🎭</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Luyện giao tiếp thực tế</h3>
+                    <p className="text-sm text-gray-600">Roleplay với AI trong các tình huống đời thường</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start p-4 bg-orange-50 rounded-xl">
+                  <span className="text-3xl">📊</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Theo dõi tiến trình</h3>
+                    <p className="text-sm text-gray-600">Phân tích lỗi và xem xu hướng cải thiện của bạn</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-lg text-gray-600 mb-8 max-w-md">
+                {currentStep.description}
+              </p>
+            )}
             <Button
               onClick={handleNext}
               size="lg"

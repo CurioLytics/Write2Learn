@@ -2,8 +2,6 @@
 
 export interface OnboardingData {
   name: string;
-  journaling_reasons: string[];
-  journaling_challenges: string[];
   english_improvement_reasons: string[];
   english_challenges: string[];
   english_level: string;
@@ -16,17 +14,12 @@ export interface OnboardingData {
 
 export type OnboardingStep = 
   | 'welcome'
-  | 'name-input'
-  | 'journaling-intro'
-  | 'journaling-reasons'
-  | 'journaling-challenges'
-  | 'language-intro'
   | 'english-reasons'
   | 'english-challenges'
   | 'english-level'
   | 'english-tone'
+  | 'features-intro'
   | 'daily-goal'
-  | 'goals-intro'
   | 'vocab-goal'
   | 'journal-goal'
   | 'roleplay-goal';
@@ -116,76 +109,46 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   {
     id: 'welcome',
     title: 'Chào mừng đến với Write2Learn',
-    description: 'Cùng tìm hiểu lý do bạn đến đây nhé.',
+    description: 'Cùng cá nhân hóa trải nghiệm học tiếng Anh của bạn.',
     type: 'welcome',
   },
   {
-    id: 'name-input',
-    title: 'Mình nên gọi bạn là gì?',
-    description: 'Chỉ cần tên riêng thôi là đủ',
-    type: 'text-input',
-    dataKey: 'name',
-    placeholder: 'Nhập tên của bạn',
-  },
-  {
-    id: 'journaling-intro',
-    title: 'Nhật ký',
-    description: 'Khám phá sức mạnh của việc viết nhật ký hàng ngày và tự bộc lộ bản thân.',
-    type: 'section-intro',
-  },
-  {
-    id: 'journaling-reasons',
-    title: (data) => data.name ? `Tại sao bạn ở đây, ${data.name}?` : 'Tại sao bạn ở đây?',
-    description: 'Chọn lý do phù hợp với bạn',
-    type: 'multi-select',
-    options: JOURNALING_REASONS,
-    dataKey: 'journaling_reasons',
-  },
-  {
-    id: 'journaling-challenges',
-    title: 'Bạn gặp khó khăn gì khi viết nhật ký?',
-    description: 'Chọn những thử thách bạn gặp phải',
-    type: 'multi-select',
-    options: JOURNALING_CHALLENGES,
-    dataKey: 'journaling_challenges',
-  },
-  {
-    id: 'language-intro',
-    title: 'Học ngôn ngữ',
-    description: 'Xây dựng sự tự tin tiếng Anh qua luyện tập và phản hồi.',
-    type: 'section-intro',
-  },
-  {
     id: 'english-reasons',
-    title: 'Tại sao bạn muốn cải thiện tiếng Anh?',
-    description: 'Chọn tất cả phù hợp',
+    title: 'Tại sao bạn muốn học tiếng Anh?',
+    description: 'Chọn tất cả phù hợp với bạn',
     type: 'multi-select',
     options: ENGLISH_IMPROVEMENT_REASONS,
     dataKey: 'english_improvement_reasons',
   },
   {
     id: 'english-challenges',
-    title: 'Hiện tại bạn gặp khó khăn nhất gì?',
-    description: 'Chọn những trở ngại lớn nhất',
+    title: 'Bạn gặp khó khăn gì khi học tiếng Anh?',
+    description: 'Chọn những thử thách lớn nhất',
     type: 'multi-select',
     options: ENGLISH_CHALLENGES,
     dataKey: 'english_challenges',
   },
   {
     id: 'english-level',
-    title: 'Trình độ tiếng Anh hiện tại',
-    description: 'Chọn mức độ phù hợp với bạn',
+    title: 'Trình độ tiếng Anh hiện tại của bạn',
+    description: 'Chọn mức độ phù hợp nhất',
     type: 'single-select',
     options: ENGLISH_LEVELS_NEW,
     dataKey: 'english_level',
   },
   {
     id: 'english-tone',
-    title: 'Bạn muốn tập trung vào giọng điệu nào?',
-    description: 'Chọn phong cách phù hợp mục tiêu học tập',
+    title: 'Bạn muốn tập trung vào phong cách nào?',
+    description: 'Chọn giọng điệu phù hợp mục tiêu',
     type: 'single-select',
     options: ENGLISH_TONES,
     dataKey: 'english_tone',
+  },
+  {
+    id: 'features-intro',
+    title: 'Write2Learn giúp bạn học như thế nào?',
+    description: '📝 Viết nhật ký với phản hồi chi tiết\n\n📚 Học từ vựng thông minh với spaced repetition\n\n🎭 Luyện giao tiếp thực tế qua roleplay\n\n📊 Theo dõi tiến trình và phân tích lỗi',
+    type: 'section-intro',
   },
   {
     id: 'daily-goal',
@@ -193,12 +156,6 @@ export const ONBOARDING_STEPS: StepConfig[] = [
     description: 'Bạn muốn ôn bao nhiêu từ mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_review_goal',
-  },
-  {
-    id: 'goals-intro',
-    title: 'Đặt mục tiêu học tập',
-    description: 'Cùng xác định thế nào là thành công với bạn.',
-    type: 'section-intro',
   },
   {
     id: 'vocab-goal',

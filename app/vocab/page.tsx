@@ -140,7 +140,7 @@ export default function VocabPage() {
       <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Từ vựng</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Quản lý và ôn tập từ vựng tiếng Anh của bạn
+          Học và ôn tập từ vựng thông minh với hệ thống spaced repetition
         </p>
       </div>
 

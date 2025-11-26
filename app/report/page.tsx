@@ -139,7 +139,7 @@ export default function ReportPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Report</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Báo cáo tiến độ học tập và phân tích lỗi
+              Theo dõi tiến trình và phân tích chi tiết quá trình học tập của bạn
             </p>
           </div>
         </div>
