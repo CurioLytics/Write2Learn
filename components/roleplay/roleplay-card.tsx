@@ -11,6 +11,20 @@ interface RoleplayCardProps {
   imageUrl: string;
 }
 
+// Convert Google Drive sharing URL to direct image URL
+function getDirectImageUrl(url: string): string {
+  if (!url) return url;
+  
+  // Check if it's a Google Drive sharing URL
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    // Convert to direct image URL
+    return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w400`;
+  }
+  
+  return url;
+}
+
 export function RoleplayCard({ id, title, description, imageUrl }: RoleplayCardProps) {
   const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
@@ -31,10 +45,11 @@ export function RoleplayCard({ id, title, description, imageUrl }: RoleplayCardP
       <div className="h-24 sm:h-28 lg:h-32 bg-gray-100 relative">
         {imageUrl ? (
           <Image 
-            src={imageUrl} 
+            src={getDirectImageUrl(imageUrl)} 
             alt={title} 
             fill 
             className="object-cover"
+            unoptimized={imageUrl.includes('drive.google.com')}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xl sm:text-2xl">

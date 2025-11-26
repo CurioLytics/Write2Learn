@@ -60,7 +60,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
         
         <div className="mb-6">
           <h2 className="text-lg font-medium text-gray-700 mb-2">Nhiệm vụ</h2>
-          <div className="text-gray-600 bg-[var(--primary-blue-light)] p-4 rounded-md">
+          <div className="text-gray-600 bg-[var(--primary-blue-light)] p-4 rounded-md whitespace-pre-wrap leading-relaxed">
             {scenario.task}
           </div>
         </div>

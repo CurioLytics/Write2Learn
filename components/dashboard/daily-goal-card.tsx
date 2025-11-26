@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { Check, Square } from 'lucide-react';
 import { DailyGoalStatus } from '@/services/analytics-service';
 import { cn } from '@/utils/ui';
 import { useUserProfileStore } from '@/stores/user-profile-store';
@@ -42,7 +42,7 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-64 flex items-center justify-center">
           <div className="text-muted-foreground">Loading goals...</div>
         </div>
@@ -60,7 +60,7 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   const totalGoals = goals.length;
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-white shadow rounded-2xl">
       <div className="mb-6">
         <h3 className="text-lg font-semibold">Today's Goals</h3>
         <p className="text-sm text-muted-foreground">
@@ -79,7 +79,16 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
             <div key={goal.key} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">{goal.icon}</span>
+                  {/* Checkbox icon instead of emoji */}
+                  {isCompleted ? (
+                    <div className="w-5 h-5 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center">
+                      <Square className="w-3 h-3 text-gray-300" />
+                    </div>
+                  )}
                   <span className="text-sm font-medium">{goal.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -89,11 +98,6 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
                   )}>
                     {completed}/{target}
                   </span>
-                  {isCompleted && (
-                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  )}
                 </div>
               </div>
               

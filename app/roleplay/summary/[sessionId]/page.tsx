@@ -34,7 +34,7 @@ export default function RoleplaySummaryPage() {
     style: cachedPreferences?.style || 'conversational',
   };
 
-  const loadingSteps = ['clarity', 'vocabulary', 'grammar', 'ideas', 'enhanced version'];
+  const loadingSteps = ['độ rõ ràng', 'từ vựng', 'ngữ pháp', 'ý tưởng', 'phiên bản nâng cấp'];
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
@@ -51,7 +51,7 @@ export default function RoleplaySummaryPage() {
         setSessionData(data);
         setHighlights(data.highlights || []);
       } catch (err: any) {
-        setError(err?.message || 'Failed to load session');
+        setError(err?.message || 'Không tìm thấy hội thoại');
       } finally {
         setLoading(false);
       }
@@ -91,7 +91,7 @@ export default function RoleplaySummaryPage() {
       localStorage.setItem('flashcardData', JSON.stringify(result.flashcards));
       router.push('/flashcards/generate');
     } catch (err: any) {
-      setError(err?.message || 'Failed to save highlights');
+      setError(err?.message || 'Không thể lưu đoạn nổi bật');
       setProcessing(false);
     }
   };
@@ -159,7 +159,7 @@ export default function RoleplaySummaryPage() {
           <div className="mb-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
             <p className="text-lg">
-              <span className="text-gray-900">Checking your </span>
+              <span className="text-gray-900">Đang kiểm tra </span>
               <span className="text-[var(--primary)] font-medium">{loadingSteps[loadingStep]}</span>
             </p>
           </div>
@@ -229,10 +229,10 @@ export default function RoleplaySummaryPage() {
               
               <Tabs defaultValue="clarity" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="clarity">Clarity</TabsTrigger>
-                  <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
-                  <TabsTrigger value="ideas">Ideas</TabsTrigger>
-                  <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
+                  <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
+                  <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
+                  <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
+                  <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="clarity" className="mt-4">

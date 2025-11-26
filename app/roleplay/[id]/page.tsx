@@ -28,7 +28,7 @@ export default function ScenarioDetailPage() {
         setError(null);
       } catch (err) {
         console.error('Error loading scenario:', err);
-        setError('Failed to load the scenario. Please try again.');
+        setError('Không thể tải tình huống. Bạn thử lại nhé.');
         setScenario(null);
       } finally {
         setLoading(false);
@@ -64,12 +64,12 @@ export default function ScenarioDetailPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-          <h2 className="text-xl font-medium text-gray-800 mb-4">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Scenario not found'}</p>
+          <h2 className="text-xl font-medium text-gray-800 mb-4">Lỗi</h2>
+          <p className="text-gray-600 mb-6">{error || 'Không tìm thấy tình huống'}</p>
           <Button 
             onClick={handleBack}
           >
-            Back to Scenarios
+            Quay lại danh sách
           </Button>
         </div>
       </div>

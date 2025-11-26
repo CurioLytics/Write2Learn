@@ -1,62 +1,105 @@
 'use client';
 
-import { useDashboardData } from '@/hooks/dashboard/use-dashboard-data';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { ProgressCard } from './components/ProgressCard';
-import { ErrorAnalysisCard } from './components/ErrorAnalysisCard';
-import { DateFilter } from './components/DateFilter';
-import { ChatbotModal } from './components/ChatbotModal';
+import { useAnalytics } from '@/hooks/dashboard/useAnalytics';
+import { WeeklyActivityChart } from '@/components/dashboard/weekly-activity-chart';
+import { DailyGoalCard } from '@/components/dashboard/daily-goal-card';
+import { GrammarErrorChart } from '@/components/dashboard/grammar-error-chart';
+import { ProgressCalendar } from '@/components/dashboard/progress-calendar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Target, Calendar, MessageCircle, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { RefreshCw, Flame, TrendingUp } from 'lucide-react';
+import { cn } from '@/utils/ui';
+import { DailyGoalStatus } from '@/services/analytics-service';
+
+type DatePreset = '7days' | '30days' | '90days' | 'all';
+
+const DATE_PRESETS = [
+  { value: '7days' as DatePreset, label: '7 ngày', days: 7 },
+  { value: '30days' as DatePreset, label: '30 ngày', days: 30 },
+  { value: '90days' as DatePreset, label: '90 ngày', days: 90 },
+  { value: 'all' as DatePreset, label: 'Tất cả', days: 365 },
+];
 
 export default function ReportPage() {
   const { user } = useAuth();
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  
-  const {
-    stats,
-    errorAnalysis,
-    loading,
-    errors,
-    datePreset,
-    updateDateFilter,
-    refreshData
-  } = useDashboardData(user?.id || null);
+  const [datePreset, setDatePreset] = useState<DatePreset>('7days');
+  const [monthlyGoals, setMonthlyGoals] = useState<Map<string, DailyGoalStatus>>(new Map());
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(true);
+
+  // Memoize date range calculation to prevent infinite loops
+  const { startDate, endDate } = useMemo(() => {
+    const endDate = new Date();
+    const daysAgo = DATE_PRESETS.find(p => p.value === datePreset)?.days || 7;
+    const startDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+    return { startDate, endDate };
+  }, [datePreset]);
+
+  const { data, isLoading, error, refetch } = useAnalytics({ startDate, endDate });
+
+  // Fetch monthly goal statuses for calendar
+  useEffect(() => {
+    async function fetchMonthlyGoals() {
+      if (!user?.id) return;
+      
+      setIsLoadingCalendar(true);
+      try {
+        const response = await fetch('/api/analytics/monthly-goals');
+        const result = await response.json();
+        
+        if (result.success && result.data?.goalStatuses) {
+          // Convert object back to Map
+          const statusMap = new Map(Object.entries(result.data.goalStatuses));
+          setMonthlyGoals(statusMap);
+        }
+      } catch (err) {
+        console.error('Error fetching monthly goals:', err);
+      } finally {
+        setIsLoadingCalendar(false);
+      }
+    }
+
+    fetchMonthlyGoals();
+  }, [user?.id]);
 
   // Loading state
-  if (loading.stats && loading.errorAnalysis) {
+  if (isLoading && !data) {
     return (
-      <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
         <div className="bg-white shadow rounded-2xl p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
           
           <div className="space-y-6">
-            {/* Stats Loading */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Loading skeletons */}
+            <div className="grid gap-6 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="animate-pulse">
                   <Card>
                     <CardContent className="p-6">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                      <div className="h-8 bg-muted rounded w-1/2"></div>
                     </CardContent>
                   </Card>
                 </div>
               ))}
             </div>
 
-            {/* Error Analysis Loading */}
-            <div className="animate-pulse">
-              <Card>
-                <CardHeader>
-                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-32 bg-gray-200 rounded"></div>
-                </CardContent>
-              </Card>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="animate-pulse">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="h-80 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="animate-pulse">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="h-80 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
@@ -65,30 +108,16 @@ export default function ReportPage() {
   }
 
   // Error state
-  if (errors.stats && errors.errorAnalysis) {
+  if (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4 space-y-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
         <div className="bg-white shadow rounded-2xl p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
           
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle className="text-red-600">Lỗi tải dữ liệu</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {errors.stats && (
-                  <p className="text-sm text-red-600">Stats: {errors.stats}</p>
-                )}
-                {errors.errorAnalysis && (
-                  <p className="text-sm text-red-600">Error Analysis: {errors.errorAnalysis}</p>
-                )}
-              </div>
-              <Button 
-                onClick={refreshData}
-                className="mt-4"
-                variant="outline"
-              >
+          <Card className="border-destructive">
+            <CardContent className="p-6">
+              <p className="text-destructive mb-4">Không thể tải dữ liệu: {error.message}</p>
+              <Button onClick={refetch} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Thử lại
               </Button>
@@ -99,108 +128,141 @@ export default function ReportPage() {
     );
   }
 
-  // Progress cards data
-  const progressCards = [
-    {
-      id: 1,
-      icon: BookOpen,
-      value: loading.stats ? 0 : (stats?.totalJournalsCompleted || 0),
-      label: 'Bài viết hoàn thành',
-      color: 'text-blue-600',
-      error: errors.stats
-    },
-    {
-      id: 2,
-      icon: Target,
-      value: loading.stats ? 0 : (stats?.totalWordsLearned || 0),
-      label: 'Từ vựng đã học',
-      color: 'text-green-600',
-      error: errors.stats
-    },
-    {
-      id: 3,
-      icon: Calendar,
-      value: loading.stats ? 0 : (stats?.streakDays || 0),
-      label: 'Chuỗi ngày học',
-      color: 'text-orange-600',
-      error: errors.stats
-    }
-  ];
+  const streak = data?.streak;
+  const isStreakActive = streak && streak.current_streak > 0;
 
-return (
-  <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
-    
-    {/* Header */}
-    <div className="bg-white shadow rounded-2xl p-6">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Report</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Báo cáo tiến độ học tập và phân tích lỗi
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div className="space-y-8">
-
-      {/* Stats Section */}
+  return (
+    <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
+      {/* HEADER */}
       <div className="bg-white shadow rounded-2xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Bạn đã đi bao xa?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {progressCards.map((card) => (
-            <ProgressCard
-              key={card.id}
-              icon={card.icon}
-              value={card.value}
-              label={card.label}
-              color={card.color}
-              isLoading={loading.stats}
-              error={card.error}
-            />
-          ))}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Report</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Báo cáo tiến độ học tập và phân tích lỗi
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Error Analysis Section */}
-      <div className="bg-white shadow rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-          <h2 className="text-xl font-semibold">Các điểm cần chú ý</h2>
-          <div className="flex items-center gap-2">
-            <DateFilter
-              currentPreset={datePreset}
-              onPresetChange={updateDateFilter}
-              className={loading.errorAnalysis ? "opacity-50 pointer-events-none" : ""}
+      <div className="space-y-8">
+        {/* First Row: Today's Goals, Calendar, and Streak Cards */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Today's Goals */}
+          <div>
+            <DailyGoalCard 
+              data={data?.dailyGoal || null} 
+              isLoading={isLoading} 
             />
+          </div>
+
+          {/* Calendar */}
+          <div>
+            <Card className="bg-white shadow rounded-2xl">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Lịch hoạt động</h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  Ngày hoàn thành toàn bộ mục tiêu sẽ được in đậm
+                </p>
+                {isLoadingCalendar ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <ProgressCalendar 
+                    goalStatuses={monthlyGoals}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Streak Cards - Stacked vertically */}
+          <div className="space-y-6">
+            <Card className={cn(
+              "relative overflow-hidden bg-white shadow rounded-2xl",
+              isStreakActive && "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50"
+            )}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "p-3 rounded-full",
+                    isStreakActive ? "bg-orange-100" : "bg-gray-100"
+                  )}>
+                    <Flame className={cn(
+                      "w-6 h-6",
+                      isStreakActive ? "text-orange-500" : "text-gray-400"
+                    )} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">STREAK</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {streak?.current_streak || 0} ngày
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-blue-100">
+                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Longest Streak</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {streak?.longest_streak || 0} ngày
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {errors.errorAnalysis ? (
-          <Card className="border-red-200">
-            <CardContent className="p-6">
-              <p className="text-red-600">Lỗi: {errors.errorAnalysis}</p>
+        {/* Second Row: Weekly Activity Chart with Date Filter */}
+        <div>
+          {/* Date Filter - Right aligned above chart */}
+          <div className="flex gap-2 flex-wrap justify-end mb-4">
+            {DATE_PRESETS.map((preset) => (
+              <Button
+                key={preset.value}
+                variant={datePreset === preset.value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setDatePreset(preset.value)}
+                className={datePreset === preset.value ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-600 text-blue-600 hover:bg-blue-50'}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Weekly Activity Chart */}
+          <WeeklyActivityChart 
+            data={data?.weeklyActivity || []} 
+            isLoading={isLoading} 
+          />
+        </div>
+
+        {/* Grammar Error Analysis - Full width */}
+        <GrammarErrorChart 
+          data={data?.grammarErrors || []} 
+          isLoading={isLoading} 
+        />
+
+        {/* Motivational footer */}
+        {isStreakActive && streak && streak.current_streak >= 7 && (
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow rounded-2xl">
+            <CardContent className="p-6 text-center">
+              <p className="text-lg font-medium text-gray-900">
+                🎉 Tuyệt vời! Bạn đã duy trì chuỗi {streak.current_streak} ngày! Tiếp tục nhé!
+              </p>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-6">
-            <ErrorAnalysisCard
-              
-              errors={errorAnalysis || []}
-              isLoading={loading.errorAnalysis}
-              error={errors.errorAnalysis}
-            />
-          </div>
         )}
       </div>
-
     </div>
-
-    {/* Chatbot Modal */}
-    <ChatbotModal
-      isOpen={isChatbotOpen}
-      onClose={() => setIsChatbotOpen(false)}
-    />
-  </div>
-);
-
+  );
 }

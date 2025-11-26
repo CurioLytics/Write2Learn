@@ -31,14 +31,26 @@ function useJournalFeedback() {
       if (!storedFeedback) throw new Error('No feedback data found.');
       
       const parsed = JSON.parse(storedFeedback);
-      setFeedback(Array.isArray(parsed) ? parsed[0] : parsed);
+      const feedbackData = Array.isArray(parsed) ? parsed[0] : parsed;
+      
+      // Validate freshness (within last hour)
+      if (feedbackData.timestamp && Date.now() - feedbackData.timestamp > 3600000) {
+        sessionStorage.removeItem('journalFeedback');
+        throw new Error('Feedback data expired. Please generate feedback again.');
+      }
+      
+      setFeedback(feedbackData);
       
       // Get journal ID if editing existing journal
       const id = searchParams?.get('id');
       setJournalId(id);
       
-      // Clear sessionStorage after reading to avoid stale data
-      // sessionStorage.removeItem('journalFeedback');
+      // Clear sessionStorage after reading to avoid stale data on subsequent visits
+      // Only clear if not coming from edit flow (which needs to preserve it)
+      const fromEdit = searchParams?.get('fromEdit');
+      if (!fromEdit) {
+        sessionStorage.removeItem('journalFeedback');
+      }
     } catch (err) {
       setError('Failed to load feedback data.');
     }
@@ -199,8 +211,8 @@ export default function JournalFeedbackPage() {
           <CardContent>
             <BreathingLoader 
               message={processing ? 
-                (highlights.length > 0 ? 'Creating flashcards from your highlights...' : 'Processing your highlights...') : 
-                'Preparing your feedback...'
+                (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') : 
+                'Đang chuẩn bị phản hồi...'
               }
               className="py-8"
             />
@@ -215,7 +227,7 @@ export default function JournalFeedbackPage() {
       <div className="w-full max-w-3xl mx-auto px-4 py-10">
         <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
           <CardContent>
-            <ErrorState message={error || 'Feedback not found'} onRetry={() => router.back()} />
+            <ErrorState message={error || 'Không tìm thấy phản hồi'} onRetry={() => router.back()} />
           </CardContent>
         </Card>
       </div>
@@ -264,10 +276,10 @@ export default function JournalFeedbackPage() {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Phản hồi</h3>
             <Tabs defaultValue="clarity" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="clarity">Clarity</TabsTrigger>
-                <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
-                <TabsTrigger value="ideas">Ideas</TabsTrigger>
-                <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
+                <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
+                <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
+                <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
+                <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
               </TabsList>
               
               <TabsContent value="clarity" className="mt-4">

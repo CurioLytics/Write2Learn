@@ -3,8 +3,8 @@ import { LogoImage } from '@/components/auth/logo-image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In | Write2Learn',
-  description: 'Sign in to your Write2Learn account or create a new one to improve your English writing skills.',
+  title: 'Đăng nhập | Write2Learn',
+  description: 'Đăng nhập hoặc tạo tài khoản mới để nâng cấp kỹ năng viết tiếng Anh của bạn.',
 };
 
 export default function AuthPage() {

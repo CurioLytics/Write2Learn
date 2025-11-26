@@ -27,7 +27,7 @@ const ACTIVITY_LABELS = {
 export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProps) {
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex items-center justify-center">
           <div className="text-muted-foreground">Loading activity data...</div>
         </div>
@@ -37,7 +37,7 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
 
   if (!data || data.length === 0) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex items-center justify-center">
           <div className="text-muted-foreground">No activity data available</div>
         </div>
@@ -55,7 +55,7 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
   }));
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-white shadow rounded-2xl">
       <div className="mb-4">
         <h3 className="text-lg font-semibold">Weekly Activity</h3>
         <p className="text-sm text-muted-foreground">Your learning activities over time</p>

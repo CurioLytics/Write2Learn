@@ -5,6 +5,7 @@ class TTSService {
   private currentUtterance: SpeechSynthesisUtterance | null = null;
   private audioCache: Map<string, SpeechSynthesisUtterance> = new Map();
   private currentMessageId: string | null = null;
+  private readonly MAX_CACHE_SIZE = 50;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -38,7 +39,19 @@ class TTSService {
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       
+      // Implement LRU eviction if cache is full
+      if (this.audioCache.size >= this.MAX_CACHE_SIZE) {
+        const firstKey = this.audioCache.keys().next().value;
+        if (firstKey) {
+          this.audioCache.delete(firstKey);
+        }
+      }
+      
       // Cache it
+      this.audioCache.set(messageId, utterance);
+    } else {
+      // Move to end for LRU (re-insert)
+      this.audioCache.delete(messageId);
       this.audioCache.set(messageId, utterance);
     }
 

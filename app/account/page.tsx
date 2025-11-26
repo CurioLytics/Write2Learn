@@ -137,13 +137,13 @@ export default function AccountPage() {
       <div className="max-w-2xl mx-auto space-y-8 p-6">
         {/* Header */}
         <div className="space-y-6">
-          <h1 className="text-3xl font-semibold text-foreground">Account</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Tài khoản</h1>
           
           {/* Logout Button */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
-                Logout
+                Đăng xuất
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -163,7 +163,7 @@ export default function AccountPage() {
 
         {/* Settings Section */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Cài đặt</h2>
 
           {/* Email Settings */}
           <Card>
@@ -183,7 +183,7 @@ export default function AccountPage() {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Current password:</Label>
+                <Label htmlFor="current-password">Mật khẩu hiện tại:</Label>
                 <Input
                   id="current-password"
                   type="password"
@@ -194,24 +194,24 @@ export default function AccountPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="new-password">New password:</Label>
+                <Label htmlFor="new-password">Mật khẩu mới:</Label>
                 <Input
                   id="new-password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password"
+                  placeholder="Mật khẩu mới"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Retype new password:</Label>
+                <Label htmlFor="confirm-password">Nhập lại mật khẩu mới:</Label>
                 <Input
                   id="confirm-password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder="Xác nhận mật khẩu mới"
                 />
               </div>
 
@@ -220,7 +220,7 @@ export default function AccountPage() {
                 disabled={isPasswordLoading || !newPassword || !confirmPassword}
                 className="bg-gray-800 hover:bg-gray-900 text-white px-6"
               >
-                {isPasswordLoading ? 'Đang lưu...' : 'Save'}
+                {isPasswordLoading ? 'Đang lưu...' : 'Lưu'}
               </Button>
             </CardContent>
           </Card>

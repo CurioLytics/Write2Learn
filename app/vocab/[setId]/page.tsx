@@ -159,10 +159,10 @@ export default function VocabularySetPage() {
         ));
       }
       
-      toast.success(newStarredStatus ? 'Starred' : 'Unstarred');
+      toast.success(newStarredStatus ? 'Đã đánh dấu' : 'Đã bỏ đánh dấu');
     } catch (error: any) {
       console.error('Error toggling star:', error);
-      toast.error(error.message || 'Failed to update star status');
+      toast.error(error.message || 'Lỗi khi cập nhật');
     }
   };
 
@@ -295,7 +295,7 @@ export default function VocabularySetPage() {
   if (isLoading && !vocabularySet) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading vocabulary...</div>
+        <div className="text-gray-500">Đang tải từ vựng...</div>
       </div>
     );
   }
@@ -305,9 +305,9 @@ export default function VocabularySetPage() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto p-6">
           <div className="text-center">
-            <h2 className="text-xl font-medium text-gray-800 mb-2">Error</h2>
+            <h2 className="text-xl font-medium text-gray-800 mb-2">Lỗi</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => router.back()}>Go Back</Button>
+            <Button onClick={() => router.back()}>Quay lại</Button>
           </div>
         </div>
       </div>
@@ -417,8 +417,8 @@ export default function VocabularySetPage() {
                             ? 'text-yellow-500 hover:text-yellow-600' 
                             : 'text-gray-400 hover:text-yellow-500'
                       }`}
-                      aria-label={isEditing ? `Remove word ${index + 1}` : (word.is_starred ? 'Unstar word' : 'Star word')}
-                      title={isEditing ? 'Remove word' : (word.is_starred ? 'Remove from favorites' : 'Add to favorites')}
+                      aria-label={isEditing ? `Remove word ${index + 1}` : (word.is_starred ? 'Bỏ đánh dấu từ' : 'Đánh dấu từ')}
+                      title={isEditing ? 'Remove word' : (word.is_starred ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích')}
                     >
                       {isEditing ? '×' : (word.is_starred ? '⭐' : '☆')}
                     </button>

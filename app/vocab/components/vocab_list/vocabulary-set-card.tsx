@@ -131,7 +131,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
       {/* Three-dot menu - Only show for non-default sets */}
       {!vocabularySet.is_default && (
-        <div className="absolute top-3 right-3" ref={menuOpen ? menuRef : null}>
+        <div className="absolute bottom-3 right-3" ref={menuOpen ? menuRef : null}>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -144,7 +144,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+            <div className="absolute right-0 bottom-full mb-1 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
               <button
                 onClick={handleDelete}
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"

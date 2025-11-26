@@ -122,10 +122,10 @@ export default function VocabPage() {
       if (activeTab === 'starred-words') {
         await loadStarredWords();
       }
-      toast.success(newStarredStatus ? 'Added to favorites' : 'Removed from favorites');
+      toast.success(newStarredStatus ? 'Đã thêm vào mục yêu thích' : 'Đã xóa khỏi mục yêu thích');
     } catch (error) {
       console.error('Error toggling star:', error);
-      toast.error('Failed to update star status');
+      toast.error('Lỗi khi cập nhật');
     }
   };
 
@@ -167,7 +167,7 @@ export default function VocabPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              ⭐ Starred Words
+              ⭐ Từ đã đánh dấu
             </button>
           </nav>
         </div>
@@ -184,7 +184,7 @@ export default function VocabPage() {
                     ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
                     : 'bg-gray-100 text-gray-600 border border-gray-300'
                 }`}
-                title={showStarredOnly ? 'Starred only' : 'Show all sets'}
+                title={showStarredOnly ? 'Chỉ xem từ đã đánh dấu' : 'Xem tất cả bộ'}
               >
                 {showStarredOnly ? '⭐' : '☆'}
               </button>

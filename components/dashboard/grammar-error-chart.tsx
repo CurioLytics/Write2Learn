@@ -48,7 +48,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex items-center justify-center">
           <div className="text-muted-foreground">Loading error analysis...</div>
         </div>
@@ -58,7 +58,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex flex-col items-center justify-center">
           <div className="text-6xl mb-4">🎉</div>
           <div className="text-lg font-medium">No grammar errors found!</div>
@@ -79,7 +79,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
   }));
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-white shadow rounded-2xl">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h3 className="text-lg font-semibold">Grammar Error Analysis</h3>

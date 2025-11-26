@@ -63,7 +63,7 @@ export default function CreateVocabSetPage() {
   const handleCancel = () => {
     if (hasUnsavedData()) {
       const confirmLeave = window.confirm(
-        'You have unsaved changes. Are you sure you want to cancel? All data will be lost.'
+        'Bạn có thay đổi chưa lưu. Bạn chắc muốn hủy? Tất cả dữ liệu sẽ mất.'
       );
       if (!confirmLeave) return;
     }
@@ -78,7 +78,7 @@ export default function CreateVocabSetPage() {
 
     // Creating new set - need title
     if (!title.trim()) {
-      setError('Title is required for new vocabulary set');
+      setError('Cần có tiêu đề');
       return;
     }
 
@@ -125,9 +125,9 @@ export default function CreateVocabSetPage() {
       
       // Handle specific error cases
       if (err.code === '23505' && err.message?.includes('unique_profile_setname')) {
-        setError('Đặt tên khác nhé - tên này đã được sử dụng rồi');
+        setError('Tên này đã được dùng rồi, bạn đặt tên khác nhé');
       } else {
-        setError(err.message || 'Failed to save vocabulary');
+        setError(err.message || 'Không thể lưu từ vựng');
       }
     } finally {
       setIsLoading(false);
@@ -137,7 +137,7 @@ export default function CreateVocabSetPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">Đang tải...</div>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default function CreateVocabSetPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create Vocabulary Set</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Tạo bộ từ vựng</h1>
               <p className="text-sm text-gray-600 mt-2">Tạo bộ từ vựng mới để học và ôn tập</p>
             </div>
             <div className="text-sm text-gray-600">{vocabularyWords.length} mục</div>
@@ -159,13 +159,13 @@ export default function CreateVocabSetPage() {
             {/* Title Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title <span className="text-red-500">*</span>
+                Tiêu đề <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter vocabulary set title..."
+                placeholder="Nhập tiêu đề..."
                 className="w-full bg-gray-50 border border-gray-200"
               />
             </div>
@@ -173,21 +173,21 @@ export default function CreateVocabSetPage() {
             {/* Description Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                Mô tả
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none"
-                placeholder="Enter description (optional)..."
+                placeholder="Nhập mô tả (tùy chọn)..."
               />
             </div>
 
             {/* Vocabulary Words Section */}
             <div>
               <div className="flex items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
+                <h3 className="text-lg font-medium text-gray-800">Từ vựng</h3>
               </div>
 
               <div className="space-y-4">
@@ -204,7 +204,7 @@ export default function CreateVocabSetPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">
-                          Term
+                          Từ
                         </label>
                         <textarea
                           ref={(el) => { textareaRefs.current[index * 2] = el; }}
@@ -212,20 +212,20 @@ export default function CreateVocabSetPage() {
                           onChange={(e) => updateVocabularyWord(index, 'word', e.target.value)}
                           rows={2}
                           className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none bg-white"
-                          placeholder="Enter term..."
+                          placeholder="Nhập từ..."
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">
-                          Meaning
+                          Nghĩa
                         </label>
                         <textarea
                           value={word.meaning}
                           onChange={(e) => updateVocabularyWord(index, 'meaning', e.target.value)}
                           rows={2}
                           className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none bg-white"
-                          placeholder="Enter meaning..."
+                          placeholder="Nhập nghĩa..."
                         />
                       </div>
                     </div>
@@ -241,7 +241,7 @@ export default function CreateVocabSetPage() {
                   onClick={addVocabularyWord}
                   className="text-sm w-full"
                 >
-                  + Add Word
+                  + Thêm từ
                 </Button>
               </div>
             </div>
@@ -258,13 +258,13 @@ export default function CreateVocabSetPage() {
                 onClick={handleCancel}
                 disabled={isLoading}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={isLoading || !title.trim()}
               >
-                {isLoading ? 'Saving...' : 'Save Vocabulary Set'}
+                {isLoading ? 'Đang lưu...' : 'Lưu bộ từ vựng'}
               </Button>
             </div>
           </div>

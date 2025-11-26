@@ -151,7 +151,7 @@ export default function FlashcardCreationPage() {
     );
     
     if (validFlashcards.length === 0) {
-      setError('Không có flashcard hợp lệ để lưu. Vui lòng điền đầy đủ Term và Meaning.');
+      setError('Không có flashcard hợp lệ. Bạn cần điền đầy đủ Từ và Nghĩa.');
       return;
     }
     
@@ -161,7 +161,7 @@ export default function FlashcardCreationPage() {
     }
 
     if (!selectedSetId) {
-      setError('Vui lòng chọn bộ từ vựng để lưu flashcards.');
+      setError('Vui lòng chọn bộ để lưu.');
       return;
     }
 
@@ -274,7 +274,7 @@ export default function FlashcardCreationPage() {
             {/* Vocabulary Words Section */}
             <div>
               <div className="flex items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-800">Vocabulary Words</h3>
+                <h3 className="text-lg font-medium text-gray-800">Từ vựng</h3>
               </div>
 
               <div className="space-y-4">
@@ -295,20 +295,20 @@ export default function FlashcardCreationPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Term
+                      Từ
                     </label>
                     <textarea
                       value={card.word}
                       onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
                       rows={2}
                       className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                      placeholder="Enter term..."
+                      placeholder="Nhập từ..."
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Meaning
+                      Nghĩa
                     </label>
                     <textarea
                       value={card.back.definition}
@@ -317,7 +317,7 @@ export default function FlashcardCreationPage() {
                       }
                       rows={2}
                       className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                      placeholder="Enter meaning..."
+                      placeholder="Nhập nghĩa..."
                     />
                   </div>
                 </div>
@@ -333,7 +333,7 @@ export default function FlashcardCreationPage() {
                   onClick={addFlashcard}
                   className="text-sm w-full"
                 >
-                  + Add Word
+                  + Thêm từ
                 </Button>
               </div>
             </div>

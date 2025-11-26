@@ -10,6 +10,18 @@ const nextConfig: NextConfig = {
         hostname: 'eqhldzwiymtcyxyxezos.supabase.co', // Thay thế bằng tên miền Supabase của bạn
         pathname: '/storage/v1/object/public/**', // Cho phép tải ảnh từ bất kỳ đường dẫn nào trong public storage
       },
+      {
+        protocol: 'https',
+        hostname: 'drive.google.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'drive.usercontent.google.com',
+      },
       // Nếu bạn có các dịch vụ lưu trữ ảnh khác, hãy thêm chúng vào đây
     ],
     // HOẶC (cách cũ hơn nhưng vẫn hoạt động):

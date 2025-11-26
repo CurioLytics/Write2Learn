@@ -52,6 +52,11 @@ export async function signInWithProvider(provider: Provider) {
     // Track the login attempt in localStorage for persistence through redirects
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_in_progress', provider);
+      
+      // Clear all app caches on new login
+      const { cacheManager } = await import('@/lib/cache');
+      cacheManager.clearAll('local');
+      cacheManager.clearAll('session');
     }
     
     // Include queryParams to pass additional info (useful for redirects after auth)
@@ -98,8 +103,17 @@ export async function signInWithProvider(provider: Provider) {
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   
+  // Clear cached user
+  cachedUser = null;
+  cachedUserTimestamp = 0;
+  
   // Clear any stored user data from localStorage/sessionStorage
   if (typeof window !== 'undefined') {
+    // Clear all app caches
+    const { cacheManager } = await import('@/lib/cache');
+    cacheManager.clearAll('local');
+    cacheManager.clearAll('session');
+    
     // We'll rely on the provider's useEffect to clear the profile state
     // This is just a safety measure for any other stored auth data
     sessionStorage.removeItem('user-profile-storage');

@@ -64,7 +64,9 @@ export async function POST(request: Request) {
 5. **Markdown editing**: Uses custom markdown editor with task list support, not TipTap for journal content
 
 ### Integration Points
-- Supabase client creation via `@supabase/auth-helpers-nextjs`
+- Supabase client creation via `@supabase/auth-helpers-nextjs` 
+SUPABASE_PROJECT_ID=eqhldzwiymtcyxyxezos
+
 - FSRS library (`ts-fsrs`) for vocabulary spaced repetition
 - Dynamic imports for client-only components (markdown editor)
 

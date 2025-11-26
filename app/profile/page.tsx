@@ -30,19 +30,19 @@ const ENGLISH_LEVELS = [
 ];
 
 const ENGLISH_TONES = [
-  { value: 'conversational', label: 'Conversational English', description: 'For daily life — casual and friendly' },
-  { value: 'professional', label: 'Professional English', description: 'For workplace — formal and polite' },
-  { value: 'academic', label: 'Academic English', description: 'For academic writing — clear and precise' }
+  { value: 'conversational', label: 'Tiếng Anh đời thường', description: 'Dùng cho tình huống hàng ngày — thân thiện, tự nhiên' },
+  { value: 'professional', label: 'Tiếng Anh chuyên nghiệp', description: 'Dùng cho công việc — lịch sự, rõ ràng' },
+  { value: 'academic', label: 'Tiếng Anh học thuật', description: 'Dùng cho viết học thuật — mạch lạc, chuẩn xác' }
 ];
 
 // Display labels for better UI
 const ENGLISH_LEVEL_LABELS: Record<string, string> = {
-  'beginner': 'Beginner',
-  'elementary': 'Elementary',
-  'pre-intermediate': 'Pre-intermediate',
-  'intermediate': 'Intermediate',
-  'upper-intermediate': 'Upper-intermediate',
-  'advanced': 'Advanced'
+  'beginner': 'Mới bắt đầu',
+  'elementary': 'Sơ cấp',
+  'pre-intermediate': 'Tiền trung cấp',
+  'intermediate': 'Trung cấp',
+  'upper-intermediate': 'Trung cao cấp',
+  'advanced': 'Cao cấp'
 };
 
 export default function ProfilePage() {
@@ -140,7 +140,7 @@ export default function ProfilePage() {
       // This will cause AuthProvider to re-fetch user preferences
       await supabase.auth.refreshSession();
       
-      toast.success("Profile updated successfully.");
+      toast.success("Cập nhật hồ sơ thành công.");
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error("Failed to update profile.");
@@ -173,8 +173,8 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-foreground">Profile Settings</h1>
-              <p className="text-muted-foreground mt-2">Update your personal information for a better learning experience.</p>
+              <h1 className="text-3xl font-semibold text-foreground">Cài đặt hồ sơ</h1>
+              <p className="text-muted-foreground mt-2">Cập nhật thông tin cá nhân để học hiệu quả hơn.</p>
             </div>
             <div className="flex gap-2">
               {!isEditing ? (
@@ -182,7 +182,7 @@ export default function ProfilePage() {
                   onClick={() => setIsEditing(true)}
                   className="bg-gray-800 hover:bg-gray-900 text-white"
                 >
-                  Edit
+                  Chỉnh sửa
                 </Button>
               ) : (
                 <Button
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                   }}
                   variant="outline"
                 >
-                  Cancel
+                  Hủy
                 </Button>
               )}
             </div>
@@ -203,16 +203,16 @@ export default function ProfilePage() {
         <div className="space-y-8">
           {/* Profile Information Section */}
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Profile Information</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Thông tin hồ sơ</h2>
             <Card>
               <CardHeader>
-                <CardTitle>Name</CardTitle>
+                <CardTitle>Tên</CardTitle>
               </CardHeader>
               <CardContent>
                 <Input
                   value={profileData.name}
                   onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter your name"
+                  placeholder="Nhập tên của bạn"
                   readOnly={!isEditing}
                   className={!isEditing ? "bg-gray-50 cursor-default" : ""}
                 />
@@ -222,12 +222,12 @@ export default function ProfilePage() {
 
           {/* English Level & Preferences Section */}
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">English Level & Preferences</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Trình độ & tùy chọn tiếng Anh</h2>
             <div className="space-y-6">
               {/* English Level */}
               <Card>
                 <CardHeader>
-                  <CardTitle>English Level</CardTitle>
+                  <CardTitle>Trình độ tiếng Anh</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -253,7 +253,7 @@ export default function ProfilePage() {
               {/* Tone and Style Preference */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Tone and Style Preference</CardTitle>
+                  <CardTitle>Phong cách & giọng điệu</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -280,16 +280,16 @@ export default function ProfilePage() {
 
           {/* Learning Goals Section */}
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Learning Goals</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Mục tiêu học tập</h2>
             <div className="space-y-6">
               {/* Daily Vocabulary Goal */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Vocabulary Goal</CardTitle>
+                  <CardTitle>Mục tiêu từ vựng hằng ngày</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Label>Number of new words to learn per day</Label>
+                    <Label>Số từ mới mỗi ngày</Label>
                     <Input
                       type="number"
                       min="1"
@@ -306,11 +306,11 @@ export default function ProfilePage() {
               {/* Daily Journal Goal */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Journal Goal</CardTitle>
+                  <CardTitle>Mục tiêu viết nhật ký</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Label>Number of journal entries to write per day</Label>
+                    <Label>Số bài nhật ký mỗi ngày</Label>
                     <Input
                       type="number"
                       min="1"
@@ -327,11 +327,11 @@ export default function ProfilePage() {
               {/* Daily Roleplay Goal */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Roleplay Goal</CardTitle>
+                  <CardTitle>Mục tiêu Roleplay</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Label>Number of roleplay sessions per day</Label>
+                    <Label>Số buổi luyện mỗi ngày</Label>
                     <Input
                       type="number"
                       min="1"
@@ -348,11 +348,11 @@ export default function ProfilePage() {
               {/* Daily Review Goal */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Review Goal</CardTitle>
+                  <CardTitle>Mục tiêu ôn tập</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Label>Number of vocabulary flashcards to review per day</Label>
+                    <Label>Số thẻ flashcard cần ôn mỗi ngày</Label>
                     <Input
                       type="number"
                       min="1"
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                 disabled={isLoading || !hasChanges}
                 className="bg-gray-800 hover:bg-gray-900 text-white px-8"
               >
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </div>
           )}

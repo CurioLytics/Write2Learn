@@ -43,7 +43,7 @@ export default function ChatSessionPage() {
         
         // Kiểm tra xem có starter_message hay không
         if (!data.starter_message) {
-          setError('This scenario does not have a starter message yet.');
+          setError('Tình huống này chưa có tin nhắn mở đầu.');
           return;
         }
         
@@ -51,7 +51,7 @@ export default function ChatSessionPage() {
         setError(null);
       } catch (err) {
         console.error('Error loading scenario:', err);
-        setError('Failed to load the scenario. Please try again.');
+        setError('Không thể tải tình huống. Bạn thử lại nhé.');
         setScenario(null);
       } finally {
         setLoading(false);
@@ -100,7 +100,7 @@ export default function ChatSessionPage() {
             <span></span>
             <span></span>
           </div>
-          <p className="text-gray-600 mt-4">Loading conversation...</p>
+          <p className="text-gray-600 mt-4">Đang tải hội thoại...</p>
         </div>
       </div>
     );
@@ -110,12 +110,12 @@ export default function ChatSessionPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
         <div className="bg-white rounded-2xl shadow p-6 text-center w-full">
-          <h2 className="text-xl font-medium text-gray-800 mb-4">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Scenario not found'}</p>
+          <h2 className="text-xl font-medium text-gray-800 mb-4">Lỗi</h2>
+          <p className="text-gray-600 mb-6">{error || 'Không tìm thấy tình huống'}</p>
           <Button 
             onClick={handleBack}
           >
-            Back to Scenario Details
+            Quay lại chi tiết tình huống
           </Button>
         </div>
       </div>
@@ -135,14 +135,14 @@ export default function ChatSessionPage() {
       <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Leave conversation?</AlertDialogTitle>
+            <AlertDialogTitle>Rời hội thoại?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to leave this roleplay session? Your conversation progress will be saved.
+              Bạn có chắc muốn rời phiên này? Tiến độ của bạn sẽ được lưu.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelLeave}>Stay</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmLeave}>Leave</AlertDialogAction>
+            <AlertDialogCancel onClick={cancelLeave}>Ở lại</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave}>Rời đi</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

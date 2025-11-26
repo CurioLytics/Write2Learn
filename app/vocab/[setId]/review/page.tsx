@@ -56,7 +56,7 @@ export default function ReviewPage() {
   // Star toggle function
   const handleStarToggle = async () => {
     if (!user || !currentCard) {
-      toast.error('Please log in to star vocabulary');
+      toast.error('Bạn cần đăng nhập để đánh dấu từ');
       return;
     }
 
@@ -77,7 +77,7 @@ export default function ReviewPage() {
           : card;
       }));
 
-      toast.success(newStarredStatus ? 'Starred' : 'Unstarred');
+      toast.success(newStarredStatus ? 'Đã đánh dấu' : 'Đã bỏ đánh dấu');
     } catch (error: any) {
       console.error('Error toggling star:', error);
       toast.error(error.message);
@@ -184,8 +184,8 @@ return (
             <button
               onClick={handleShuffle}
               className="p-3 text-gray-600 hover:text-[var(--primary)] transition-colors"
-              aria-label="Shuffle front and back"
-              title="Exchange front and back content"
+              aria-label="Xáo mặt trước & sau"
+              title="Đổi nội dung mặt trước/sau"
             >
               🔀
             </button>
@@ -197,8 +197,8 @@ return (
                     ? 'text-yellow-500 hover:text-yellow-600'
                     : 'text-gray-400 hover:text-yellow-500'
                 }`}
-                aria-label={currentCard.is_starred ? 'Unstar word' : 'Star word'}
-                title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={currentCard.is_starred ? 'Bỏ đánh dấu' : 'Đánh dấu'}
+                title={currentCard.is_starred ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
               >
                 {currentCard.is_starred ? '⭐' : '☆'}
               </button>
