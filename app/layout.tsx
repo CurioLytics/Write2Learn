@@ -3,6 +3,7 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/stores/auth-store";
 import { Toaster } from "sonner";
+import { FloatingFeedbackButton } from "@/components/layout/floating-feedback-button";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster />
+          <FloatingFeedbackButton />
         </AuthProvider>
       </body>
     </html>
