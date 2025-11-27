@@ -21,6 +21,7 @@ interface ScenarioDetailProps {
 export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
   const router = useRouter();
   const [showModeDialog, setShowModeDialog] = useState(false);
+  const [showVoiceWarning, setShowVoiceWarning] = useState(false);
 
   const handleStartSession = () => {
     if (!scenario.starter_message) {
@@ -30,8 +31,14 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
     setShowModeDialog(true);
   };
 
+  const handleVoiceModeClick = () => {
+    setShowModeDialog(false);
+    setShowVoiceWarning(true);
+  };
+
   const startWithMode = (mode: 'text' | 'voice') => {
     setShowModeDialog(false);
+    setShowVoiceWarning(false);
     router.push(`/roleplay/session/${scenario.id}?mode=${mode}`);
   };
 
@@ -103,7 +110,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
 
             {/* Voice Mode */}
             <button
-              onClick={() => startWithMode('voice')}
+              onClick={handleVoiceModeClick}
               className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-gray-200 hover:border-[var(--primary-purple)] hover:bg-[var(--primary-purple-light)] transition-all group relative"
             >
               {/* Beta Badge */}
@@ -128,6 +135,54 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
               className="text-gray-600"
             >
               Hủy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Voice Mode Warning Dialog */}
+      <Dialog open={showVoiceWarning} onOpenChange={setShowVoiceWarning}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">⚠️</span>
+              Khuyến cáo: Không dành cho người yếu tim!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700 font-medium mb-2">
+                Chế độ giọng nói yêu cầu phản hồi nhanh:
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside">
+                <li>Bạn có <strong>tối đa 12 giây</strong> để suy nghĩ</li>
+                <li>Mỗi lần nghỉ không quá <strong>2 giây</strong></li>
+                <li>AI sẽ tự động gửi tin nhắn nếu bạn im lặng quá lâu</li>
+              </ul>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Nếu bạn muốn có nhiều thời gian hơn để suy nghĩ, hãy chọn <strong>chế độ văn bản</strong>.
+            </p>
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowVoiceWarning(false);
+                setShowModeDialog(true);
+              }}
+              className="flex-1"
+            >
+              Quay lại
+            </Button>
+            <Button
+              onClick={() => startWithMode('voice')}
+              className="flex-1 bg-[var(--primary-purple)] hover:bg-[var(--primary-purple-hover)]"
+            >
+              Chơi luôn!
             </Button>
           </DialogFooter>
         </DialogContent>

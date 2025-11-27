@@ -57,6 +57,12 @@ export function useVoiceMode({
       return;
     }
 
+    // Stop bot speaking if it's playing before starting to listen
+    if (voiceState === 'bot-speaking') {
+      ttsService.stop();
+      setPlayingMessageId(null);
+    }
+
     clearTimers();
     setError(null);
     setVoiceState('listening');
@@ -148,6 +154,13 @@ export function useVoiceMode({
 
   // Play bot message with auto-activation
   const playBotMessage = useCallback((text: string, messageId: string) => {
+    // Stop listening if currently recording
+    if (voiceState === 'listening' || voiceState === 'user-speaking') {
+      voiceService.stopListening();
+      setInterimText('');
+      lastInterimTextRef.current = '';
+    }
+    
     clearTimers();
     setVoiceState('bot-speaking');
     

@@ -8,7 +8,7 @@ export function useVoiceInputChat(onTranscript: (text: string) => void) {
   const [error, setError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState('');
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (!voiceService.isSupported()) {
       setError('Trình duyệt không hỗ trợ. Vui lòng dùng Chrome hoặc Edge.');
       return;
@@ -25,7 +25,7 @@ export function useVoiceInputChat(onTranscript: (text: string) => void) {
     // Set to English
     voiceService.setLanguage('en-US');
 
-    voiceService.startListening(
+    await voiceService.startListening(
       (text, isFinal) => {
         if (isFinal) {
           onTranscript(text);

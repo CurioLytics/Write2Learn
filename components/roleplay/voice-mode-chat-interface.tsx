@@ -179,12 +179,16 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
 
   const handleMicClick = () => {
     if (voiceState === 'listening' || voiceState === 'user-speaking') {
+      // Stop recording
       stopListening();
     } else if (voiceState === 'bot-speaking') {
+      // Stop bot speaking, don't start recording automatically
       stopBotSpeaking();
-    } else {
+    } else if (voiceState === 'idle') {
+      // Only start listening if truly idle (not speaking or thinking)
       startListening();
     }
+    // If thinking, do nothing (button is disabled anyway)
   };
 
   const handleBackupSubmit = (e: React.FormEvent) => {
@@ -426,6 +430,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               <button
                 onClick={handleMicClick}
                 disabled={isThinking || finishing}
+                aria-label={isMicActive ? 'Stop recording' : isBotSpeaking ? 'Stop bot speaking' : 'Start recording'}
                 className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${
                   isMicActive
                     ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 scale-110 shadow-blue-500/50 animate-breathe'

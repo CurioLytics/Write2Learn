@@ -133,10 +133,20 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
         </div>
       </TooltipProvider>
 
-      {/* Error Overlay */}
+      {/* Error Overlay - More prominent for mobile */}
       {error && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40 bg-white rounded-xl shadow-2xl p-5 max-w-xs animate-fade-in border-l-4 border-red-500">
-          <div className="text-sm text-red-600 font-medium">{error}</div>
+        <div className="fixed bottom-32 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-auto md:max-w-md z-50 bg-red-50 border border-red-200 rounded-xl shadow-2xl p-4 animate-fade-in max-h-[60vh] overflow-y-auto">
+          <div className="text-sm text-red-700 font-medium mb-2 whitespace-pre-line">{error}</div>
+          {error.includes('overlay') || error.includes('bubble') || error.includes('ANDROID') ? (
+            <div className="mt-2 pt-2 border-t border-red-300">
+              <p className="text-xs font-bold text-red-800 mb-1">Cách tắt overlay trên Android:</p>
+              <ul className="text-xs text-red-700 space-y-1">
+                <li>• Messenger: Cài đặt → Chat heads → Tắt</li>
+                <li>• Blue light filter: Tắt trong thanh thông báo</li>
+                <li>• Hoặc: Settings → Apps → Special access → Display over other apps → Tắt tất cả</li>
+              </ul>
+            </div>
+          ) : null}
         </div>
       )}
     </>

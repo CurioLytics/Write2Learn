@@ -26,7 +26,7 @@ export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => 
     };
   }, [isListening]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (!voiceService.isSupported()) {
       setError('Trình duyệt không hỗ trợ. Vui lòng dùng Chrome hoặc Edge.');
       return;
@@ -35,7 +35,7 @@ export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => 
     setError(null);
     setIsListening(true);
 
-    voiceService.startListening(
+    await voiceService.startListening(
       (text, isFinal) => {
         if (isFinal) {
           // Send final text to parent and clear interim
