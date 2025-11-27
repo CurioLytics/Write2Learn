@@ -34,15 +34,14 @@ export function Header({ logoSrc, logoText, buttonText, buttonLink }: HeaderProp
         <span className="text-lg font-semibold">{logoText}</span>
       </div>
       <div className="flex gap-4 items-center">
-        <Link href="/auth" className="text-gray-600 hover:text-blue-600">
-          Log In
+        <Link href="/auth" className="text-gray-600 hover:text-blue-600 font-medium">
+          Đăng nhập
         </Link>
         <Button 
           onClick={() => router.push(buttonLink)}
           size="sm"
-          variant="outline"
         >
-          {buttonText}
+          Đăng ký
         </Button>
       </div>
     </header>

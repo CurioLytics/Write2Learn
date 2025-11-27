@@ -56,12 +56,12 @@ export const JOURNALING_CHALLENGES = [
 
 // English improvement reasons
 export const ENGLISH_IMPROVEMENT_REASONS = [
-  { value: 'travel', label: 'Để đi du lịch thoải mái hơn' },
-  { value: 'conversation', label: 'Để giao tiếp hàng ngày' },
-  { value: 'study_exams', label: 'Để học tập hoặc thi cử' },
-  { value: 'professional', label: 'Để giao tiếp chuyên nghiệp' },
-  { value: 'express_better', label: 'Để thể hiện bản thân tốt hơn' },
-  { value: 'long_term_fluency', label: 'Để xây dựng khả năng thành thạo lâu dài' },
+  { value: 'travel', label: 'Đi du lịch' },
+  { value: 'conversation', label: 'Giao tiếp hàng ngày' },
+  { value: 'study_exams', label: 'Học tập, thi cử' },
+  { value: 'professional', label: 'Công việc' },
+  { value: 'express_better', label: 'Thể hiện bản thân' },
+  { value: 'long_term_fluency', label: 'Thành thạo lâu dài' },
 ];
 
 // English challenges
@@ -70,17 +70,16 @@ export const ENGLISH_CHALLENGES = [
   { value: 'speaking_fluency', label: 'Lưu loát khi nói' },
   { value: 'grammar_accuracy', label: 'Ngữ pháp' },
   { value: 'forming_ideas', label: 'Diễn đạt ý tưởng bằng tiếng Anh' },
-  { value: 'native_content', label: 'Hiểu nội dung ở mức người bản xứ' },
 ];
 
 // English levels (new detailed options)
 export const ENGLISH_LEVELS_NEW = [
-  { value: 'beginner', label: 'Mới bắt đầu' },
-  { value: 'elementary', label: 'Sơ cấp' },
-  { value: 'pre-intermediate', label: 'Tiền trung cấp' },
-  { value: 'intermediate', label: 'Trung cấp' },
-  { value: 'upper-intermediate', label: 'Trung cao cấp' },
-  { value: 'advanced', label: 'Cao cấp' },
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'elementary', label: 'Elementary' },
+  { value: 'pre-intermediate', label: 'Pre-Intermediate' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'upper-intermediate', label: 'Upper-Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
 ];
 
 // English tone and style options
@@ -130,7 +129,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   },
   {
     id: 'english-level',
-    title: 'Trình độ tiếng Anh hiện tại của bạn',
+    title: 'Trình độ tiếng Anh',
     description: 'Chọn mức độ phù hợp nhất',
     type: 'single-select',
     options: ENGLISH_LEVELS_NEW,
@@ -147,34 +146,27 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   {
     id: 'features-intro',
     title: 'Write2Learn giúp bạn học như thế nào?',
-    description: '📝 Viết nhật ký với phản hồi chi tiết\n\n📚 Học từ vựng thông minh với spaced repetition\n\n🎭 Luyện giao tiếp thực tế qua roleplay\n\n📊 Theo dõi tiến trình và phân tích lỗi',
+    description: '📝 Viết với phản hồi chi tiết\n\n📚 Học từ vựng thông minh với spaced repetition\n\n🎭 Luyện giao tiếp thực tế qua roleplay\n\n📊 Theo dõi tiến trình và phân tích lỗi',
     type: 'section-intro',
   },
   {
-    id: 'daily-goal',
-    title: 'Mục tiêu ôn tập hằng ngày',
-    description: 'Bạn muốn ôn bao nhiêu từ mỗi ngày?',
-    type: 'text-input',
-    dataKey: 'daily_review_goal',
-  },
-  {
     id: 'vocab-goal',
-    title: 'Mục tiêu từ vựng',
+    title: 'Từ vựng',
     description: 'Bạn muốn học bao nhiêu từ mới mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_vocab_goal',
   },
   {
     id: 'journal-goal',
-    title: 'Mục tiêu viết nhật ký',
+    title: 'Viết',
     description: 'Bạn muốn viết bao nhiêu bài mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_journal_goal',
   },
   {
     id: 'roleplay-goal',
-    title: 'Mục tiêu luyện giao tiếp',
-    description: 'Bạn muốn luyện bao nhiêu buổi roleplay mỗi ngày?',
+    title: 'Luyện giao tiếp',
+    description: 'Bạn muốn luyện bao nhiêu buổi mỗi ngày?',
     type: 'text-input',
     dataKey: 'daily_roleplay_goal',
   },

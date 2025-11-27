@@ -81,7 +81,7 @@ export function AuthForm() {
     <div className="w-full max-w-md mx-auto space-y-6">
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-bold">
-          {mode === 'signin' ? 'Chào mừng trở lại' : 'Tạo tài khoản'}
+          {mode === 'signin' ? 'Chào bạn cũ' : 'Tạo tài khoản'}
         </h2>
 
         {onboardingMessage && (

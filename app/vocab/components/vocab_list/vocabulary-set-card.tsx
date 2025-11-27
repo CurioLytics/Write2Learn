@@ -129,6 +129,10 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
         </div>
       </div>
 
+      {vocabularySet.description && (
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{vocabularySet.description}</p>
+      )}
+
       {/* Three-dot menu - Only show for non-default sets */}
       {!vocabularySet.is_default && (
         <div className="absolute bottom-3 right-3" ref={menuOpen ? menuRef : null}>

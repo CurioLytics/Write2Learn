@@ -9,7 +9,8 @@ import { GrammarErrorChart } from '@/components/dashboard/grammar-error-chart';
 import { ProgressCalendar } from '@/components/dashboard/progress-calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw, Flame, TrendingUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { RefreshCw, Flame, TrendingUp, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/ui';
 import { DailyGoalStatus } from '@/services/analytics-service';
 
@@ -27,6 +28,10 @@ export default function ReportPage() {
   const [datePreset, setDatePreset] = useState<DatePreset>('7days');
   const [monthlyGoals, setMonthlyGoals] = useState<Map<string, DailyGoalStatus>>(new Map());
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(true);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [tooltipOpen2, setTooltipOpen2] = useState(false);
+  const [tooltipOpen3, setTooltipOpen3] = useState(false);
+  const [tooltipOpen4, setTooltipOpen4] = useState(false);
 
   // Memoize date range calculation to prevent infinite loops
   const { startDate, endDate } = useMemo(() => {
@@ -160,10 +165,27 @@ export default function ReportPage() {
           <div>
             <Card className="bg-white shadow rounded-2xl">
               <CardContent className="p-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Lịch hoạt động</h3>
-                <p className="text-xs text-gray-600 mb-3">
-                  Ngày hoàn thành toàn bộ mục tiêu sẽ được in đậm
-                </p>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900">Lịch hoạt động</h3>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                      <TooltipTrigger asChild>
+                        <button 
+                          className="touch-manipulation"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setTooltipOpen(!tooltipOpen);
+                          }}
+                        >
+                          <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <p>Ngày hoàn thành toàn bộ mục tiêu sẽ được in đậm</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 {isLoadingCalendar ? (
                   <div className="flex justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>

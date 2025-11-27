@@ -45,11 +45,6 @@ export function FloatingFeedbackButton() {
     { value: 'other', label: '📝 Khác', color: 'bg-gray-100 text-gray-700' }
   ];
 
-  // Hide on auth pages and onboarding
-  if (pathname?.startsWith('/auth') || pathname === '/onboarding') {
-    return null;
-  }
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };

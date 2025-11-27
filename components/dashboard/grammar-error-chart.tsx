@@ -127,7 +127,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
           onClick={handlePracticeClick}
           disabled={!data || data.length === 0}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           Ôn tập từ lỗi sai
         </Button>

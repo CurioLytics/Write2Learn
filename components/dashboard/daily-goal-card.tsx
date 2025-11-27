@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Check, Square } from 'lucide-react';
 import { DailyGoalStatus } from '@/services/analytics-service';
 import { cn } from '@/utils/ui';
 import { useUserProfileStore } from '@/stores/user-profile-store';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 interface DailyGoalCardProps {
   data: DailyGoalStatus | null;
@@ -14,6 +16,7 @@ interface DailyGoalCardProps {
 
 export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   const profile = useUserProfileStore(state => state.profile);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   
   // Use cached profile goals or fallback to API data targets
   const goals = [

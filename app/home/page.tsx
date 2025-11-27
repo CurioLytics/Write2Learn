@@ -11,6 +11,9 @@ import { FlashcardCard } from '@/app/vocab/components/Flashcard';
 import { ReviewControls } from '@/app/vocab/components/ReviewControls';
 import { ProgressBar } from '@/app/vocab/components/ProgressBar';
 import { supabase } from '@/services/supabase/client';
+import { useUserProfileStore } from '@/stores/user-profile-store';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 interface RoleplayScenario {
     id: string; 
@@ -155,9 +158,8 @@ function DueFlashcards() {
     if (flashcards.length === 0) {
         return (
             <div className="text-center py-12">
-                <div className="text-4xl mb-4">🎉</div>
-                <h3 className="text-xl font-semibold mb-2">Tuyệt vời!</h3>
-                <p className="text-gray-600">Không có từ vựng nào cần ôn tập ngay bây giờ.</p>
+                <h3 className="text-xl font-semibold mb-2">Hết rùi!</h3>
+                <p className="text-gray-600">Học thêm để có thêm từ ôn tập nhé</p>
                 <button 
                     onClick={() => window.location.href = '/vocab'}
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -173,32 +175,6 @@ function DueFlashcards() {
 
     return (
         <div className="flex flex-col items-center space-y-6 w-full max-w-md mx-auto">
-            {/* Progress */}
-            <div className="w-full">
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600">Tiến độ</span>
-                    <span className="text-sm font-medium">{currentIndex + 1}/{flashcards.length}</span>
-                </div>
-                <ProgressBar value={progress} />
-            </div>
-
-            {/* Set Info */}
-            <div className="text-center">
-                <p className="text-sm text-gray-500">{currentCard.vocabulary_set.title}</p>
-            </div>
-
-            {/* Shuffle button */}
-            <div className="flex justify-center">
-                <button
-                    onClick={handleShuffle}
-                    className="p-3 text-gray-600 hover:text-blue-600 transition-colors"
-                    aria-label="Shuffle front and back"
-                    title="Exchange front and back content"
-                >
-                    🔀
-                </button>
-            </div>
-
             {/* Flashcard */}
             <FlashcardCard
                 front={getFrontContent(currentCard)}
@@ -213,12 +189,6 @@ function DueFlashcards() {
                     <ReviewControls onRate={handleRating} />
                 </div>
             )}
-
-            {/* Instructions */}
-            {!isFlipped && (
-                <p className="text-sm text-gray-500 text-center max-w-md">
-                </p>
-            )}
         </div>
     );
 }
@@ -226,16 +196,52 @@ function DueFlashcards() {
 export default function DashboardPage() {
     const router = useRouter();
     const { user } = useAuth();
+    const { profile } = useUserProfileStore();
     
     // Sử dụng kiểu dữ liệu đã định nghĩa
     const [scenarios, setScenarios] = useState<RoleplayScenario[]>([]); 
     const [loading, setLoading] = useState(true);
+    const [tooltipOpen1, setTooltipOpen1] = useState(false);
+    const [tooltipOpen2, setTooltipOpen2] = useState(false);
+    const [tooltipOpen3, setTooltipOpen3] = useState(false);
 
-    // Updated auto-scroll refs and state for 3 sections
+    // Get greeting based on Vietnam time
+    const getGreeting = () => {
+        const now = new Date();
+        const vietnamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+        const hour = vietnamTime.getHours();
+        
+        const name = profile?.name || 'bạn';
+        
+        if (hour >= 5 && hour < 11) {
+            return {
+                greeting: `Chào buổi sáng, ${name}`,
+                prompt: 'Kế hoạch hôm nay của bạn là gì?'
+            };
+        } else if (hour >= 11 && hour < 13) {
+            return {
+                greeting: `Chào buổi trưa, ${name}`,
+                prompt: 'Hôm nay bạn muốn viết gì nào?'
+            };
+        } else if (hour >= 13 && hour < 18) {
+            return {
+                greeting: `Chào buổi chiều, ${name}`,
+                prompt: 'Hôm nay bạn muốn viết gì nào?'
+            };
+        } else {
+            return {
+                greeting: `Chào buổi tối, ${name}`,
+                prompt: 'Ngày của bạn hôm nay thế nào?'
+            };
+        }
+    };
+
+    const { greeting, prompt } = getGreeting();
+
+    // Updated auto-scroll refs and state for 2 sections
     const journalSectionRef = useRef<HTMLElement>(null);
     const roleplaySectionRef = useRef<HTMLElement>(null);
-    const vocabSectionRef = useRef<HTMLElement>(null);
-    const [currentSection, setCurrentSection] = useState<'journal' | 'roleplay' | 'vocab'>('journal');
+    const [currentSection, setCurrentSection] = useState<'journal' | 'practice'>('journal');
     const [isAutoScrolling, setIsAutoScrolling] = useState(false);
 
     // 🧠 Fetch roleplay từ Supabase
@@ -261,7 +267,7 @@ export default function DashboardPage() {
         fetchScenarios();
     }, []);
 
-    // Updated auto-scroll behavior for 3 sections
+    // Updated auto-scroll behavior for 2 sections
     useEffect(() => {
         const handleScroll = () => {
             if (isAutoScrolling) return;
@@ -274,13 +280,9 @@ export default function DashboardPage() {
                 setIsAutoScrolling(true);
                 setCurrentSection('journal');
                 setTimeout(() => setIsAutoScrolling(false), 1000);
-            } else if (scrollY >= sectionThreshold && scrollY < sectionThreshold * 2 && currentSection !== 'roleplay') {
+            } else if (scrollY >= sectionThreshold && currentSection !== 'practice') {
                 setIsAutoScrolling(true);
-                setCurrentSection('roleplay');
-                setTimeout(() => setIsAutoScrolling(false), 1000);
-            } else if (scrollY >= sectionThreshold * 2 && currentSection !== 'vocab') {
-                setIsAutoScrolling(true);
-                setCurrentSection('vocab');
+                setCurrentSection('practice');
                 setTimeout(() => setIsAutoScrolling(false), 1000);
             }
         };
@@ -295,9 +297,33 @@ export default function DashboardPage() {
 
     return (
         <div className="scroll-smooth">
-            {/* SECTION 1 – NHẬT KÝ */}
+            {/* SECTION 1 – VIẾT */}
             <section ref={journalSectionRef} id="journal" className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4">
                 <div className="w-full max-w-2xl mx-auto">
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{greeting}</h1>
+                        <div className="flex items-center justify-center gap-2">
+                            <p className="text-lg text-gray-600">{prompt}</p>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip open={tooltipOpen1} onOpenChange={setTooltipOpen1}>
+                                    <TooltipTrigger asChild>
+                                        <button 
+                                            className="touch-manipulation"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setTooltipOpen1(!tooltipOpen1);
+                                            }}
+                                        >
+                                            <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="max-w-xs">
+                                        <p>Viết nhật ký bằng cách trả lời các câu hỏi</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </div>
                     <TemplateCards />
                     <div className="text-center mt-6">
                         <Button
@@ -311,8 +337,8 @@ export default function DashboardPage() {
                     </div>
                 </div>
                 <button
-                    aria-label="Scroll down to roleplay section"
-                    onClick={() => scrollTo('roleplay')}
+                    aria-label="Scroll down to practice section"
+                    onClick={() => scrollTo('practice')}
                     className="mt-6 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
@@ -322,20 +348,43 @@ export default function DashboardPage() {
                 </button>
             </section>
 
-            {/* SECTION 2 – HỘI THOẠI */}
-            <section ref={roleplaySectionRef} id="roleplay" className="h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-green-50/40 py-8">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8 w-full">
+            {/* SECTION 2 – LUYỆN TẬP (Roleplay + Vocab) */}
+            <section ref={roleplaySectionRef} id="practice" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-white py-8">
+                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-8">
+                    
+                    {/* Roleplay Section */}
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Hôm nay, bạn muốn đóng vai ai?</h2>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Đóng vai vào các nhân vật với bối cảnh khác nhau</h2>
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip open={tooltipOpen2} onOpenChange={setTooltipOpen2}>
+                                        <TooltipTrigger asChild>
+                                            <button 
+                                                className="touch-manipulation flex-shrink-0"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setTooltipOpen2(!tooltipOpen2);
+                                                }}
+                                            >
+                                                <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="max-w-xs">
+                                            <p>Rèn luyện phản xạ nhanh trong các tình huống thực tế</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                             <Link href="/roleplay" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                                 Xem thêm
                             </Link>
                         </div>
 
-                        <div className="relative -mx-4 lg:mx-0">
+                        <div className="relative">
                             <div 
-                                className="overflow-x-auto scrollbar-hide scroll-smooth px-4 lg:px-0"
+                                className="flex overflow-x-auto gap-6 pb-2 cursor-grab scrollbar-hide"
+                                style={{ WebkitOverflowScrolling: 'touch' }}
                                 onMouseDown={(e) => {
                                     const slider = e.currentTarget;
                                     let isDown = true;
@@ -362,63 +411,65 @@ export default function DashboardPage() {
                                     document.addEventListener('mousemove', handleMouseMove);
                                     document.addEventListener('mouseup', handleMouseUp);
                                 }}
-                                style={{ cursor: 'grab' }}
                             >
-                                <div className="flex gap-4 pb-2">
-                                    {loading ? (
-                                        Array.from({ length: 3 }).map((_, index) => (
-                                            <div key={index} className="w-52 h-32 bg-gray-200 animate-pulse rounded-lg flex-shrink-0" />
-                                        ))
-                                    ) : scenarios.length > 0 ? (
-                                        scenarios.map((s) => (
-                                            <div key={s.id} className="flex-shrink-0">
-                                                <RoleplayCard
-                                                    id={s.id}
-                                                    title={s.name}
-                                                    description={s.context}
-                                                    imageUrl={s.image || ''}
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="w-full text-center py-8 text-gray-500">
-                                            <p>Chưa có hội thoại nào được thêm.</p>
+                                {loading ? (
+                                    Array.from({ length: 3 }).map((_, index) => (
+                                        <div key={index} className="h-40 w-64 bg-gray-200 animate-pulse rounded-xl flex-shrink-0" />
+                                    ))
+                                ) : scenarios.length > 0 ? (
+                                    scenarios.map((s) => (
+                                        <div key={s.id} className="flex-shrink-0">
+                                            <RoleplayCard
+                                                id={s.id}
+                                                title={s.name}
+                                                description={s.context}
+                                                imageUrl={s.image || ''}
+                                            />
                                         </div>
-                                    )}
-                                </div>
+                                    ))
+                                ) : (
+                                    <div className="w-full text-center py-8 text-gray-500">
+                                        <p>Chưa có hội thoại nào được thêm.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Single navigation arrow */}
-                    <div className="flex justify-center">
-                        <button
-                            aria-label="Cuộn xuống phần từ vựng"
-                            onClick={() => scrollTo('vocab')}
-                            className="p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
-                                <path d="M12 5v14" />
-                                <path d="m19 12-7 7-7-7" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* SECTION 3 – TỪ VỰNG */}
-            <section ref={vocabSectionRef} id="vocab" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-green-50/40 to-white py-8">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-6 lg:space-y-8">
+                    {/* Flashcard Section */}
                     <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
-                            <h2 className="text-lg lg:text-xl font-semibold text-gray-900"> 20 từ sắp quên</h2>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Các từ sắp quên!!</h2>
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip open={tooltipOpen3} onOpenChange={setTooltipOpen3}>
+                                        <TooltipTrigger asChild>
+                                            <button 
+                                                className="touch-manipulation flex-shrink-0"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setTooltipOpen3(!tooltipOpen3);
+                                                }}
+                                            >
+                                                <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="max-w-xs">
+                                            <p>Các từ đến hạn ôn tập, theo thứ tự gấp nhất</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                            <Link href="/vocab" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                Xem tất cả
+                            </Link>
                         </div>
                         <DueFlashcards />
                     </div>
 
                     <div className="flex justify-center">
                         <button
-                            aria-label="Cuộn lên phần nhật ký"
+                            aria-label="Cuộn lên phần viết"
                             onClick={() => scrollTo('journal')}
                             className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all"
                         >

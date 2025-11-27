@@ -22,7 +22,7 @@ export default function RoleplayPage() {
     {/* HEADER */}
     <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Role-play</h1>
-      <p className="text-gray-600 text-sm">Luyện giao tiếp tiếng Anh thực tế qua các tình huống hội thoại đa dạng</p>
+      <p className="text-gray-600 text-sm">Đóng vai vào các nhân vật với các bối cảnh khác nhau, rèn luyện phản xạ nhanh trong các tình huống thực tế</p>
     </div>
 
     {/* Add spacing between header and next block */}

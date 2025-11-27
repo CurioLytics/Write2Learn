@@ -10,6 +10,8 @@ import { supabase } from '@/services/supabase/client';
 import type { Vocabulary } from '@/types/vocabulary';
 import { getStarredVocabulary } from '@/utils/star-helpers';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 export default function VocabPage() {
   const router = useRouter();
@@ -22,6 +24,7 @@ export default function VocabPage() {
   const [activeTab, setActiveTab] = useState<'sets' | 'starred-words'>('sets');
   const [starredWords, setStarredWords] = useState<Vocabulary[]>([]);
   const [isLoadingStarredWords, setIsLoadingStarredWords] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
 
   // Filter sets based on starred status
   const filteredSets = showStarredOnly 
@@ -139,9 +142,29 @@ export default function VocabPage() {
       {/* HEADER */}
       <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Từ vựng</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Học và ôn tập từ vựng thông minh với hệ thống spaced repetition
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <p className="text-sm text-gray-600">
+            Ôn từ vựng với phương pháp khoa học spaced repetition
+          </p>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+              <TooltipTrigger asChild>
+                <button 
+                  className="touch-manipulation flex-shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTooltipOpen(!tooltipOpen);
+                  }}
+                >
+                  <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p>Spaced Repetition là phương pháp ôn tập tăng khoảng cách giữa các lần ôn, giúp ghi nhớ lâu dài và hiệu quả</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       {/* Add spacing between header and next block */}

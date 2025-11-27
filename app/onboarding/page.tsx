@@ -170,7 +170,7 @@ export default function OnboardingPage() {
               size="lg"
               className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-normal"
             >
-              Bắt đầu hành trình
+              Let's go
             </Button>
           </div>
         );
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
               Đang thiết lập hồ sơ...
             </h2>
             <p className="text-gray-600 max-w-md italic">
-              Tuyệt! Giờ cùng xây nhật ký phù hợp với suy nghĩ và hành trình học của bạn.
+              Tuyệt! Giờ cùng cá nhân hóa ứng dụng cho chính bạn.
             </p>
           </div>
         </div>
