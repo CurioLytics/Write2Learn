@@ -39,18 +39,18 @@ function ResendButton({ email }: { email: string | undefined }) {
         disabled={isLoading}
         style={{ minHeight: '44px', minWidth: '44px' }} // Mobile-friendly touch target
       >
-        {isLoading ? 'Sending...' : 'Click here to resend'}
+        {isLoading ? 'Đang gửi...' : 'Nhấn để gửi lại'}
       </button>
       
       {status === 'success' && (
         <p className="text-green-600 text-sm mt-2 p-2 bg-green-50 rounded-md">
-          Verification email sent successfully!
+          Đã gửi email xác thực thành công!
         </p>
       )}
       
       {status === 'error' && (
         <p className="text-red-600 text-sm mt-2 p-2 bg-red-50 rounded-md">
-          Failed to resend email. Please try again.
+          Gửi lại thất bại. Vui lòng thử lại.
         </p>
       )}
     </div>

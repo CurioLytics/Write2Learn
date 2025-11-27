@@ -11,6 +11,7 @@ export interface TopicExercise {
   topic_name: string;
   exercise_type: string;
   quizzes: string[];
+  answers?: string[]; // Correct answers for each quiz
 }
 
 // Webhook response structure
@@ -41,6 +42,26 @@ export interface ExerciseFeedback {
 
 export interface GradingResponse {
   feedback: string; // Plain text feedback from webhook
+}
+
+// New grading interfaces for v2
+export interface GradingTopicPayload {
+  topic_name: string;
+  quizzes: string[];
+  user_answers: string[];
+}
+
+export interface GradingV2Payload {
+  topics: GradingTopicPayload[];
+}
+
+export interface QuizResult {
+  correct: boolean;
+  correct_answer?: string;
+}
+
+export interface GradingV2Response {
+  [topicName: string]: QuizResult[];
 }
 
 export interface ErrorData {

@@ -298,12 +298,12 @@ export default function DashboardPage() {
     return (
         <div className="scroll-smooth">
             {/* SECTION 1 – VIẾT */}
-            <section ref={journalSectionRef} id="journal" className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4">
+            <section ref={journalSectionRef} id="journal" className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4 py-8">
                 <div className="w-full max-w-2xl mx-auto">
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{greeting}</h1>
+                    <div className="text-center mb-4 sm:mb-6">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{greeting}</h1>
                         <div className="flex items-center justify-center gap-2">
-                            <p className="text-lg text-gray-600">{prompt}</p>
+                            <p className="text-base sm:text-lg text-gray-600">{prompt}</p>
                             <TooltipProvider delayDuration={0}>
                                 <Tooltip open={tooltipOpen1} onOpenChange={setTooltipOpen1}>
                                     <TooltipTrigger asChild>
@@ -325,11 +325,11 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <TemplateCards />
-                    <div className="text-center mt-6">
+                    <div className="text-center mt-4 sm:mt-6">
                         <Button
                             onClick={() => router.push('/journal/new')}
                             variant='outline'
-                            className="relative overflow-hidden bg-white border-2 border-gray-900 text-gray-900 hover:text-white transition-colors duration-500 group"
+                            className="relative overflow-hidden bg-white border-2 border-gray-900 text-gray-900 hover:text-white transition-colors duration-500 group text-sm sm:text-base"
                         >
                             <span className="absolute inset-0 bg-gray-900 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></span>
                             <span className="relative z-10">Free Write Now</span>
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                 <button
                     aria-label="Scroll down to practice section"
                     onClick={() => scrollTo('practice')}
-                    className="mt-6 mx-auto flex items-center justify-center p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
+                    className="mt-4 sm:mt-6 mx-auto flex items-center justify-center p-2 sm:p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
                         <path d="M12 5v14" />
@@ -353,10 +353,10 @@ export default function DashboardPage() {
                 <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-8">
                     
                     {/* Roleplay Section */}
-                    <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
+                    <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Đóng vai vào các nhân vật với bối cảnh khác nhau</h2>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Đóng vai vào các nhân vật với bối cảnh khác nhau</h2>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip open={tooltipOpen2} onOpenChange={setTooltipOpen2}>
                                         <TooltipTrigger asChild>
@@ -381,10 +381,13 @@ export default function DashboardPage() {
                             </Link>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative -mx-3 sm:mx-0">
                             <div 
-                                className="flex overflow-x-auto gap-6 pb-2 cursor-grab scrollbar-hide"
-                                style={{ WebkitOverflowScrolling: 'touch' }}
+                                className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 px-3 sm:px-0 cursor-grab scrollbar-hide snap-x snap-mandatory"
+                                style={{ 
+                                    WebkitOverflowScrolling: 'touch',
+                                    touchAction: 'pan-x'
+                                }}
                                 onMouseDown={(e) => {
                                     const slider = e.currentTarget;
                                     let isDown = true;
@@ -411,14 +414,17 @@ export default function DashboardPage() {
                                     document.addEventListener('mousemove', handleMouseMove);
                                     document.addEventListener('mouseup', handleMouseUp);
                                 }}
+                                onTouchStart={(e) => {
+                                    e.stopPropagation();
+                                }}
                             >
                                 {loading ? (
                                     Array.from({ length: 3 }).map((_, index) => (
-                                        <div key={index} className="h-40 w-64 bg-gray-200 animate-pulse rounded-xl flex-shrink-0" />
+                                        <div key={index} className="h-40 w-64 bg-gray-200 animate-pulse rounded-xl flex-shrink-0 snap-center" />
                                     ))
                                 ) : scenarios.length > 0 ? (
                                     scenarios.map((s) => (
-                                        <div key={s.id} className="flex-shrink-0">
+                                        <div key={s.id} className="flex-shrink-0 snap-center">
                                             <RoleplayCard
                                                 id={s.id}
                                                 title={s.name}
@@ -437,10 +443,10 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Flashcard Section */}
-                    <div className="bg-white shadow-sm rounded-2xl p-4 lg:p-6">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
+                    <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Các từ sắp quên!!</h2>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Các từ sắp quên!!</h2>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip open={tooltipOpen3} onOpenChange={setTooltipOpen3}>
                                         <TooltipTrigger asChild>

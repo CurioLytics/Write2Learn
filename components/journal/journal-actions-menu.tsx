@@ -211,7 +211,7 @@ export function JournalActionsMenu({
 
                   {/* Available Tags */}
                   {isLoadingTags ? (
-                    <p className="text-xs text-gray-500">Loading tags...</p>
+                    <p className="text-xs text-gray-500">Đang tải tags...</p>
                   ) : availableTags.length > 0 ? (
                     <div className="max-h-32 overflow-y-auto">
                       <p className="text-xs text-gray-500 mb-1">Available tags:</p>

@@ -17,7 +17,7 @@ interface BreathingLoaderProps {
  * Helps users stay calm and mindful during loading periods
  */
 export function BreathingLoader({
-  message = 'Loading...',
+  message = 'Đang tải...',
   className,
   bubbleColor = 'bg-primary/20', // Semi-transparent primary color by default
   textColor = 'text-primary'     // Primary text color by default
@@ -94,7 +94,7 @@ export function BreathingLoader({
         )}
         aria-live="polite"
       >
-        {isBreathingIn ? 'breath in' : 'breath out'}
+        {isBreathingIn ? 'hít vào' : 'thở ra'}
       </p>
       
       {/* Breathing bubble with smooth transition */}
@@ -121,7 +121,7 @@ export function BreathingLoader({
       
       {/* Mindfulness message */}
       <p className="text-sm text-gray-500 mt-4 italic">
-        appreciate each moment
+        trân trọng từng khoảnh khắc
       </p>
     </div>
   );

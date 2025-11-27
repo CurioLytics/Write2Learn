@@ -36,7 +36,11 @@ export async function middleware(request: NextRequest) {
   }
   
   // Public paths that don't require authentication
-  if (path.startsWith('/auth') || path === '/' || path.startsWith('/onboarding') || path.startsWith('/journal/new')) {
+  const publicPaths = ['/auth', '/', '/onboarding', '/journal/new'];
+  const isPublicPath = publicPaths.some(p => path === p || path.startsWith(p + '/'));
+  
+  // Skip auth for API routes - they handle their own authentication
+  if (isPublicPath || path.startsWith('/api/')) {
     return res;
   }
 
@@ -80,13 +84,24 @@ export async function middleware(request: NextRequest) {
   // Only check onboarding status for protected routes (excluding the onboarding page itself and API routes)
   if (!path.startsWith('/onboarding') && !path.startsWith('/api')) {
     try {
+      // Use JWT claim instead of database query if available
+      const jwtPayload = session.user.user_metadata;
+      
+      // If onboarding status is in JWT, use it directly (much faster)
+      if (typeof jwtPayload?.onboarding_completed === 'boolean') {
+        if (!jwtPayload.onboarding_completed) {
+          return NextResponse.redirect(new URL('/onboarding', request.url));
+        }
+        return res;
+      }
+      
+      // Fallback to database query with caching
       let profile;
       const profileCacheKey = session.user.id;
       const cachedProfile = profileCache.get(profileCacheKey);
       
       if (cachedProfile && now - cachedProfile.timestamp < SESSION_CACHE_TIME) {
         profile = cachedProfile.profile;
-        console.log('Using cached profile');
       } else {
         // Fetch profile from database
         const { data, error } = await supabase

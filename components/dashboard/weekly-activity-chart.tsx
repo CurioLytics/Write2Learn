@@ -29,7 +29,7 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
     return (
       <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex items-center justify-center">
-          <div className="text-muted-foreground">Loading activity data...</div>
+          <div className="text-muted-foreground">Đang tải dữ liệu hoạt động...</div>
         </div>
       </Card>
     );
@@ -39,7 +39,7 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
     return (
       <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-80 flex items-center justify-center">
-          <div className="text-muted-foreground">No activity data available</div>
+          <div className="text-muted-foreground">Không có dữ liệu hoạt động</div>
         </div>
       </Card>
     );

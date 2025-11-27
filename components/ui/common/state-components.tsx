@@ -6,7 +6,7 @@ interface LoadingStateProps {
   message?: string;
 }
 
-export function LoadingState({ message = 'Loading templates...' }: LoadingStateProps) {
+export function LoadingState({ message = 'Đang tải...' }: LoadingStateProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
       <div className="relative">
@@ -27,13 +27,13 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
       <div className="text-4xl mb-4">❌</div>
-      <h3 className="text-xl font-medium text-gray-800 mb-2">Something went wrong</h3>
+      <h3 className="text-xl font-medium text-gray-800 mb-2">Có lỗi xảy ra</h3>
       <p className="text-gray-600 mb-6 text-center max-w-md">{message}</p>
       <button
         onClick={onRetry}
         className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
       >
-        Try Again
+        Thử lại
       </button>
     </div>
   );

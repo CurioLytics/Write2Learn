@@ -47,7 +47,7 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
     return (
       <Card className="p-6 bg-white shadow rounded-2xl">
         <div className="h-64 flex items-center justify-center">
-          <div className="text-muted-foreground">Loading goals...</div>
+          <div className="text-muted-foreground">Đang tải mục tiêu...</div>
         </div>
       </Card>
     );

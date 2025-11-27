@@ -3,7 +3,9 @@ import {
   TopicExercise,
   GradingResponse,
   ErrorData,
-  GradingRequest
+  GradingRequest,
+  GradingV2Payload,
+  GradingV2Response
 } from '@/types/exercise';
 
 interface ExerciseServiceResult<T> {
@@ -162,6 +164,58 @@ class ExerciseService {
     }
     
     return result.data;
+  }
+
+  /**
+   * Grade exercises with new v2 format
+   */
+  async gradeExercisesV2(gradingData: GradingV2Payload): Promise<ExerciseServiceResult<GradingV2Response>> {
+    try {
+      // Validation
+      if (!gradingData?.topics || !Array.isArray(gradingData.topics) || gradingData.topics.length === 0) {
+        return {
+          success: false,
+          error: {
+            type: 'VALIDATION_ERROR',
+            message: 'Grading data with topics array is required'
+          }
+        };
+      }
+
+      const response = await fetch('/api/exercises/grade-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gradingData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: {
+            type: 'NETWORK_ERROR',
+            message: errorData.error || `Request failed with status: ${response.status}`
+          }
+        };
+      }
+
+      const data: GradingV2Response = await response.json();
+      
+      return {
+        success: true,
+        data
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          originalError: error instanceof Error ? error : undefined
+        }
+      };
+    }
   }
 
   /**

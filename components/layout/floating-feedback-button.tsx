@@ -176,20 +176,20 @@ export function FloatingFeedbackButton() {
     <>
       {/* Floating Button */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed top-6 right-6 z-50">
           <Button
             onClick={handleOpen}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 bg-blue-600 hover:bg-blue-700 text-white"
+            className="h-12 sm:h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white"
             style={{
-              width: isHovered ? 'auto' : '56px',
+              width: isHovered ? 'auto' : '48px',
               transition: 'width 0.3s ease'
             }}
           >
-            <MessageSquare className="w-5 h-5 flex-shrink-0" />
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span
-              className={`ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ${
+              className={`ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 text-sm sm:text-base ${
                 isHovered ? 'max-w-[200px] opacity-100' : 'max-w-0 opacity-0'
               }`}
             >
@@ -202,7 +202,7 @@ export function FloatingFeedbackButton() {
       {/* Chat Widget */}
       {isOpen && (
         <div 
-          className="fixed bottom-6 right-6 z-50 transition-all duration-300 w-96"
+          className="fixed top-6 right-6 z-50 transition-all duration-300 w-full max-w-[calc(100vw-3rem)] sm:w-96"
           style={{
             height: '600px',
             maxHeight: 'calc(100vh - 100px)'

@@ -15,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { exerciseService } from '@/services/exercise-service-new';
-import { ErrorData, TopicExercise } from '@/types/exercise';
+import { ErrorData, TopicExercise, GradingV2Response } from '@/types/exercise';
+import { ExerciseResults } from './ExerciseResults';
 
 interface PracticeDialogProps {
   isOpen: boolean;
@@ -27,10 +28,11 @@ interface PracticeDialogProps {
 export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: PracticeDialogProps) {
   const [exercises, setExercises] = useState<TopicExercise[]>([]);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
-  const [corrections, setCorrections] = useState<any[]>([]);
+  const [gradingResults, setGradingResults] = useState<GradingV2Response | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isGrading, setIsGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     if (isOpen && errorData?.length > 0) {
@@ -65,7 +67,8 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
 
       setExercises(result.data.exercises);
       setUserAnswers({});
-      setCorrections([]);
+      setGradingResults(null);
+      setShowResults(false);
     } catch (error) {
       console.error('❌ [Dialog] Error loading exercises:', error);
       setError('Tạm thời đang có lỗi, bạn học phần khác trước nhé');
@@ -85,9 +88,59 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
   const handleClose = () => {
     setExercises([]);
     setUserAnswers({});
-    setCorrections([]);
+    setGradingResults(null);
+    setShowResults(false);
     setError(null);
     onClose();
+  };
+
+  const handleSubmit = async () => {
+    setIsGrading(true);
+    setError(null);
+    
+    try {
+      const topics = exercises.map((topic, topicIndex) => {
+        const topicAnswers = topic.quizzes.map((_, quizIndex) => {
+          const key = `${topicIndex}-${quizIndex}`;
+          return userAnswers[key] || ' ';
+        });
+
+        return {
+          topic_name: topic.topic_name,
+          quizzes: topic.quizzes,
+          user_answers: topicAnswers
+        };
+      });
+
+      const result = await exerciseService.gradeExercisesV2({ topics });
+      
+      if (!result.success) {
+        const errorMsg = result.error?.message || 'Lỗi không xác định';
+        const errorType = result.error?.type || 'UNKNOWN';
+        setError(`Lỗi chấm bài (${errorType}): ${errorMsg}`);
+        return;
+      }
+
+      if (!result.data) {
+        setError('Lỗi chấm bài: Không nhận được kết quả từ server');
+        return;
+      }
+
+      setGradingResults(result.data);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error grading exercises:', error);
+      setError(`Lỗi chấm bài: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
+    } finally {
+      setIsGrading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setUserAnswers({});
+    setGradingResults(null);
+    setShowResults(false);
+    loadExercises();
   };
 
   // Calculate total number of quizzes across all topics
@@ -95,41 +148,69 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Ôn tập từ lỗi sai</DialogTitle>
-          {totalQuizzes > 0 && (
-            <DialogDescription>
-              {exercises.length} chủ đề • {totalQuizzes} bài tập
-            </DialogDescription>
-          )}
-        </DialogHeader>
-
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin mr-2" />
-            <span>Đang cook bài tập cho bạn</span>
+      <DialogContent className="sm:max-w-[800px] h-[85vh] p-0 flex flex-col gap-0">
+        {/* Show Results Screen */}
+        {showResults && gradingResults ? (
+          <div className="flex flex-col h-full">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+              <DialogTitle>Kết quả bài tập</DialogTitle>
+            </DialogHeader>
+            <ExerciseResults
+              exercises={exercises}
+              userAnswers={userAnswers}
+              gradingResults={gradingResults}
+              onClose={handleClose}
+              onRetry={handleRetry}
+            />
           </div>
-        )}
-
-        {error && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <span className="text-red-700 flex-1">{error}</span>
-            </div>
-            <div className="flex justify-center">
-              <Button onClick={loadExercises} variant="outline">
-                Thử lại
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {!isLoading && !error && exercises.length > 0 && (
+        ) : (
           <>
-            <ScrollArea className="h-[calc(85vh-220px)] pr-4">
-              <div className="space-y-6 py-2">
+            <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
+              <DialogTitle>Ôn tập từ lỗi sai</DialogTitle>
+              {totalQuizzes > 0 && (
+                <DialogDescription>
+                  {exercises.length} chủ đề • {totalQuizzes} bài tập
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            {isLoading && (
+              <div className="flex items-center justify-center py-12 px-6">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <span>Đang cook bài tập cho bạn</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="space-y-4 px-6">
+                <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <span className="text-red-700 flex-1">{error}</span>
+                </div>
+                <div className="flex justify-center gap-3">
+                  {isGrading ? (
+                    <Button onClick={handleSubmit} variant="outline" disabled={isGrading}>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Đang chấm...
+                    </Button>
+                  ) : (
+                    <>
+                      <Button onClick={loadExercises} variant="outline">
+                        Tạo bài mới
+                      </Button>
+                      <Button onClick={handleSubmit} variant="default">
+                        Thử chấm lại
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && exercises.length > 0 && (
+              <>
+                <ScrollArea className="flex-1 px-6">
+                  <div className="space-y-6 py-4">
                 {exercises.map((topic, topicIndex) => (
                   <Card key={topicIndex} className="border-2">
                     <CardHeader className="pb-3">
@@ -162,13 +243,6 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
                                   placeholder="Nhập câu trả lời..."
                                   className="w-full"
                                 />
-                                {corrections[globalIndex - 1] && (
-                                  <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                    <div className="text-sm text-orange-800">
-                                      <strong>Feedback:</strong> {corrections[globalIndex - 1]}
-                                    </div>
-                                  </div>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -176,25 +250,34 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
                       })}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            </ScrollArea>
+                    ))}
+                  </div>
+                </ScrollArea>
 
-            <div className="flex gap-3 justify-end pt-4 border-t">
-              <Button
-                onClick={() => {
-                  setUserAnswers({});
-                  setCorrections([]);
-                  loadExercises();
-                }}
-                variant="outline"
-              >
-                Làm lại
-              </Button>
-              <Button onClick={handleClose}>
-                Xong
-              </Button>
-            </div>
+                <div className="flex gap-3 justify-end pt-4 px-6 pb-6 border-t shrink-0">
+                  <Button
+                    onClick={handleRetry}
+                    variant="outline"
+                    disabled={isGrading}
+                  >
+                    Làm lại
+                  </Button>
+                  <Button 
+                    onClick={handleSubmit}
+                    disabled={isGrading}
+                  >
+                    {isGrading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Đang chấm...
+                      </>
+                    ) : (
+                      'Xong'
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         )}
       </DialogContent>
