@@ -78,9 +78,8 @@ export function ExploreFrameworks() {
           onClick={() => setSelectedCategory('all')}
           className={`
             px-3 py-1.5 text-sm rounded-full transition-colors capitalize
-            border-2 border-[var(--accent-blue)]
             ${selectedCategory === 'all'
-              ? 'bg-blue-100 text-blue-800 font-medium'
+              ? 'bg-[var(--primary-blue-lighter)] text-[var(--primary)] font-medium'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }
           `}
@@ -93,9 +92,8 @@ export function ExploreFrameworks() {
             onClick={() => setSelectedCategory(category.name)}
             className={`
               px-3 py-1.5 text-sm rounded-full transition-colors capitalize
-              border-2 border-[var(--accent-blue)]
               ${selectedCategory === category.name
-                ? 'bg-blue-100 text-blue-800 font-medium'
+                ? 'bg-[var(--primary-blue-lighter)] text-[var(--primary)] font-medium'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }
             `}
