@@ -121,9 +121,9 @@ export function ExploreFrameworks() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 text-sm line-clamp-2">
-                {framework.description.length > 100
+                {framework.description && framework.description.length > 100
                   ? `${framework.description.substring(0, 100)}...`
-                  : framework.description}
+                  : framework.description || 'No description available'}
               </p>
             </CardContent>
           </Card>

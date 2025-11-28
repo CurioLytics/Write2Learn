@@ -11,6 +11,7 @@ export interface Framework {
   content: string;
   description?: string | null;
   category: string;
+  source?: string | null;
 }
 
 class FrameworkService {
@@ -20,12 +21,12 @@ class FrameworkService {
   async getCategories(): Promise<FrameworkCategory[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('framework_category')
         .select('name, description, image_cover')
         .order('name');
-      
+
       if (error) throw error;
       return data || [];
     } catch (error) {
@@ -40,12 +41,12 @@ class FrameworkService {
   async getFrameworks(): Promise<Framework[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, description, category')
+        .select('name, content, description, category, source')
         .order('name');
-      
+
       if (error) throw error;
       return data || [];
     } catch (error) {
@@ -60,13 +61,13 @@ class FrameworkService {
   async getFrameworksByCategory(category: string): Promise<Framework[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, description, category')
+        .select('name, content, description, category, source')
         .eq('category', category)
         .order('name');
-      
+
       if (error) throw error;
       return data || [];
     } catch (error) {

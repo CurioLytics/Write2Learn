@@ -21,7 +21,7 @@ export function FrameworkDialog({ framework, isOpen, onClose }: FrameworkDialogP
       templateName: framework.name,
       customContent: framework.content
     });
-    
+
     router.push(`/journal/new?${params.toString()}`);
   };
 
@@ -35,7 +35,7 @@ export function FrameworkDialog({ framework, isOpen, onClose }: FrameworkDialogP
             {framework.name}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            Category: {framework.category}
+            {framework.source ? `Source: ${framework.source}` : 'No source available'}
           </DialogDescription>
         </DialogHeader>
 
@@ -43,7 +43,7 @@ export function FrameworkDialog({ framework, isOpen, onClose }: FrameworkDialogP
           <div className="bg-gray-50 rounded-lg p-4">
             <h4 className="font-medium text-gray-900 mb-2">Description</h4>
             <p className="text-gray-600 leading-relaxed">
-              {framework.category} framework to enhance your journaling practice
+              {framework.description || 'No description available'}
             </p>
           </div>
 
