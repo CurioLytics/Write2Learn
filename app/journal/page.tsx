@@ -8,7 +8,8 @@ import { PlusCircle, Search } from 'lucide-react';
 import { JournalList, CalendarView } from '@/components/features/journal/entries';
 import { JournalStatsDisplay } from '@/components/features/journal/stats';
 import { ExploreFrameworks } from '@/components/journal/explore-frameworks';
-import { TagFilter } from '@/components/journal/tag-filter';
+import { TagFilterDropdown } from '@/components/journal/tag-filter-dropdown';
+import { WeekCalendarView } from '@/components/journal/week-calendar-view';
 import { Journal, JournalStats } from '@/types/journal';
 import { journalService } from '@/services/journal-service';
 import { useAuth } from '@/hooks/auth/use-auth';
@@ -146,9 +147,9 @@ export default function JournalPage() {
           </Button>
         </div>
 
-        {/* Search and Filter */}
-        <div className="space-y-4">
-
+        {/* Journal & Calendar Section */}
+        <div className="space-y-6">
+          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -158,18 +159,17 @@ export default function JournalPage() {
               className="pl-10"
             />
           </div>
-          <TagFilter
-            onFilterChange={handleTagFilterChange}
-            currentTag={selectedTag}
-          />
-        </div>
 
-        {/* Journal & Calendar Section */}
-        <div className="space-y-6">
-          {/* Calendar */}
+          {/* Calendar and Tag Filter Row */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
-            <CalendarView
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Calendar</h3>
+              <TagFilterDropdown
+                onFilterChange={handleTagFilterChange}
+                currentTag={selectedTag}
+              />
+            </div>
+            <WeekCalendarView
               journals={journals}
               onDateSelect={handleDateSelect}
               selectedDate={selectedDate}
