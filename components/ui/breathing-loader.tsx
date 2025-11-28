@@ -121,7 +121,7 @@ export function BreathingLoader({
       
       {/* Mindfulness message */}
       <p className="text-sm text-gray-500 mt-4 italic">
-        trân trọng từng khoảnh khắc
+        chậm lại một chút nhé!
       </p>
     </div>
   );

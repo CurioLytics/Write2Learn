@@ -3,12 +3,43 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { voiceService } from '@/services/voice-service';
 
+const AUTO_INSERT_DELAY_MS = 2000; // 5 seconds of silence before auto-insert
+
+const normalizeForComparison = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?]+$/u, '');
+
 export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => void) {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState('');
   const [language, setLanguage] = useState<'vi-VN' | 'en-US'>('vi-VN');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoInsertRef = useRef<NodeJS.Timeout | null>(null);
+  const interimTextRef = useRef('');
+  const skipNextFinalRef = useRef<string | null>(null);
+
+  const clearAutoInsertTimer = useCallback(() => {
+    if (autoInsertRef.current) {
+      clearTimeout(autoInsertRef.current);
+      autoInsertRef.current = null;
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    voiceService.stopListening();
+    setIsListening(false);
+    setInterimText('');
+    interimTextRef.current = '';
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    clearAutoInsertTimer();
+    skipNextFinalRef.current = null;
+  }, [clearAutoInsertTimer]);
 
   // Auto-stop after 2 minutes
   useEffect(() => {
@@ -22,9 +53,11 @@ export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
+      clearAutoInsertTimer();
     };
-  }, [isListening]);
+  }, [isListening, stopListening, clearAutoInsertTimer]);
 
   const startListening = useCallback(async () => {
     if (!voiceService.isSupported()) {
@@ -34,37 +67,69 @@ export function useVoiceInput(onTranscript: (text: string, isFinal: boolean) => 
 
     setError(null);
     setIsListening(true);
+    clearAutoInsertTimer();
+    skipNextFinalRef.current = null;
 
     await voiceService.startListening(
       (text, isFinal) => {
-        if (isFinal) {
-          // Send final text to parent and clear interim
-          onTranscript(text, true);
+        const trimmed = text.trim();
+
+        if (!trimmed) {
           setInterimText('');
-        } else {
-          // Show interim text in real-time
-          setInterimText(text);
-          // Also send interim to parent for immediate feedback
-          onTranscript(text, false);
+          interimTextRef.current = '';
+          clearAutoInsertTimer();
+          return;
         }
+
+        if (isFinal) {
+          const normalizedFinal = normalizeForComparison(trimmed);
+
+          if (skipNextFinalRef.current && skipNextFinalRef.current === normalizedFinal) {
+            skipNextFinalRef.current = null;
+            setInterimText('');
+            interimTextRef.current = '';
+            return;
+          }
+
+          clearAutoInsertTimer();
+          skipNextFinalRef.current = null;
+          setInterimText('');
+          interimTextRef.current = '';
+          onTranscript(trimmed, true);
+          return;
+        }
+
+        setInterimText(text);
+        interimTextRef.current = text;
+        onTranscript(text, false);
+
+        clearAutoInsertTimer();
+        autoInsertRef.current = setTimeout(() => {
+          const pending = interimTextRef.current.trim();
+          if (!pending) {
+            return;
+          }
+
+          const normalizedPending = normalizeForComparison(pending);
+          skipNextFinalRef.current = normalizedPending;
+          clearAutoInsertTimer();
+          autoInsertRef.current = null;
+          setInterimText('');
+          interimTextRef.current = '';
+          onTranscript(pending, true);
+        }, AUTO_INSERT_DELAY_MS);
       },
       (errorMsg) => {
         setError(errorMsg);
         setIsListening(false);
         setInterimText('');
+        interimTextRef.current = '';
+        clearAutoInsertTimer();
+        skipNextFinalRef.current = null;
       },
       language
     );
-  }, [onTranscript, language]);
-
-  const stopListening = useCallback(() => {
-    voiceService.stopListening();
-    setIsListening(false);
-    setInterimText('');
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
+  }, [onTranscript, language, clearAutoInsertTimer]);
 
   const toggleLanguage = useCallback(() => {
     const newLang = language === 'vi-VN' ? 'en-US' : 'vi-VN';

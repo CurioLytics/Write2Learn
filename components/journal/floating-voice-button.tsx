@@ -71,6 +71,12 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
       {/* Main Floating Button */}
       <TooltipProvider>
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3">
+          {interimText ? (
+            <div className="max-w-md px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700 shadow-xl animate-fade-in">
+              {interimText}
+            </div>
+          ) : null}
+
           {/* Main Mic Button with Glow Effect */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -130,6 +136,10 @@ export function FloatingVoiceButton({ onTranscript }: FloatingVoiceButtonProps) 
               </p>
             </TooltipContent>
           </Tooltip>
+
+          <div className="min-h-[1.25rem] text-sm font-medium text-blue-200">
+            {isListening ? (interimText ? 'Đang ghi lại...' : 'Đang lắng nghe...') : ' '}
+          </div>
         </div>
       </TooltipProvider>
 
