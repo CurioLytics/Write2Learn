@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { RefreshCw, Flame, TrendingUp, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/ui';
 import { DailyGoalStatus } from '@/services/analytics-service';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 type DatePreset = '7days' | '30days' | '90days' | 'all';
 
@@ -47,12 +48,12 @@ export default function ReportPage() {
   useEffect(() => {
     async function fetchMonthlyGoals() {
       if (!user?.id) return;
-      
+
       setIsLoadingCalendar(true);
       try {
         const response = await fetch('/api/analytics/monthly-goals');
         const result = await response.json();
-        
+
         if (result.success && result.data?.goalStatuses) {
           // Convert object back to Map with proper typing
           const statusMap = new Map(Object.entries(result.data.goalStatuses)) as Map<string, DailyGoalStatus>;
@@ -74,7 +75,7 @@ export default function ReportPage() {
       <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
         <div className="bg-white shadow rounded-2xl p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
-          
+
           <div className="space-y-6">
             {/* Loading skeletons */}
             <div className="grid gap-6 md:grid-cols-3">
@@ -118,7 +119,7 @@ export default function ReportPage() {
       <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
         <div className="bg-white shadow rounded-2xl p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Report</h1>
-          
+
           <Card className="border-destructive">
             <CardContent className="p-6">
               <p className="text-destructive mb-4">Không thể tải dữ liệu: {error.message}</p>
@@ -138,6 +139,11 @@ export default function ReportPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
+      <SectionNavigation sections={[
+        { id: 'overview', label: 'Overview' },
+        { id: 'activity', label: 'Activity' },
+        { id: 'grammar', label: 'Grammar' },
+      ]} />
       {/* HEADER */}
       <div className="bg-white shadow rounded-2xl p-6">
         <div className="flex items-center justify-between">
@@ -150,14 +156,14 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div id="overview" className="space-y-8">
         {/* First Row: Today's Goals, Calendar, and Streak Cards */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Today's Goals */}
           <div>
-            <DailyGoalCard 
-              data={data?.dailyGoal || null} 
-              isLoading={isLoading} 
+            <DailyGoalCard
+              data={data?.dailyGoal || null}
+              isLoading={isLoading}
             />
           </div>
 
@@ -170,7 +176,7 @@ export default function ReportPage() {
                   <TooltipProvider delayDuration={0}>
                     <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
                       <TooltipTrigger asChild>
-                        <button 
+                        <button
                           className="touch-manipulation"
                           onClick={(e) => {
                             e.preventDefault();
@@ -191,7 +197,7 @@ export default function ReportPage() {
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                   </div>
                 ) : (
-                  <ProgressCalendar 
+                  <ProgressCalendar
                     goalStatuses={monthlyGoals}
                   />
                 )}
@@ -245,7 +251,7 @@ export default function ReportPage() {
         </div>
 
         {/* Second Row: Weekly Activity Chart with Date Filter */}
-        <div>
+        <div id="activity">
           {/* Date Filter - Right aligned above chart */}
           <div className="flex gap-2 flex-wrap justify-end mb-4">
             {DATE_PRESETS.map((preset) => (
@@ -262,17 +268,19 @@ export default function ReportPage() {
           </div>
 
           {/* Weekly Activity Chart */}
-          <WeeklyActivityChart 
-            data={data?.weeklyActivity || []} 
-            isLoading={isLoading} 
+          <WeeklyActivityChart
+            data={data?.weeklyActivity || []}
+            isLoading={isLoading}
           />
         </div>
 
         {/* Grammar Error Analysis - Full width */}
-        <GrammarErrorChart 
-          data={data?.grammarErrors || []} 
-          isLoading={isLoading} 
-        />
+        <div id="grammar">
+          <GrammarErrorChart
+            data={data?.grammarErrors || []}
+            isLoading={isLoading}
+          />
+        </div>
 
         {/* Motivational footer */}
         {isStreakActive && streak && streak.current_streak >= 7 && (

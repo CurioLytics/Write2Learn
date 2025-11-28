@@ -7,6 +7,7 @@ import { RoleplayCard } from '@/components/roleplay/roleplay-card';
 import { ScenarioFilter } from '@/components/roleplay/scenario-filter';
 import { SessionHistory } from '@/components/roleplay/session-history';
 import { useRoleplayScenarios } from '@/hooks/roleplay/use-roleplay-scenarios';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 export default function RoleplayPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -17,22 +18,26 @@ export default function RoleplayPage() {
   };
 
   return (
-  <div className="flex flex-col items-center px-4 py-10 w-full">
+    <div className="flex flex-col items-center px-4 py-10 w-full">
+      <SectionNavigation sections={[
+        { id: 'scenarios', label: 'Scenarios' },
+        { id: 'history', label: 'History' },
+      ]} />
 
-    {/* HEADER */}
-    <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Role-play</h1>
-      <p className="text-gray-600 text-sm">Đóng vai vào các nhân vật với các bối cảnh khác nhau, rèn luyện phản xạ nhanh trong các tình huống thực tế</p>
-    </div>
+      {/* HEADER */}
+      <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Role-play</h1>
+        <p className="text-gray-600 text-sm">Đóng vai vào các nhân vật với các bối cảnh khác nhau, rèn luyện phản xạ nhanh trong các tình huống thực tế</p>
+      </div>
 
-    {/* Add spacing between header and next block */}
-    <div className="w-full max-w-3xl space-y-6 mt-10">
+      {/* Add spacing between header and next block */}
+      <div id="scenarios" className="w-full max-w-3xl space-y-6 mt-10">
 
-      {/* Filter */}
-      <ScenarioFilter
-        onFilterChange={handleFilterChange}
-        currentTopic={selectedTopic}
-      />
+        {/* Filter */}
+        <ScenarioFilter
+          onFilterChange={handleFilterChange}
+          currentTopic={selectedTopic}
+        />
         {/* Scenarios */}
         {loading ? (
           <div className="flex overflow-x-auto gap-6 pb-2 max-w-full cursor-grab">
@@ -87,7 +92,7 @@ export default function RoleplayPage() {
                   />
                 </div>
               ))}
-</div>
+            </div>
           </>
         ) : (
           <div className="text-center text-gray-600 py-8">
@@ -107,7 +112,7 @@ export default function RoleplayPage() {
       </div>
 
       {/* History */}
-      <div className="w-full max-w-3xl mt-10">
+      <div id="history" className="w-full max-w-3xl mt-10">
         <SessionHistory />
       </div>
     </div>

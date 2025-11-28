@@ -12,6 +12,7 @@ import { TagFilter } from '@/components/journal/tag-filter';
 import { Journal, JournalStats } from '@/types/journal';
 import { journalService } from '@/services/journal-service';
 import { useAuth } from '@/hooks/auth/use-auth';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 export default function JournalPage() {
   const router = useRouter();
@@ -28,25 +29,25 @@ export default function JournalPage() {
   // Filter journals based on search query only
   const filteredJournals = useMemo(() => {
     return journals.filter(journal => {
-      const matchesSearch = !searchQuery || 
+      const matchesSearch = !searchQuery ||
         journal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         journal.content.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       return matchesSearch;
     });
   }, [journals, searchQuery]);
 
   const handleTagFilterChange = async (tag: string | null) => {
     setSelectedTag(tag);
-    
+
     if (!user?.id) return;
-    
+
     setIsLoading(true);
     try {
-      const journalsData = tag 
+      const journalsData = tag
         ? await journalService.getJournalsByTag(user.id, tag)
         : await journalService.getJournals(user.id);
-      
+
       setJournals(journalsData);
     } catch (err) {
       console.error('Error fetching filtered journals:', err);
@@ -59,17 +60,17 @@ export default function JournalPage() {
   useEffect(() => {
     async function fetchJournalData() {
       if (!user?.id) return;
-      
+
       setIsLoading(true);
       setError(null);
-      
+
       try {
         // Fetch journals and stats in parallel
         const [journalsData, statsData] = await Promise.all([
           journalService.getJournals(user.id),
           journalService.getJournalStats(user.id)
         ]);
-        
+
         setJournals(journalsData);
         setStats(statsData);
       } catch (err) {
@@ -79,7 +80,7 @@ export default function JournalPage() {
         setIsLoading(false);
       }
     }
-    
+
     fetchJournalData();
   }, [user?.id]);
 
@@ -111,7 +112,7 @@ export default function JournalPage() {
       if (dateCompare !== 0) return dateCompare;
       return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
-    
+
     // If journals exist for this date, select the first one
     if (journalsForDate.length > 0) {
       handleJournalSelect(journalsForDate[0]);
@@ -121,99 +122,103 @@ export default function JournalPage() {
     }
   };
 
-return (
-  <div className="flex flex-col items-center px-4 py-10 w-full">
+  return (
+    <div className="flex flex-col items-center px-4 py-10 w-full">
+      <SectionNavigation sections={[
+        { id: 'journals', label: 'Journals' },
+        { id: 'frameworks', label: 'Frameworks' },
+      ]} />
 
-    {/* HEADER */}
-    <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
-      <p className="mt-2 text-sm text-gray-600">
-         Viết bằng tiếng Anh và nhận phản hồi chi tiết
-      </p>
-    </div>
-
-    {/* Add spacing between header and next block */}
-    <div className="w-full max-w-3xl space-y-6 mt-10">
-      {/* Top Action Button */}
-  <div className="flex justify-end">
-    <Button onClick={() => router.push('/journal/new')} variant="default">
-      Thêm mới
-    </Button>
-  </div>
-
-      {/* Search and Filter */}
-      <div className="space-y-4">
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Tìm kiếm..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <TagFilter 
-          onFilterChange={handleTagFilterChange}
-          currentTag={selectedTag}
-        />
+      {/* HEADER */}
+      <div className="w-full max-w-3xl bg-white shadow rounded-2xl p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nhật ký của tôi</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Viết bằng tiếng Anh và nhận phản hồi chi tiết
+        </p>
       </div>
 
-      {/* Journal & Calendar Section */}
-      <div className="space-y-6">
-        {/* Calendar */}
-        <div className="bg-gray-50 rounded-xl p-4">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
-          <CalendarView 
-            journals={journals}
-            onDateSelect={handleDateSelect}
-            selectedDate={selectedDate}
+      {/* Add spacing between header and next block */}
+      <div id="journals" className="w-full max-w-3xl space-y-6 mt-10">
+        {/* Top Action Button */}
+        <div className="flex justify-end">
+          <Button onClick={() => router.push('/journal/new')} variant="default">
+            Thêm mới
+          </Button>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="space-y-4">
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Tìm kiếm..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <TagFilter
+            onFilterChange={handleTagFilterChange}
+            currentTag={selectedTag}
           />
         </div>
 
-        {/* Journal List */}
-        <div className="bg-gray-50 rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Bài viết gần đây</h2>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 p-4 rounded-lg text-red-700 text-center">
-              {error}
-              <Button variant="link" onClick={() => window.location.reload()} className="ml-2">
-                Thử lại
-              </Button>
-            </div>
-          ) : filteredJournals.length === 0 ? (
-            <div className="text-center text-gray-600 py-8 bg-gray-100 rounded-lg border border-dashed border-gray-300"> 
-              <Button onClick={() => router.push('/journal/new')} variant="outline">
-  
-                <PlusCircle className="mr-2 h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="max-h-80 overflow-y-auto">
-              <JournalList 
-                journals={filteredJournals}
-                onSelect={handleJournalSelect}
-                selectedJournalId={selectedJournal?.id}
-                onDelete={handleJournalDelete}
-              />
-            </div>
-          )}
+        {/* Journal & Calendar Section */}
+        <div className="space-y-6">
+          {/* Calendar */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Lịch</h3>
+            <CalendarView
+              journals={journals}
+              onDateSelect={handleDateSelect}
+              selectedDate={selectedDate}
+            />
+          </div>
+
+          {/* Journal List */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Bài viết gần đây</h2>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 p-4 rounded-lg text-red-700 text-center">
+                {error}
+                <Button variant="link" onClick={() => window.location.reload()} className="ml-2">
+                  Thử lại
+                </Button>
+              </div>
+            ) : filteredJournals.length === 0 ? (
+              <div className="text-center text-gray-600 py-8 bg-gray-100 rounded-lg border border-dashed border-gray-300">
+                <Button onClick={() => router.push('/journal/new')} variant="outline">
+
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto">
+                <JournalList
+                  journals={filteredJournals}
+                  onSelect={handleJournalSelect}
+                  selectedJournalId={selectedJournal?.id}
+                  onDelete={handleJournalDelete}
+                />
+              </div>
+            )}
+          </div>
         </div>
+
+      </div>
+
+      {/* Framework Section */}
+      <div id="frameworks" className="w-full max-w-3xl mt-10 bg-white shadow rounded-2xl p-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
+        <p className="text-center text-gray-600 mb-6">Khám phá các framework để trải nghiệm nhiều khía cạnh trong nhật k</p>
+        <ExploreFrameworks />
       </div>
 
     </div>
-
-    {/* Framework Section */}
-    <div className="w-full max-w-3xl mt-10 bg-white shadow rounded-2xl p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
-      <p className="text-center text-gray-600 mb-6">Khám phá các framework để trải nghiệm nhiều khía cạnh trong nhật k</p>
-      <ExploreFrameworks />
-    </div>
-
-  </div>
-);
+  );
 }

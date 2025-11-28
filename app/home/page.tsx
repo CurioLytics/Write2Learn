@@ -14,9 +14,10 @@ import { supabase } from '@/services/supabase/client';
 import { useUserProfileStore } from '@/stores/user-profile-store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 interface RoleplayScenario {
-    id: string; 
+    id: string;
     name: string;
     context: string;
     image: string | null;
@@ -126,9 +127,9 @@ function DueFlashcards() {
         fetch('/api/vocabulary/review', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                vocabulary_id: currentCard.vocabulary_id, 
-                rating: ratingMap[rating] 
+            body: JSON.stringify({
+                vocabulary_id: currentCard.vocabulary_id,
+                rating: ratingMap[rating]
             }),
         }).catch(error => {
             console.error('Background review update failed:', error);
@@ -143,9 +144,8 @@ function DueFlashcards() {
 
     // Get the front and back content based on shuffle state
     const getFrontContent = (card: DueFlashcard) => isShuffled ? card.meaning : card.word;
-    const getBackContent = (card: DueFlashcard) => isShuffled ? card.word : `${card.meaning}${
-        card.example ? `\n\n"${card.example}"` : ''
-    }`;
+    const getBackContent = (card: DueFlashcard) => isShuffled ? card.word : `${card.meaning}${card.example ? `\n\n"${card.example}"` : ''
+        }`;
 
     if (isLoading) {
         return (
@@ -191,9 +191,9 @@ export default function DashboardPage() {
     const router = useRouter();
     const { user } = useAuth();
     const { profile } = useUserProfileStore();
-    
+
     // Sử dụng kiểu dữ liệu đã định nghĩa
-    const [scenarios, setScenarios] = useState<RoleplayScenario[]>([]); 
+    const [scenarios, setScenarios] = useState<RoleplayScenario[]>([]);
     const [loading, setLoading] = useState(true);
     const [tooltipOpen1, setTooltipOpen1] = useState(false);
     const [tooltipOpen2, setTooltipOpen2] = useState(false);
@@ -204,9 +204,9 @@ export default function DashboardPage() {
         const now = new Date();
         const vietnamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
         const hour = vietnamTime.getHours();
-        
+
         const name = profile?.name || 'bạn';
-        
+
         if (hour >= 5 && hour < 11) {
             return {
                 greeting: `Chào buổi sáng, ${name}`,
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             const { data, error } = await supabase
                 .from('roleplays') // Tên bảng
                 // ❗ Đã điều chỉnh tên cột theo schema bạn cung cấp
-                .select('id, name, context, image') 
+                .select('id, name, context, image')
                 .order('created_at', { ascending: false })
                 .limit(3);
 
@@ -291,6 +291,10 @@ export default function DashboardPage() {
 
     return (
         <div className="scroll-smooth">
+            <SectionNavigation sections={[
+                { id: 'journal', label: 'Journaling' },
+                { id: 'practice', label: 'Practice' },
+            ]} />
             {/* SECTION 1 – VIẾT */}
             <section ref={journalSectionRef} id="journal" className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4 py-8">
                 <div className="w-full max-w-2xl mx-auto">
@@ -301,7 +305,7 @@ export default function DashboardPage() {
                             <TooltipProvider delayDuration={0}>
                                 <Tooltip open={tooltipOpen1} onOpenChange={setTooltipOpen1}>
                                     <TooltipTrigger asChild>
-                                        <button 
+                                        <button
                                             className="touch-manipulation"
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -345,7 +349,7 @@ export default function DashboardPage() {
             {/* SECTION 2 – LUYỆN TẬP (Roleplay + Vocab) */}
             <section ref={roleplaySectionRef} id="practice" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-white py-8">
                 <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-8">
-                    
+
                     {/* Roleplay Section */}
                     <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
@@ -354,7 +358,7 @@ export default function DashboardPage() {
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip open={tooltipOpen2} onOpenChange={setTooltipOpen2}>
                                         <TooltipTrigger asChild>
-                                            <button 
+                                            <button
                                                 className="touch-manipulation flex-shrink-0"
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -376,9 +380,9 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="relative -mx-3 sm:mx-0">
-                            <div 
+                            <div
                                 className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 px-3 sm:px-0 cursor-grab scrollbar-hide snap-x snap-mandatory"
-                                style={{ 
+                                style={{
                                     WebkitOverflowScrolling: 'touch',
                                     touchAction: 'pan-x'
                                 }}
@@ -387,9 +391,9 @@ export default function DashboardPage() {
                                     let isDown = true;
                                     let startX = e.pageX - slider.offsetLeft;
                                     let scrollLeft = slider.scrollLeft;
-                                    
+
                                     slider.style.cursor = 'grabbing';
-                                    
+
                                     const handleMouseMove = (e: MouseEvent) => {
                                         if (!isDown) return;
                                         e.preventDefault();
@@ -397,14 +401,14 @@ export default function DashboardPage() {
                                         const walk = (x - startX) * 2;
                                         slider.scrollLeft = scrollLeft - walk;
                                     };
-                                    
+
                                     const handleMouseUp = () => {
                                         isDown = false;
                                         slider.style.cursor = 'grab';
                                         document.removeEventListener('mousemove', handleMouseMove);
                                         document.removeEventListener('mouseup', handleMouseUp);
                                     };
-                                    
+
                                     document.addEventListener('mousemove', handleMouseMove);
                                     document.addEventListener('mouseup', handleMouseUp);
                                 }}
@@ -444,7 +448,7 @@ export default function DashboardPage() {
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip open={tooltipOpen3} onOpenChange={setTooltipOpen3}>
                                         <TooltipTrigger asChild>
-                                            <button 
+                                            <button
                                                 className="touch-manipulation flex-shrink-0"
                                                 onClick={(e) => {
                                                     e.preventDefault();
