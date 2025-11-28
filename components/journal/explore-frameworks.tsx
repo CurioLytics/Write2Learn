@@ -15,7 +15,7 @@ export function ExploreFrameworks() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -24,7 +24,7 @@ export function ExploreFrameworks() {
           frameworkService.getFrameworks(),
           frameworkService.getCategories()
         ]);
-        
+
         setFrameworks(frameworksData);
         setCategories(categoriesData);
       } catch (err) {
@@ -34,12 +34,12 @@ export function ExploreFrameworks() {
         setLoading(false);
       }
     }
-    
+
     fetchData();
   }, []);
-  
-  const filteredFrameworks = selectedCategory === 'all' 
-    ? frameworks 
+
+  const filteredFrameworks = selectedCategory === 'all'
+    ? frameworks
     : frameworks.filter(f => f.category === selectedCategory);
 
   if (loading) {
@@ -104,12 +104,12 @@ export function ExploreFrameworks() {
           </button>
         ))}
       </div>
-      
+
       {/* Framework Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredFrameworks.map(framework => (
-          <Card 
-            key={framework.name} 
+          <Card
+            key={framework.name}
             className="cursor-pointer hover:shadow-md transition-shadow group bg-white shadow border-2 border-[var(--accent-blue)] rounded-2xl"
             onClick={() => {
               setSelectedFramework(framework);
@@ -120,7 +120,11 @@ export function ExploreFrameworks() {
               <div className="text-lg text-gray-800">{framework.name}</div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{framework.description}</p>
+              <p className="text-gray-600 text-sm line-clamp-2">
+                {framework.description.length > 100
+                  ? `${framework.description.substring(0, 100)}...`
+                  : framework.description}
+              </p>
             </CardContent>
           </Card>
         ))}
