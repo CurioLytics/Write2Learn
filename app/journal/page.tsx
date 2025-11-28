@@ -140,35 +140,35 @@ export default function JournalPage() {
 
       {/* Add spacing between header and next block */}
       <div id="journals" className="w-full max-w-3xl space-y-6 mt-10">
-        {/* Top Action Button */}
-        <div className="flex justify-end">
-          <Button onClick={() => router.push('/journal/new')} variant="default">
-            Thêm mới
-          </Button>
-        </div>
 
         {/* Journal & Calendar Section */}
         <div className="space-y-6">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Tìm kiếm..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+          {/* Action Button Row */}
+          <div className="flex justify-end">
+            <Button onClick={() => router.push('/journal/new')} variant="default">
+              Viết
+            </Button>
+          </div>
+
+          {/* Search Bar and Tag Filter Row */}
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Tìm kiếm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <TagFilterDropdown
+              onFilterChange={handleTagFilterChange}
+              currentTag={selectedTag}
             />
           </div>
 
-          {/* Calendar and Tag Filter Row */}
+          {/* Calendar */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Calendar</h3>
-              <TagFilterDropdown
-                onFilterChange={handleTagFilterChange}
-                currentTag={selectedTag}
-              />
-            </div>
             <WeekCalendarView
               journals={journals}
               onDateSelect={handleDateSelect}
