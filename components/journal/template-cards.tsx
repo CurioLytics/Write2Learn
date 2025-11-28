@@ -110,7 +110,7 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[var(--primary-purple)] to-[var(--accent-purple)]" />
               )}
-              
+
               {/* Small Settings icon */}
               <div className="absolute top-3 right-3">
                 {template.name !== 'Viết tự do' && (
@@ -126,14 +126,14 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
                 )}
               </div>
             </div>
-            
+
             {/* Text Content Below */}
             <div className="p-3">
               <h3 className="text-sm text-gray-800 mb-1">
                 {template.name}
               </h3>
               <p className="text-xs text-gray-500 leading-relaxed">
-                {template.name === 'Morning Intentions' 
+                {template.name === 'Morning Intentions'
                   ? 'Stay focused, get into the right mindset, and make progress with clarity.'
                   : 'Track your progress, focus on being benevolent, and make tomorrow better.'
                 }
@@ -181,7 +181,7 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
                 </button>
               </div>
             </div>
-            
+
             {/* Right side */}
             <div className="w-1/2 p-6">
               <div className="space-y-4">

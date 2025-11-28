@@ -3,23 +3,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger 
+  AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
 import { useVoiceMode } from '@/hooks/roleplay/use-voice-mode';
@@ -49,7 +49,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const [showTextInput, setShowTextInput] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Use cached preferences from auth context with defaults
   const userPreferences = {
     name: cachedPreferences?.name || 'User',
@@ -88,7 +88,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         timestamp: Date.now(),
       };
       addMessage(botMsg);
-      
+
       // Auto-play and auto-activate next
       playBotMessage(reply, botMsg.id);
     } catch (error: any) {
@@ -160,7 +160,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         const confirmLeave = window.confirm(
           'Bạn đã có tin nhắn trong cuộc trò chuyện này. Nếu thoát bây giờ, cuộc trò chuyện sẽ không được lưu lại. Bạn có chắc muốn thoát?'
         );
-        
+
         if (!confirmLeave) {
           window.history.pushState(null, '', window.location.href);
         }
@@ -204,7 +204,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
     // Stop all ongoing actions first
     stopListening();
     stopBotSpeaking();
-    
+
     setFinishing(true);
     setError(null);
 
@@ -240,7 +240,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   return (
     <>
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-gradient-to-b from-gray-50 to-white rounded-lg shadow-sm overflow-hidden">
-        
+
         {/* Header */}
         <div className="p-3 border-b flex justify-between items-center bg-white">
           <Dialog>
@@ -379,81 +379,75 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
           ) : (
             /* Voice Mode - Large Centered Mic Button with Transcription Above */
             <div className="flex flex-col items-center gap-3 pb-4 pt-4">
-            {/* Status Text */}
-            <div className="h-6 flex items-center">
-              {isThinking && (
-                <p className="text-sm text-gray-600 animate-pulse">Đang nghĩ...</p>
-              )}
-              {voiceState === 'listening' && (
-                <p className="text-sm text-blue-600 font-medium animate-pulse">Lắng nghe...</p>
-              )}
-              {voiceState === 'user-speaking' && (
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
-                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-1 h-4 bg-blue-600 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
+              {/* Status Text */}
+              <div className="h-6 flex items-center">
+                {isThinking && (
+                  <p className="text-sm text-gray-600 animate-pulse">Đang nghĩ...</p>
+                )}
+                {voiceState === 'listening' && (
+                  <p className="text-sm text-purple-600 font-medium animate-pulse">Lắng nghe...</p>
+                )}
+                {voiceState === 'user-speaking' && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span className="w-1 h-4 bg-gradient-to-t from-purple-600 to-purple-400 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></span>
+                      <span className="w-1 h-4 bg-gradient-to-t from-purple-600 to-purple-400 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.1s' }}></span>
+                      <span className="w-1 h-4 bg-gradient-to-t from-purple-600 to-purple-400 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></span>
+                      <span className="w-1 h-4 bg-gradient-to-t from-purple-600 to-purple-400 rounded-full animate-[wave_0.6s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}></span>
+                    </div>
+                    <p className="text-sm text-purple-600 font-medium">Bạn đang nói...</p>
                   </div>
-                  <p className="text-sm text-blue-600 font-medium">Bạn đang nói...</p>
+                )}
+              </div>
+
+              {/* Interim Text Display - Directly Above Mic */}
+              {interimText && (
+                <div className="max-w-md px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm text-gray-700 mb-2">
+                  {interimText}
                 </div>
               )}
-            </div>
 
-            {/* Interim Text Display - Directly Above Mic */}
-            {interimText && (
-              <div className="max-w-md px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700 mb-2">
-                {interimText}
-              </div>
-            )}
-
-            {/* Mic Button with Glow Effect - Same as Journal */}
-            <div className="relative">
-              {/* Outer glow rings */}
-              <div className={`absolute inset-0 rounded-full transition-all duration-700 ${
-                isMicActive 
-                  ? 'animate-ping-slow bg-blue-400/30' 
-                  : isBotSpeaking
-                  ? 'animate-pulse bg-gray-400/20'
-                  : 'bg-gray-900/20'
-              }`} style={{ padding: '20px' }}></div>
-              
-              <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
-                isMicActive 
-                  ? 'animate-pulse-glow bg-blue-500/20' 
-                  : isBotSpeaking
-                  ? 'bg-gray-400/10'
-                  : 'bg-gray-800/10'
-              }`} style={{ padding: '10px' }}></div>
-
-              {/* Main button */}
-              <button
-                onClick={handleMicClick}
-                disabled={isThinking || finishing}
-                aria-label={isMicActive ? 'Stop recording' : isBotSpeaking ? 'Stop bot speaking' : 'Start recording'}
-                className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${
-                  isMicActive
-                    ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 scale-110 shadow-blue-500/50 animate-breathe'
+              <div className="relative">
+                {/* Outer glow rings */}
+                <div className={`absolute inset-0 rounded-full transition-all duration-700 ${isMicActive
+                    ? 'animate-ping-slow bg-gradient-to-r from-purple-400/30 to-pink-400/30'
                     : isBotSpeaking
-                    ? 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 scale-105 shadow-gray-500/30 animate-pulse'
-                    : 'bg-gradient-to-br from-gray-800 via-gray-900 to-black hover:scale-110 hover:shadow-gray-900/50 shadow-gray-900/30'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {/* Inner glow */}
-                <div className={`absolute inset-0 rounded-full transition-opacity duration-500 ${
-                  isMicActive ? 'opacity-100 bg-white/10 animate-pulse' : 'opacity-0'
-                }`}></div>
-                
-                <Mic className={`relative z-10 h-8 w-8 text-white mx-auto transition-transform duration-300 ${
-                  isMicActive ? 'animate-bounce-subtle' : ''
-                }`} />
-              </button>
-            </div>
+                      ? 'animate-pulse bg-gray-400/20'
+                      : 'bg-gradient-to-r from-purple-900/20 to-pink-900/20'
+                  }`} style={{ padding: '20px' }}></div>
 
-            {/* Tap to stop hint */}
-            {isMicActive && (
-              <p className="text-xs text-gray-500">Nhấn để gửi tin nhắn</p>
-            )}
+                <div className={`absolute inset-0 rounded-full transition-all duration-500 ${isMicActive
+                    ? 'animate-pulse-glow bg-gradient-to-r from-purple-500/20 to-pink-500/20'
+                    : isBotSpeaking
+                      ? 'bg-gray-400/10'
+                      : 'bg-gradient-to-r from-purple-800/10 to-pink-800/10'
+                  }`} style={{ padding: '10px' }}></div>
+
+                {/* Main button */}
+                <button
+                  onClick={handleMicClick}
+                  disabled={isThinking || finishing}
+                  aria-label={isMicActive ? 'Stop recording' : isBotSpeaking ? 'Stop bot speaking' : 'Start recording'}
+                  className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${isMicActive
+                      ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 scale-110 shadow-purple-500/50 animate-breathe'
+                      : isBotSpeaking
+                        ? 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 scale-105 shadow-gray-500/30 animate-pulse'
+                        : 'bg-gradient-to-br from-purple-800 via-purple-900 to-pink-900 hover:scale-110 hover:shadow-purple-900/50 shadow-purple-900/30'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {/* Inner glow */}
+                  <div className={`absolute inset-0 rounded-full transition-opacity duration-500 ${isMicActive ? 'opacity-100 bg-gradient-to-br from-white/20 to-yellow-200/20 animate-pulse' : 'opacity-0'
+                    }`}></div>
+
+                  <Mic className={`relative z-10 h-8 w-8 text-white mx-auto transition-transform duration-300 ${isMicActive ? 'animate-bounce-subtle' : ''
+                    }`} />
+                </button>
+              </div>
+
+              {/* Tap to stop hint */}
+              {isMicActive && (
+                <p className="text-xs text-gray-500">Nhấn để gửi tin nhắn</p>
+              )}
             </div>
           )}
 
