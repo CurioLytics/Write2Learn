@@ -14,6 +14,7 @@ export interface OnboardingData {
 
 export type OnboardingStep = 
   | 'welcome'
+  | 'name'
   | 'english-reasons'
   | 'english-challenges'
   | 'english-level'
@@ -110,6 +111,14 @@ export const ONBOARDING_STEPS: StepConfig[] = [
     title: 'Chào mừng đến với Write2Learn',
     description: 'Cùng cá nhân hóa trải nghiệm học tiếng Anh của bạn.',
     type: 'welcome',
+  },
+  {
+    id: 'name' as OnboardingStep,
+    title: 'Bạn tên là gì?',
+    description: 'Chúng mình sẽ gọi bạn thế này nhé',
+    type: 'text-input',
+    dataKey: 'name',
+    placeholder: 'Nhập tên của bạn...',
   },
   {
     id: 'english-reasons',

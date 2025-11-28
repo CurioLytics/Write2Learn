@@ -18,26 +18,26 @@ class JournalService {
   async getJournalTags(): Promise<string[]> {
     try {
       console.log('getJournalTags - Fetching all journal tags');
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('journal_tags')
         .select('name')
         .order('name');
-      
+
       console.log('getJournalTags - Response from Supabase:', { data, error });
-      
+
       if (error) {
         console.error('Error fetching journal tags:', error);
         throw error;
       }
-      
+
       if (!data || !Array.isArray(data)) {
         console.warn('Invalid data structure returned from journal_tags:', data);
         return [];
       }
-      
+
       return data.map((tag: any) => tag.name);
     } catch (error) {
       console.error('Error in getJournalTags:', error);
@@ -54,31 +54,32 @@ class JournalService {
   async getJournalById(journalId: string): Promise<Journal> {
     try {
       console.log('getJournalById - Fetching journal:', journalId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('journals')
-        .select('id, title, content, journal_date')
+        .select('id, title, content, journal_date, summary')
         .eq('id', journalId)
         .single();
-      
+
       console.log('getJournalById - Response from Supabase:', { data, error });
-      
+
       if (error) {
         console.error('Error fetching journal by ID:', error);
         throw error;
       }
-      
+
       if (!data) {
         throw new Error('Journal not found');
       }
-      
+
       return {
         id: String(data.id),
         title: data.title,
         content: data.content,
-        journal_date: data.journal_date ?? new Date().toISOString()
+        journal_date: data.journal_date ?? new Date().toISOString(),
+        summary: data.summary
       };
     } catch (error) {
       console.error('Error in getJournalById:', error);
@@ -95,9 +96,9 @@ class JournalService {
   async getJournalsByTag(userId: string, tagName: string): Promise<Journal[]> {
     try {
       console.log('getJournalsByTag - Fetching journals for user:', userId, 'with tag:', tagName);
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('journals')
         .select(`
@@ -112,19 +113,19 @@ class JournalService {
         .eq('journal_tag.tag_id', tagName)
         .order('journal_date', { ascending: false })
         .order('created_at', { ascending: false });
-      
+
       console.log('getJournalsByTag - Response from Supabase:', { data, error });
-      
+
       if (error) {
         console.error('Error fetching journals by tag:', error);
         throw error;
       }
-      
+
       if (!data || !Array.isArray(data)) {
         console.warn('Invalid data structure returned from journals:', data);
         return [];
       }
-      
+
       return data.map((journal: any) => ({
         id: String(journal.id),
         title: journal.title,
@@ -142,42 +143,49 @@ class JournalService {
    * Get all journal entries for a user
    * 
    * @param userId The user ID to fetch journals for
+   * @param includeDrafts Whether to include draft journals (default: false)
    * @returns Promise with array of journal entries
    */
-  async getJournals(userId: string): Promise<Journal[]> {
+  async getJournals(userId: string, includeDrafts: boolean = false): Promise<Journal[]> {
     try {
       console.log('getJournals - userId being passed:', userId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       // Call the get_journals Supabase function
       // Correct parameter name is _user_id
       const { data, error } = await supabase
         .rpc("get_journals", { _user_id: userId });
-      
+
       console.log('getJournals - Response from Supabase:', { data, error });
-      
+
       if (error) {
         console.error('Error fetching journals:', error);
         throw error;
       }
-      
+
       if (!data || !Array.isArray(data)) {
         console.warn('Invalid data structure returned from get_journals:', data);
         return [];
       }
-      
+
       console.log('getJournals - Processed data to return:', data?.length, 'entries');
-      
+
       // Map and sort by journal_date DESC, then created_at DESC
-      const mappedData = data.map((journal: any) => ({
+      let mappedData = data.map((journal: any) => ({
         id: String(journal.id),
         title: journal.title,
         content: journal.content,
         journal_date: journal.journal_date ?? journal.created_at ?? new Date().toISOString(),
-        created_at: journal.created_at
+        created_at: journal.created_at,
+        is_draft: journal.is_draft ?? false,
       }));
-      
+
+      // Filter out drafts unless explicitly requested
+      if (!includeDrafts) {
+        mappedData = mappedData.filter((journal: any) => !journal.is_draft);
+      }
+
       // Sort: newest journal_date first, then newest created_at
       return mappedData.sort((a, b) => {
         const dateCompare = new Date(b.journal_date).getTime() - new Date(a.journal_date).getTime();
@@ -199,20 +207,20 @@ class JournalService {
   async getJournalStats(userId: string): Promise<JournalStats> {
     try {
       console.log('getJournalStats - userId being passed:', userId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       // Call the get_journal_stats Supabase function
       const { data, error } = await supabase
         .rpc('get_journal_stats', { user_uuid: userId });
-      
+
       console.log('getJournalStats - Response from Supabase:', { data, error });
-      
+
       if (error) {
         console.error('Error fetching journal stats:', error);
         throw error;
       }
-      
+
       if (!data) {
         console.warn('Invalid data structure returned from get_journal_stats:', data);
         return {
@@ -220,20 +228,20 @@ class JournalService {
           current_streak: 0
         };
       }
-      
+
       // Handle the response as an array with one object
       const statsData = Array.isArray(data) ? data[0] : data;
-      
+
       console.log('getJournalStats - Stats data after handling array:', statsData);
-      
+
       // Map the response field names to our expected field names
       const processedData = {
         total_journals: statsData.total_entries || 0,  // Use total_entries from response
         current_streak: statsData.current_streak || 0
       };
-      
+
       console.log('getJournalStats - Final processed data:', processedData);
-      
+
       return processedData;
     } catch (error) {
       console.error('Error in getJournalStats:', error);
@@ -253,12 +261,14 @@ class JournalService {
     content: string;
     journal_date?: string | null;
     enhanced_version?: string | null;
+    summary?: string | null;
+    is_draft?: boolean;
   }): Promise<{ id: string }> {
     try {
       console.log('createJournal - Creating new journal entry for user:', userId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       // Insert the journal entry
       const { data: result, error } = await supabase
         .from('journals')
@@ -267,21 +277,83 @@ class JournalService {
           title: data.title,
           content: data.content,
           enhanced_version: data.enhanced_version || null,
+          summary: data.summary || null,
           journal_date: data.journal_date || new Date().toISOString(),
+          is_draft: data.is_draft ?? false,
         })
         .select('id')
         .single();
-      
+
       if (error) {
         console.error('Error creating journal entry:', error);
         throw error;
       }
-      
+
       console.log('createJournal - Successfully created journal entry:', result);
-      
+
       return { id: result.id };
     } catch (error) {
       console.error('Error in createJournal:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a draft journal entry (for feedback review)
+   * 
+   * @param userId The ID of the user creating the draft
+   * @param data The journal entry data
+   * @returns Promise with the created draft journal entry
+   */
+  async createDraftJournal(userId: string, data: {
+    title: string | null;
+    content: string;
+    journal_date?: string | null;
+    summary?: string | null;
+  }): Promise<{ id: string }> {
+    return this.createJournal(userId, {
+      ...data,
+      is_draft: true,
+    });
+  }
+
+  /**
+   * Converts a draft journal to a final published journal
+   * 
+   * @param journalId The ID of the draft journal
+   * @param data Additional data to update
+   * @returns Promise with success status
+   */
+  async publishDraft(journalId: string, data?: {
+    title?: string | null;
+    content?: string;
+    enhanced_version?: string | null;
+    summary?: string | null;
+  }): Promise<{ success: boolean }> {
+    try {
+      console.log('publishDraft - Publishing draft journal:', journalId);
+
+      const supabase = createSupabaseClient();
+
+      const updateData: any = {
+        is_draft: false,
+        ...data,
+      };
+
+      const { error } = await supabase
+        .from('journals')
+        .update(updateData)
+        .eq('id', journalId);
+
+      if (error) {
+        console.error('Error publishing draft journal:', error);
+        throw error;
+      }
+
+      console.log('publishDraft - Successfully published draft journal');
+      return { success: true };
+    } catch (error) {
+      console.error('Error in publishDraft:', error);
       throw error;
     }
   }
@@ -295,19 +367,19 @@ class JournalService {
   async getJournalEntryTags(journalId: string): Promise<string[]> {
     try {
       console.log('getJournalEntryTags - Fetching tags for journal:', journalId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from('journal_tag')
         .select('tag_id')
         .eq('journal_id', journalId);
-      
+
       if (error) {
         console.error('Error fetching journal tags:', error);
         throw error;
       }
-      
+
       return data?.map((tag: any) => tag.tag_id) || [];
     } catch (error) {
       console.error('Error in getJournalEntryTags:', error);
@@ -326,15 +398,15 @@ class JournalService {
   async saveJournalTags(journalId: string, tags: string[]): Promise<{ success: boolean }> {
     try {
       console.log('saveJournalTags - Saving tags for journal:', journalId, tags);
-      
+
       const supabase = createSupabaseClient();
-      
+
       // First, delete existing tag associations for this journal
       await supabase
         .from('journal_tag')
         .delete()
         .eq('journal_id', journalId);
-      
+
       // Then insert new tags (if any)
       if (tags.length > 0) {
         // Step 1: Ensure all tags exist in journal_tags table
@@ -342,32 +414,32 @@ class JournalService {
         const tagRecords = tags.map(tag => ({ name: tag }));
         const { error: tagError } = await supabase
           .from('journal_tags')
-          .upsert(tagRecords, { 
+          .upsert(tagRecords, {
             onConflict: 'name',
-            ignoreDuplicates: true 
+            ignoreDuplicates: true
           });
-        
+
         if (tagError) {
           console.error('Error ensuring tags exist in journal_tags:', tagError);
           throw tagError;
         }
-        
+
         // Step 2: Create associations in journal_tag junction table
         const tagInserts = tags.map(tag => ({
           journal_id: journalId,
           tag_id: tag
         }));
-        
+
         const { error: insertError } = await supabase
           .from('journal_tag')
           .insert(tagInserts);
-        
+
         if (insertError) {
           console.error('Error inserting journal tag associations:', insertError);
           throw insertError;
         }
       }
-      
+
       console.log('saveJournalTags - Successfully saved tags');
       return { success: true };
     } catch (error) {
@@ -388,24 +460,26 @@ class JournalService {
     content?: string;
     journal_date?: string | null;
     enhanced_version?: string | null;
+    summary?: string | null;
+    is_draft?: boolean;
   }): Promise<{ success: boolean }> {
     try {
       console.log('updateJournal - Updating journal entry:', journalId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { error } = await supabase
         .from('journals')
         .update(data)
         .eq('id', journalId);
-      
+
       if (error) {
         console.error('Error updating journal entry:', error);
         throw error;
       }
-      
+
       console.log('updateJournal - Successfully updated journal entry:', journalId);
-      
+
       return { success: true };
     } catch (error) {
       console.error('Error in updateJournal:', error);
@@ -430,14 +504,14 @@ class JournalService {
   }): Promise<{ id: string }> {
     try {
       console.log('createJournalFromFeedback - Creating journal from feedback for user:', userId);
-      
+
       const result = await this.createJournal(userId, {
         title: data.title,
         content: data.originalContent,  // Save original content
         enhanced_version: data.enhancedContent,  // Save enhanced version
         journal_date: data.journalDate,
       });
-      
+
       return result;
     } catch (error) {
       console.error('Error in createJournalFromFeedback:', error);
@@ -454,21 +528,21 @@ class JournalService {
   async deleteJournal(journalId: string): Promise<{ success: boolean }> {
     try {
       console.log('deleteJournal - Deleting journal entry:', journalId);
-      
+
       const supabase = createSupabaseClient();
-      
+
       const { error } = await supabase
         .from('journals')
         .delete()
         .eq('id', journalId);
-      
+
       if (error) {
         console.error('Error deleting journal entry:', error);
         throw error;
       }
-      
+
       console.log('deleteJournal - Successfully deleted journal entry:', journalId);
-      
+
       return { success: true };
     } catch (error) {
       console.error('Error in deleteJournal:', error);

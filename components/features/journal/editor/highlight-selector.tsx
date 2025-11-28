@@ -24,26 +24,68 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
   const selectionTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const highlightTextInContainer = (text: string, container: HTMLElement) => {
+    // Get a fresh snapshot of text nodes before modifying DOM
     const textNodes = getAllTextNodes(container);
     const refs: HTMLElement[] = [];
     
+    // Process each text node
     for (const node of textNodes) {
-      const nodeText = node.textContent || '';
-      const index = nodeText.indexOf(text);
+      const parent = node.parentNode;
+      if (!parent) continue;
       
-      if (index >= 0) {
+      const nodeText = node.textContent || '';
+      const indices: number[] = [];
+      
+      // Find all occurrences of text in this node
+      let pos = 0;
+      while (pos < nodeText.length) {
+        const index = nodeText.indexOf(text, pos);
+        if (index === -1) break;
+        indices.push(index);
+        pos = index + 1; // Move past this occurrence to find next
+      }
+      
+      // If no matches, continue to next node
+      if (indices.length === 0) continue;
+      
+      // Split the text node and wrap each occurrence
+      let currentNode: Node = node;
+      let offset = 0;
+      
+      for (const index of indices) {
         try {
-          const range = document.createRange();
-          range.setStart(node, index);
-          range.setEnd(node, index + text.length);
+          // Adjust index by offset from previous splits
+          const adjustedIndex = index - offset;
           
+          if (adjustedIndex < 0 || adjustedIndex >= (currentNode.textContent?.length || 0)) {
+            continue;
+          }
+          
+          // Split before the match
+          if (adjustedIndex > 0 && currentNode.nodeType === Node.TEXT_NODE) {
+            (currentNode as Text).splitText(adjustedIndex);
+            currentNode = currentNode.nextSibling!;
+          }
+          
+          // Split after the match
+          if (currentNode.nodeType === Node.TEXT_NODE && (currentNode.textContent?.length || 0) > text.length) {
+            (currentNode as Text).splitText(text.length);
+          }
+          
+          // Wrap the match in a span
           const span = document.createElement('span');
           span.className = styles['highlighted-text'];
+          span.textContent = currentNode.textContent;
           
-          range.surroundContents(span);
+          parent.replaceChild(span, currentNode);
           refs.push(span);
+          
+          // Move to next node
+          currentNode = span.nextSibling!;
+          offset = index + text.length;
         } catch (error) {
           console.error('Error highlighting text:', error);
+          break;
         }
       }
     }

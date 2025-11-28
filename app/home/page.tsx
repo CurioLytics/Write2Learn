@@ -160,12 +160,6 @@ function DueFlashcards() {
             <div className="text-center py-12">
                 <h3 className="text-xl font-semibold mb-2">Hết rùi!</h3>
                 <p className="text-gray-600">Học thêm để có thêm từ ôn tập nhé</p>
-                <button 
-                    onClick={() => window.location.href = '/vocab'}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                    Xem tất cả từ vựng
-                </button>
             </div>
         );
     }
@@ -356,7 +350,7 @@ export default function DashboardPage() {
                     <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Đóng vai vào các nhân vật với bối cảnh khác nhau</h2>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Hôm nay, bạn muốn đóng vai ai?</h2>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip open={tooltipOpen2} onOpenChange={setTooltipOpen2}>
                                         <TooltipTrigger asChild>

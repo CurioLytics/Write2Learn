@@ -216,7 +216,6 @@ export default function RoleplaySummaryPage() {
           {sessionData.feedback ? (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Phản hồi</h3>
                 <button
                   onClick={handleRetryFeedback}
                   disabled={retrying || !cachedPreferences}

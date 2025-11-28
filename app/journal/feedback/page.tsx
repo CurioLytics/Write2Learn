@@ -18,50 +18,55 @@ import { flashcardGenerationService } from '@/services/flashcard-generation-serv
 import { GrammarDetail } from '@/types/journal-feedback';
 
 // Custom hooks
-function useJournalFeedback() {
+function useJournalFeedbackDB() {
   const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState<any | null>(null);
   const [journalId, setJournalId] = useState<string | null>(null);
+  const [feedbackId, setFeedbackId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Prevent double execution in React StrictMode
-    if (feedback) return;
-    
-    try {
-      // Get feedback from sessionStorage instead of URL
-      const storedFeedback = sessionStorage.getItem('journalFeedback');
-      console.log('📦 Raw sessionStorage data:', storedFeedback);
-      
-      if (!storedFeedback) throw new Error('No feedback data found.');
-      
-      const parsed = JSON.parse(storedFeedback);
-      console.log('📦 Parsed feedback:', parsed);
-      
-      const feedbackData = Array.isArray(parsed) ? parsed[0] : parsed;
-      console.log('📦 Final feedback data:', feedbackData);
-      
-      // Validate freshness (within last hour)
-      if (feedbackData.timestamp && Date.now() - feedbackData.timestamp > 3600000) {
-        sessionStorage.removeItem('journalFeedback');
-        throw new Error('Feedback data expired. Please generate feedback again.');
-      }
-      
-      setFeedback(feedbackData);
-      
-      // Get journal ID if editing existing journal
-      const id = searchParams?.get('id');
-      setJournalId(id);
-      
-      // DON'T clear sessionStorage immediately - let user navigate back if needed
-      // Only clear when explicitly saving or after component unmount
-    } catch (err) {
-      console.error('❌ Error loading feedback:', err);
-      setError('Failed to load feedback data.');
-    }
-  }, [searchParams, feedback]);
+    let cancelled = false;
+    async function load() {
+      try {
+        const jId = searchParams?.get('journalId');
+        const fId = searchParams?.get('feedbackId');
+        setJournalId(jId);
+        setFeedbackId(fId);
 
-  return { feedback, journalId, error };
+        let fb: any | null = null;
+        if (fId) {
+          fb = await feedbackLogsService.getById(fId);
+        } else if (jId) {
+          const latest = await feedbackLogsService.getLatestBySource(jId, 'journal');
+          fb = latest.feedback;
+          if (latest.feedbackId) setFeedbackId(latest.feedbackId);
+        }
+
+        // Fetch journal data to get summary
+        if (jId && fb) {
+          const journal = await journalService.getJournalById(jId);
+          fb.summary = journal.summary || '';
+        }
+
+        if (!cancelled) {
+          if (!fb) {
+            setError('Không tìm thấy phản hồi');
+          }
+          setFeedback(fb);
+        }
+      } catch (err) {
+        if (!cancelled) setError('Failed to load feedback data.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [searchParams]);
+
+  return { feedback, journalId, feedbackId, error, loading };
 }
 
 function useHighlights() {
@@ -78,76 +83,13 @@ function useHighlights() {
   return { highlights, addHighlight, removeHighlight };
 }
 
-// Save function
-async function saveJournalAndHighlights({
-  userId, feedback, highlights, title, journalId
-}: {
-  userId: string; feedback: any; highlights: string[]; title: string; journalId?: string | null;
-}) {
-  const originalContent = feedback.fixed_typo || feedback.originalVersion || '';
-  const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
-  
-  let resultId: string;
-  
-  if (journalId) {
-    await journalService.updateJournal(journalId, {
-      title,
-      content: enhancedContent || originalContent,
-      enhanced_version: enhancedContent,
-    });
-    resultId = journalId;
-  } else {
-    const result = await journalService.createJournalFromFeedback(userId, {
-      title,
-      originalContent,
-      enhancedContent,
-      journalDate: new Date().toISOString(),
-      highlights,
-    });
-    resultId = result.id;
-  }
-  
-  // Save feedback to feedbacks and feedback_grammar_items tables
-  try {
-    await feedbackLogsService.saveFeedback({
-      userId,
-      sourceId: resultId,
-      sourceType: 'journal',
-      feedbackData: {
-        clarity: feedback.output?.clarity,
-        vocabulary: feedback.output?.vocabulary,
-        ideas: feedback.output?.ideas,
-        enhanced_version: enhancedContent,
-      },
-      grammarDetails: feedback.grammar_details || [],
-    });
-  } catch (error) {
-    console.error('Failed to save feedback:', error);
-  }
-  
-  // Generate flashcards
-  let flashcardData = null;
-  if (highlights?.length > 0) {
-    try {
-      const result = await flashcardGenerationService.generateFromJournal(
-        { id: userId, name: 'User', english_level: 'intermediate', style: 'conversational' },
-        title,
-        enhancedContent || originalContent,
-        highlights
-      );
-      flashcardData = result.flashcards;
-    } catch (error) {
-      console.error('Error generating flashcards:', error);
-    }
-  }
-  
-  return { id: resultId, success: true, flashcards: flashcardData };
-}
+// Removed legacy saveJournalAndHighlights helper (unused) to avoid dead code.
 
 export default function JournalFeedbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const { feedback, journalId, error } = useJournalFeedback();
+  const { feedback, journalId, feedbackId, error, loading: loadingFB } = useJournalFeedbackDB();
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -158,47 +100,51 @@ export default function JournalFeedbackPage() {
     if (feedback) setEditableTitle(feedback.title || '');
   }, [loading, user, router, feedback]);
 
-  // Cleanup sessionStorage on component unmount (user navigating away)
-  useEffect(() => {
-    return () => {
-      // Only clear if user is navigating away (not on save which clears it explicitly)
-      // This prevents stale data on next visit
-      const timer = setTimeout(() => {
-        const stillHasData = sessionStorage.getItem('journalFeedback');
-        if (stillHasData) {
-          console.log('🧹 Cleaning up stale sessionStorage on unmount');
-          sessionStorage.removeItem('journalFeedback');
-          sessionStorage.removeItem('journalDraft');
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    };
-  }, []);
+  // No sessionStorage dependency in DB-backed flow
 
   const handleSave = async (redirectToFlashcards: boolean) => {
     if (!user?.id || !feedback) return;
     setProcessing(true);
     setErrMsg(null);
-    
+
     try {
-      const data = await saveJournalAndHighlights({
-        userId: user.id,
-        feedback,
-        highlights,
-        title: editableTitle,
-        journalId, // Pass journal ID for updating existing journal
-      });
+      const originalContent = feedback.fixed_typo || feedback.originalVersion || '';
+      const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
+      let resultId: string;
 
-      // Clear sessionStorage after successful save
-      sessionStorage.removeItem('journalFeedback');
-      sessionStorage.removeItem('journalDraft');
+      if (journalId) {
+        // Publish draft and update content
+        await journalService.publishDraft(journalId, {
+          title: editableTitle,
+          content: enhancedContent || originalContent,
+          enhanced_version: enhancedContent,
+        });
+        resultId = journalId;
+      } else {
+        // Create new entry if we didn't have a draft id
+        const result = await journalService.createJournalFromFeedback(user.id, {
+          title: editableTitle,
+          originalContent,
+          enhancedContent,
+          journalDate: new Date().toISOString(),
+          highlights,
+        });
+        resultId = result.id;
+      }
 
-      if (redirectToFlashcards && highlights.length && data.flashcards) {
-        // Store generated flashcards for the creation page
-        localStorage.setItem('flashcardData', JSON.stringify(data.flashcards));
-        router.push('/flashcards/generate');
-      } else if (redirectToFlashcards && highlights.length) {
-        // Fallback: redirect even if flashcard generation failed
+      // Flashcards
+      if (redirectToFlashcards && highlights.length) {
+        try {
+          const result = await flashcardGenerationService.generateFromJournal(
+            { id: user.id, name: 'User', english_level: 'intermediate', style: 'conversational' },
+            editableTitle,
+            enhancedContent || originalContent,
+            highlights
+          );
+          localStorage.setItem('flashcardData', JSON.stringify(result.flashcards));
+        } catch (e) {
+          console.error('Error generating flashcards:', e);
+        }
         router.push('/flashcards/generate');
       } else {
         router.push('/journal');
@@ -211,9 +157,15 @@ export default function JournalFeedbackPage() {
   };
 
   const handleEdit = () => {
-    // Check if we have a journalId in the draft to determine which page to navigate to
+    // 1) Prefer journalId from URL (robust across reloads)
+    const paramId = searchParams?.get('journalId');
+    if (paramId) {
+      router.push(`/journal/${paramId}`);
+      return;
+    }
+
+    // 2) Fallback to draft stored in sessionStorage
     const draftJson = sessionStorage.getItem('journalDraft');
-    
     if (draftJson) {
       try {
         const draft = JSON.parse(draftJson);
@@ -225,19 +177,19 @@ export default function JournalFeedbackPage() {
         console.error('Failed to parse journal draft:', e);
       }
     }
-    
-    // Default to new page if no journalId
+
+    // 3) No ID available, go to new editor
     router.push('/journal/new');
   };
 
-  if (loading || processing) {
+  if (loading || loadingFB || processing) {
     return (
       <div className="w-full max-w-3xl mx-auto px-4 py-10">
         <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
           <CardContent>
-            <BreathingLoader 
-              message={processing ? 
-                (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') : 
+            <BreathingLoader
+              message={processing ?
+                (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') :
                 'Đang chuẩn bị phản hồi...'
               }
               className="py-8"
@@ -265,7 +217,7 @@ export default function JournalFeedbackPage() {
       <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
         <CardContent className="space-y-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Xem học được gì nào ^^</h1>
-            
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tiêu đề</label>
@@ -281,7 +233,7 @@ export default function JournalFeedbackPage() {
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-3">Tóm tắt</h3>
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="whitespace-pre-wrap text-blue-600">{feedback.summary}</div>
+              <div className="whitespace-pre-wrap text-blue-600">{feedback.summary || 'Không có tóm tắt'}</div>
             </div>
           </div>
 
@@ -307,7 +259,7 @@ export default function JournalFeedbackPage() {
                 <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
                 <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="clarity" className="mt-4">
                 <div id="clarity-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
                   {feedback.output?.clarity || 'Không có nội dung'}
@@ -318,7 +270,7 @@ export default function JournalFeedbackPage() {
                   highlights={highlights}
                 />
               </TabsContent>
-              
+
               <TabsContent value="vocabulary" className="mt-4">
                 <div id="vocabulary-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
                   {feedback.output?.vocabulary || 'Không có nội dung'}
@@ -329,7 +281,7 @@ export default function JournalFeedbackPage() {
                   highlights={highlights}
                 />
               </TabsContent>
-              
+
               <TabsContent value="ideas" className="mt-4">
                 <div id="ideas-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
                   {feedback.output?.ideas || 'Không có nội dung'}
@@ -340,7 +292,7 @@ export default function JournalFeedbackPage() {
                   highlights={highlights}
                 />
               </TabsContent>
-              
+
               <TabsContent value="enhanced" className="mt-4">
                 <div id="enhanced-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
                   {feedback.enhanced_version || feedback.improvedVersion || 'Không có nội dung'}

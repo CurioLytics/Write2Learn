@@ -12,7 +12,7 @@ function isIOS(): boolean {
 class VoiceService {
   private recognition: any = null;
   private isListening = false;
-  private currentLanguage: Language = 'vi-VN';
+  private currentLanguage: Language = 'en-US';
 
   constructor() {
     if (typeof window !== 'undefined') {

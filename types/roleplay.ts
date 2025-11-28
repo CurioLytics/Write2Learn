@@ -46,6 +46,7 @@ export interface RoleplaySessionData {
   messages: RoleplayMessage[];
   highlights: string[];
   created_at: string;
+  pinned?: boolean;
 }
 
 // Enum cho các level hiển thị màu khác nhau
@@ -56,7 +57,7 @@ export enum LevelColor {
 }
 
 // Định nghĩa cho lỗi roleplay
-export type RoleplayError = 
-  | 'connection_error' 
-  | 'no_scenarios' 
+export type RoleplayError =
+  | 'connection_error'
+  | 'no_scenarios'
   | 'no_starter_message';

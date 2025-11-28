@@ -10,13 +10,13 @@ class RoleplaySessionService {
    * Complete session workflow: Save + Generate feedback
    */
   async completeSession(
-    userId: string, 
-    scenario: RoleplayScenario, 
+    userId: string,
+    scenario: RoleplayScenario,
     messages: RoleplayMessage[],
     userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<string> {
     const supabase = createClientComponentClient();
-    
+
     // Save session
     const { data, error } = await supabase
       .from('sessions')
@@ -29,24 +29,24 @@ class RoleplaySessionService {
       .single();
 
     if (error) throw new Error(`Failed to save session: ${error.message}`);
-    
+
     const sessionId = data.session_id;
-    
+
     // Generate feedback
     try {
       const feedback = await roleplayFeedbackService.generateFeedback(scenario, messages, userPreferences);
-      
+
       if (feedback && feedback.output?.clarity) {
         // Save to sessions table (legacy format)
         await this.saveFeedback(sessionId, feedback);
-        
+
         // Save to feedbacks and feedback_grammar_items tables
         await this.saveFeedbackToTables(userId, sessionId, feedback);
       }
     } catch (feedbackError) {
       errorLog('completeSession', feedbackError);
     }
-    
+
     return sessionId;
   }
 
@@ -54,11 +54,11 @@ class RoleplaySessionService {
    * Retry feedback generation for a session
    */
   async retryFeedback(
-    sessionId: string, 
+    sessionId: string,
     userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<RoleplayFeedback> {
     const supabase = createClientComponentClient();
-    
+
     // Get session data
     const { data: session, error } = await supabase
       .from('sessions')
@@ -69,14 +69,14 @@ class RoleplaySessionService {
       `)
       .eq('session_id', sessionId)
       .single();
-    
+
     if (error || !session) {
       throw new Error('Session not found');
     }
-    
+
     const scenario = session.roleplays as any;
     const messages = session.conversation_json?.messages || [];
-    
+
     // Generate feedback with user preferences
     const feedback = await roleplayFeedbackService.generateFeedback(
       {
@@ -94,25 +94,25 @@ class RoleplaySessionService {
       messages,
       userPreferences
     );
-    
+
     // Save feedback
     if (feedback && feedback.output?.clarity) {
       // Save to sessions table (legacy format)
       await this.saveFeedback(sessionId, feedback);
-      
+
       // Get userId from session
       const userId = session.profile_id || (await supabase.auth.getUser()).data.user?.id;
       if (userId) {
         await this.saveFeedbackToTables(userId, sessionId, feedback);
       }
     }
-    
+
     return feedback;
   }
 
   async getSessionWithFeedback(sessionId: string) {
     const supabase = createClientComponentClient();
-    
+
     const { data, error } = await supabase
       .from('sessions')
       .select(`
@@ -127,7 +127,7 @@ class RoleplaySessionService {
       .single();
 
     if (error || !data) throw new Error(`Session not found: ${error?.message}`);
-    
+
     // Parse feedback if it's a JSON string
     let parsedFeedback = null;
     if (data.feedback) {
@@ -135,12 +135,12 @@ class RoleplaySessionService {
         parsedFeedback = typeof data.feedback === 'string' ? JSON.parse(data.feedback) : data.feedback;
       } catch {
         // Fallback for old format - convert to new structure
-        parsedFeedback = { 
+        parsedFeedback = {
           enhanced_version: '',
           grammar_details: [],
           output: {
-            clarity: typeof data.feedback === 'string' ? data.feedback : '', 
-            vocabulary: '', 
+            clarity: typeof data.feedback === 'string' ? data.feedback : '',
+            vocabulary: '',
             ideas: ''
           }
         };
@@ -163,7 +163,7 @@ class RoleplaySessionService {
    */
   async getSessions(userId: string): Promise<RoleplaySessionData[]> {
     const supabase = createClientComponentClient();
-    
+
     const { data, error } = await supabase
       .from('sessions')
       .select(`
@@ -172,9 +172,11 @@ class RoleplaySessionService {
         feedback,
         highlights,
         created_at,
+        pinned,
         roleplays(name, context, ai_role)
       `)
       .eq('profile_id', userId)
+      .order('pinned', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -191,7 +193,8 @@ class RoleplaySessionService {
       feedback: session.feedback,
       messages: session.conversation_json?.messages || [],
       highlights: session.highlights || [],
-      created_at: session.created_at
+      created_at: session.created_at,
+      pinned: session.pinned || false
     }));
   }
 
@@ -200,7 +203,7 @@ class RoleplaySessionService {
    */
   async saveHighlightsAndGenerateFlashcards(sessionId: string, highlights: string[], sessionData: any, userId: string) {
     const supabase = createClientComponentClient();
-    
+
     // Save highlights
     const { error } = await supabase
       .from('sessions')
@@ -222,7 +225,7 @@ class RoleplaySessionService {
 
   private async saveFeedback(sessionId: string, feedback: RoleplayFeedback): Promise<void> {
     const supabase = createClientComponentClient();
-    
+
     const { error } = await supabase
       .from('sessions')
       .update({ feedback: JSON.stringify(feedback) })
@@ -253,6 +256,22 @@ class RoleplaySessionService {
     } catch (error) {
       console.error('Failed to save feedback to tables:', error);
       // Don't throw - feedback is already saved to sessions table
+    }
+  }
+
+  /**
+   * Toggle pin status for a session
+   */
+  async togglePinSession(sessionId: string, pinned: boolean): Promise<void> {
+    const supabase = createClientComponentClient();
+
+    const { error } = await supabase
+      .from('sessions')
+      .update({ pinned })
+      .eq('session_id', sessionId);
+
+    if (error) {
+      throw new Error(`Failed to update pin status: ${error.message}`);
     }
   }
 }

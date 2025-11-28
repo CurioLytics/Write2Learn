@@ -95,6 +95,7 @@ export interface Journal {
   content: string;
   journal_date: string; // ISO date string
   created_at?: string; // Timestamp for sorting
+  summary?: string; // Summary of the journal entry
 }
 
 /**
