@@ -59,11 +59,12 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
 
   const endRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
+  const isSessionFinished = useRef(false);
 
   const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
 
   const handleUserMessage = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isSessionFinished.current) return;
 
     const userMsg: RoleplayMessage = {
       id: `user-${Date.now()}`,
@@ -81,6 +82,10 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         sessionId,
         userPreferences
       );
+
+      // Check again if session was finished while waiting for response
+      if (isSessionFinished.current) return;
+
       const botMsg: RoleplayMessage = {
         id: `bot-${Date.now()}`,
         content: reply,
@@ -90,8 +95,12 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
       addMessage(botMsg);
 
       // Auto-play and auto-activate next
-      playBotMessage(reply, botMsg.id);
+      if (!isSessionFinished.current) {
+        playBotMessage(reply, botMsg.id);
+      }
     } catch (error: any) {
+      if (isSessionFinished.current) return;
+
       const errMsg: RoleplayMessage = {
         id: `err-${Date.now()}`,
         content: `Error: ${error?.message}`,
@@ -99,8 +108,10 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         timestamp: Date.now(),
       };
       addMessage(errMsg);
-      // Still try to play error message
-      playBotMessage(errMsg.content, errMsg.id);
+      // Don't play error message if session is finished
+      if (!isSessionFinished.current) {
+        playBotMessage(errMsg.content, errMsg.id);
+      }
     }
   };
 
@@ -201,6 +212,9 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   };
 
   const handleFinish = async () => {
+    // Mark session as finished to prevent any further processing
+    isSessionFinished.current = true;
+
     // Stop all ongoing actions first
     stopListening();
     stopBotSpeaking();
@@ -223,6 +237,8 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
       router.push(`/roleplay/summary/${sessionId}`);
     } catch (error: any) {
       setError(error?.message || 'Error saving session. Please try again.');
+      // Reset the flag if there's an error so user can try again
+      isSessionFinished.current = false;
     } finally {
       setFinishing(false);
     }
@@ -410,17 +426,17 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               <div className="relative">
                 {/* Outer glow rings */}
                 <div className={`absolute inset-0 rounded-full transition-all duration-700 ${isMicActive
-                    ? 'animate-ping-slow bg-gradient-to-r from-purple-400/30 to-pink-400/30'
-                    : isBotSpeaking
-                      ? 'animate-pulse bg-gray-400/20'
-                      : 'bg-gradient-to-r from-purple-900/20 to-pink-900/20'
+                  ? 'animate-ping-slow bg-gradient-to-r from-purple-400/30 to-pink-400/30'
+                  : isBotSpeaking
+                    ? 'animate-pulse bg-gray-400/20'
+                    : 'bg-gradient-to-r from-purple-900/20 to-pink-900/20'
                   }`} style={{ padding: '20px' }}></div>
 
                 <div className={`absolute inset-0 rounded-full transition-all duration-500 ${isMicActive
-                    ? 'animate-pulse-glow bg-gradient-to-r from-purple-500/20 to-pink-500/20'
-                    : isBotSpeaking
-                      ? 'bg-gray-400/10'
-                      : 'bg-gradient-to-r from-purple-800/10 to-pink-800/10'
+                  ? 'animate-pulse-glow bg-gradient-to-r from-purple-500/20 to-pink-500/20'
+                  : isBotSpeaking
+                    ? 'bg-gray-400/10'
+                    : 'bg-gradient-to-r from-purple-800/10 to-pink-800/10'
                   }`} style={{ padding: '10px' }}></div>
 
                 {/* Main button */}
@@ -429,10 +445,10 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                   disabled={isThinking || finishing}
                   aria-label={isMicActive ? 'Stop recording' : isBotSpeaking ? 'Stop bot speaking' : 'Start recording'}
                   className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${isMicActive
-                      ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 scale-110 shadow-purple-500/50 animate-breathe'
-                      : isBotSpeaking
-                        ? 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 scale-105 shadow-gray-500/30 animate-pulse'
-                        : 'bg-gradient-to-br from-purple-800 via-purple-900 to-pink-900 hover:scale-110 hover:shadow-purple-900/50 shadow-purple-900/30'
+                    ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 scale-110 shadow-purple-500/50 animate-breathe'
+                    : isBotSpeaking
+                      ? 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 scale-105 shadow-gray-500/30 animate-pulse'
+                      : 'bg-gradient-to-br from-purple-800 via-purple-900 to-pink-900 hover:scale-110 hover:shadow-purple-900/50 shadow-purple-900/30'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {/* Inner glow */}

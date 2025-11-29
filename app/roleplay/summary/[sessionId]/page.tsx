@@ -39,7 +39,7 @@ export default function RoleplaySummaryPage() {
   useEffect(() => {
     // Wait for auth to finish loading before checking user
     if (authLoading) return;
-    
+
     if (!user) {
       router.push('/auth');
       return;
@@ -75,10 +75,10 @@ export default function RoleplaySummaryPage() {
       router.push('/roleplay');
       return;
     }
-    
+
     setProcessing(true);
     setError(null);
-    
+
     try {
       const result = await roleplaySessionService.saveHighlightsAndGenerateFlashcards(
         params.sessionId as string,
@@ -86,7 +86,7 @@ export default function RoleplaySummaryPage() {
         sessionData,
         user.id
       );
-      
+
       // Store flashcards and navigate to flashcard generation page
       localStorage.setItem('flashcardData', JSON.stringify(result.flashcards));
       router.push('/flashcards/generate');
@@ -100,7 +100,7 @@ export default function RoleplaySummaryPage() {
     setRetrying(true);
     setLoadingStep(0);
     setError(null);
-    
+
     // Animate loading steps
     const interval = setInterval(() => {
       setLoadingStep(prev => {
@@ -108,21 +108,21 @@ export default function RoleplaySummaryPage() {
         return prev;
       });
     }, 2000);
-    
+
     try {
       // Pass preferences even if null - service will use defaults
       const feedback = await roleplaySessionService.retryFeedback(
         params.sessionId as string,
         cachedPreferences
       );
-      
+
       // Clear interval IMMEDIATELY when response arrives
       clearInterval(interval);
-      
+
       // Stop loading state BEFORE updating data
       setRetrying(false);
       setLoadingStep(0);
-      
+
       // Then update state
       if (sessionData) {
         setSessionData({
@@ -191,7 +191,7 @@ export default function RoleplaySummaryPage() {
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Xem học được gì nào ^^</h1>
             <h2 className="text-lg text-gray-700 mb-4">{sessionData.scenario_name}</h2>
-            
+
             {/* Messages Accordion */}
             <Accordion type="single" collapsible className="mb-6">
               <AccordionItem value="messages">
@@ -199,7 +199,7 @@ export default function RoleplaySummaryPage() {
                 <AccordionContent>
                   <div className="space-y-3 max-h-[400px] overflow-y-auto">
                     {sessionData.messages?.map((message: any, index: number) => (
-                      <MessageBubble 
+                      <MessageBubble
                         key={index}
                         message={message}
                         roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
@@ -225,7 +225,7 @@ export default function RoleplaySummaryPage() {
                   <RefreshCw className={`w-4 h-4 text-gray-600 ${retrying ? 'animate-spin' : ''}`} />
                 </button>
               </div>
-              
+
               <Tabs defaultValue="clarity" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
@@ -233,7 +233,7 @@ export default function RoleplaySummaryPage() {
                   <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
                   <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="clarity" className="mt-4">
                   <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
                     {sessionData.feedback.output?.clarity || 'Không có nội dung'}
@@ -244,7 +244,7 @@ export default function RoleplaySummaryPage() {
                     highlights={highlights}
                   />
                 </TabsContent>
-                
+
                 <TabsContent value="vocabulary" className="mt-4">
                   <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
                     {sessionData.feedback.output?.vocabulary || 'Không có nội dung'}
@@ -255,7 +255,7 @@ export default function RoleplaySummaryPage() {
                     highlights={highlights}
                   />
                 </TabsContent>
-                
+
                 <TabsContent value="ideas" className="mt-4">
                   <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
                     {sessionData.feedback.output?.ideas || 'Không có nội dung'}
@@ -266,10 +266,32 @@ export default function RoleplaySummaryPage() {
                     highlights={highlights}
                   />
                 </TabsContent>
-                
+
                 <TabsContent value="enhanced" className="mt-4">
-                  <div id="enhanced-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
-                    {sessionData.feedback.enhanced_version || 'Không có nội dung'}
+                  <div id="enhanced-content" className="space-y-3 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {(() => {
+                      const enhancedVersion = sessionData.feedback.enhanced_version;
+                      if (!enhancedVersion) return 'Không có nội dung';
+
+                      // Check if it's an array (either actual array or stringified array)
+                      let messages: string[] = [];
+                      if (Array.isArray(enhancedVersion)) {
+                        messages = enhancedVersion;
+                      } else if (typeof enhancedVersion === 'string') {
+                        try {
+                          const parsed = JSON.parse(enhancedVersion);
+                          messages = Array.isArray(parsed) ? parsed : [enhancedVersion];
+                        } catch {
+                          messages = [enhancedVersion];
+                        }
+                      }
+
+                      return messages.map((msg, idx) => (
+                        <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 text-gray-800 leading-relaxed">
+                          {msg}
+                        </div>
+                      ));
+                    })()}
                   </div>
                   <HighlightSelector
                     containerId="enhanced-content"
@@ -278,7 +300,7 @@ export default function RoleplaySummaryPage() {
                   />
                 </TabsContent>
               </Tabs>
-              
+
               {/* Grammar Details */}
               {sessionData.feedback.grammar_details?.length > 0 && (
                 <div className="mt-6">
@@ -324,9 +346,9 @@ export default function RoleplaySummaryPage() {
             <h3 className="text-base font-semibold text-gray-800 mb-3">Highlighted</h3>
             <HighlightList highlights={highlights} onRemove={removeHighlight} />
           </div>
-          
+
           {error && <p className="text-red-500 mb-4">{error}</p>}
-          
+
           {/* Actions */}
           <div className="flex justify-end gap-4 w-full">
             <Button variant="outline" onClick={handleBack}>
