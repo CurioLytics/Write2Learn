@@ -14,18 +14,18 @@ class JournalTemplateService {
   async getTemplatesByUserId(userId: string): Promise<JournalTemplate[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from(SUPABASE_CONFIG.tables.templates)
         .select('profile_id, name, content, cover_image')
         .eq('profile_id', userId)
         .order('name');
-      
+
       if (error) {
         console.error('Error fetching journal templates:', error);
         throw error;
       }
-      
+
       return data || [];
     } catch (error) {
       console.error('Error in getTemplatesByUserId:', error);
@@ -42,14 +42,14 @@ class JournalTemplateService {
   async getTemplateByName(userId: string, templateName: string): Promise<JournalTemplate | null> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from(SUPABASE_CONFIG.tables.templates)
         .select('profile_id, name, content, cover_image')
         .eq('profile_id', userId)
         .eq('name', decodeURIComponent(templateName))
         .single();
-      
+
       if (error) {
         if (error.code === 'PGRST116') { // No rows returned
           return null;
@@ -57,7 +57,7 @@ class JournalTemplateService {
         console.error('Error fetching journal template by name:', error);
         throw error;
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error in getTemplateByName:', error);
@@ -72,30 +72,29 @@ class JournalTemplateService {
   async getDefaultTemplates(): Promise<JournalTemplate[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
-        .from('journal_template')
-        .select('id, name, content, category, tag, other')
+        .from(SUPABASE_CONFIG.tables.templates)
+        .select('id, name, content, category, is_default')
         .eq('is_default', true)
         .order('name');
-      
+
       if (error) {
         console.error('Error fetching default journal templates:', error);
         throw error;
       }
-      
+
       // Transform to match JournalTemplate interface
       const defaultTemplates: JournalTemplate[] = (data || []).map(template => ({
         profile_id: '', // Default templates don't belong to specific users
         name: template.name,
         content: template.content || '',
-        cover_image: null,
-        id: template.id,
+        cover_image: null, // Frameworks might have cover_image, but we'll stick to interface for now or map it if available
+        id: template.id, // Frameworks might not have ID exposed or it's UUID. Interface expects string?
         category: template.category,
-        tag: template.tag,
-        other: template.other
+        // tag and other are removed from frameworks
       }));
-      
+
       return defaultTemplates;
     } catch (error) {
       console.error('Error in getDefaultTemplates:', error);
@@ -110,17 +109,17 @@ class JournalTemplateService {
   async getAllTemplates(): Promise<JournalTemplate[]> {
     try {
       const supabase = createSupabaseClient();
-      
+
       const { data, error } = await supabase
         .from(SUPABASE_CONFIG.tables.templates)
         .select('profile_id, name, content, cover_image')
         .order('name');
-      
+
       if (error) {
         console.error('Error fetching all journal templates:', error);
         throw error;
       }
-      
+
       return data || [];
     } catch (error) {
       console.error('Error in getAllTemplates:', error);

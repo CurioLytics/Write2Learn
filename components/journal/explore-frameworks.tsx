@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Plus } from 'lucide-react';
 import { frameworkService, Framework, FrameworkCategory } from '@/services/framework-service';
 import { FrameworkDialog } from '@/components/journal/framework-dialog';
 
@@ -15,6 +15,7 @@ export function ExploreFrameworks() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -105,6 +106,18 @@ export function ExploreFrameworks() {
 
       {/* Framework Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Create New Card */}
+        <div
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="cursor-pointer transition-all duration-200 group bg-white shadow border-2 border-dashed border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl flex flex-col items-center justify-center min-h-[150px]"
+        >
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+            <Plus className="w-6 h-6 text-blue-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">Tạo Framework Mới</h3>
+          <p className="text-xs text-gray-500 mt-1">Tùy chỉnh theo ý bạn</p>
+        </div>
+
         {filteredFrameworks.map(framework => (
           <Card
             key={framework.name}
@@ -132,6 +145,17 @@ export function ExploreFrameworks() {
         framework={selectedFramework}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+      />
+
+      <FrameworkDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        mode="create"
+        framework={null}
+        onSave={() => {
+          // Refresh list logic here if needed
+          window.location.reload();
+        }}
       />
     </div>
   );

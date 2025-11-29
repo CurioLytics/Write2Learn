@@ -22,6 +22,7 @@ export interface JournalTemplate {
   tag?: string[] | null;
   other?: string | null;
   is_default?: boolean | null;
+  description?: string | null;
 }
 
 /**

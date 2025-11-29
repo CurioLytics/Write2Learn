@@ -6,6 +6,8 @@ import { JournalTemplate } from '@/types/journal';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { supabase } from '@/services/supabase/client';
 import Image from 'next/image';
+import { FrameworkDialog } from './framework-dialog';
+import { Framework } from '@/services/framework-service';
 
 interface TemplateCardsProps {
   onTemplateSelect?: (template: JournalTemplate) => void;
@@ -16,16 +18,17 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
   const { user } = useAuth();
   const [templates, setTemplates] = useState<JournalTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingTemplate, setEditingTemplate] = useState<JournalTemplate | null>(null);
-  const [editContent, setEditContent] = useState('');
+  const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     async function loadTemplates() {
       if (!user?.id) return;
 
       const { data } = await supabase
-        .from('templates')
-        .select('profile_id, name, content, cover_image')
+        .from('frameworks')
+        .select('profile_id, name, content, cover_image, description')
+        .eq('is_default', true)
         .in('name', ['Morning Intentions', 'Evening Wind-Down'])
         .order('name', { ascending: false })
         .limit(2);
@@ -35,7 +38,8 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
         profile_id: template.profile_id,
         name: template.name,
         content: template.content,
-        cover_image: template.cover_image
+        cover_image: template.cover_image,
+        description: template.description
       }));
 
       setTemplates(formattedTemplates);
@@ -59,15 +63,19 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
 
   const handleSettingsClick = (e: React.MouseEvent, template: JournalTemplate) => {
     e.stopPropagation();
-    setEditingTemplate(template);
-    setEditContent(template.content || '');
-  };
 
-  const handleSave = async () => {
-    if (!editingTemplate) return;
-    // Update template content logic here
-    setEditingTemplate(null);
-    setEditContent('');
+    // Map JournalTemplate to Framework
+    const framework: Framework = {
+      name: template.name,
+      content: template.content || '',
+      description: template.description,
+      category: 'Template', // Or 'System', just needs to be a string
+      source: null,
+      is_pinned: false
+    };
+
+    setSelectedFramework(framework);
+    setIsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -143,68 +151,16 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
         ))}
       </div>
 
-      {/* Edit Dialog */}
-      {editingTemplate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] flex relative">
-            {/* Close button */}
-            <button
-              onClick={() => setEditingTemplate(null)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 z-10"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Left side */}
-            <div className="w-1/2 p-6 border-r">
-              <div className="mb-4">
-                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-600 text-xs rounded-full mb-4">PREMIUM FEATURE</span>
-                <h2 className="text-2xl font-bold mb-2">{editingTemplate.name}</h2>
-                <p className="text-gray-600 text-sm">
-                  Customize the framework as needed by changing, adding, or removing questions.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditingTemplate(null)}
-                  className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-            {/* Right side */}
-            <div className="w-1/2 p-6">
-              <div className="space-y-4">
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  placeholder="What is on your mind right now that you need to clear before starting?"
-                  className="w-full h-20 p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <textarea
-                  placeholder="What is the one thing you want to get done today, and why is it important?"
-                  className="w-full h-20 p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <textarea
-                  placeholder="What is the emotional state or mindset you want to embody today?"
-                  className="w-full h-20 p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button className="text-blue-600 text-sm hover:text-blue-700">+ Add question</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FrameworkDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        mode="edit"
+        framework={selectedFramework}
+        onSave={() => {
+          // Refresh logic if needed
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

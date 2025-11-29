@@ -17,6 +17,7 @@ import { HelpCircle } from 'lucide-react';
 import { SectionNavigation } from '@/components/ui/section-navigation';
 import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
 import { TemplateCardsSkeleton, HorizontalCardsSkeleton } from '@/components/ui/page-skeleton';
+import { PinnedTemplatesList } from '@/components/journal/pinned-templates-list';
 
 interface RoleplayScenario {
     id: string;
@@ -331,6 +332,7 @@ export default function DashboardPage() {
                         <TemplateCards />
                     </PageContentWrapper>
                     <div className="text-center mt-4 sm:mt-6">
+                        <PinnedTemplatesList />
                         <Button
                             onClick={() => router.push('/journal/new')}
                             variant='outline'
