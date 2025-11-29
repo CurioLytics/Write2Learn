@@ -14,6 +14,8 @@ import { Journal, JournalStats } from '@/types/journal';
 import { journalService } from '@/services/journal-service';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { SectionNavigation } from '@/components/ui/section-navigation';
+import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
+import { JournalListSkeleton, PageHeaderSkeleton } from '@/components/ui/page-skeleton';
 
 export default function JournalPage() {
   const router = useRouter();
@@ -178,34 +180,35 @@ export default function JournalPage() {
 
           {/* Journal List */}
           <div className="bg-gray-50 rounded-xl p-4">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 p-4 rounded-lg text-red-700 text-center">
-                {error}
-                <Button variant="link" onClick={() => window.location.reload()} className="ml-2">
-                  Thử lại
-                </Button>
-              </div>
-            ) : filteredJournals.length === 0 ? (
-              <div className="text-center text-gray-600 py-8 bg-gray-100 rounded-lg border border-dashed border-gray-300">
-                <Button onClick={() => router.push('/journal/new')} variant="outline">
+            <PageContentWrapper
+              isLoading={isLoading}
+              skeleton={<JournalListSkeleton />}
+            >
+              {error ? (
+                <div className="bg-red-50 p-4 rounded-lg text-red-700 text-center">
+                  {error}
+                  <Button variant="link" onClick={() => window.location.reload()} className="ml-2">
+                    Thử lại
+                  </Button>
+                </div>
+              ) : filteredJournals.length === 0 ? (
+                <div className="text-center text-gray-600 py-8 bg-gray-100 rounded-lg border border-dashed border-gray-300">
+                  <Button onClick={() => router.push('/journal/new')} variant="outline">
 
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="max-h-80 overflow-y-auto">
-                <JournalList
-                  journals={filteredJournals}
-                  onSelect={handleJournalSelect}
-                  selectedJournalId={selectedJournal?.id}
-                  onDelete={handleJournalDelete}
-                />
-              </div>
-            )}
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="max-h-80 overflow-y-auto">
+                  <JournalList
+                    journals={filteredJournals}
+                    onSelect={handleJournalSelect}
+                    selectedJournalId={selectedJournal?.id}
+                    onDelete={handleJournalDelete}
+                  />
+                </div>
+              )}
+            </PageContentWrapper>
           </div>
         </div>
 

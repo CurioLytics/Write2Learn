@@ -45,14 +45,26 @@ export function SessionHistory({ renderAsLinks = false }: { renderAsLinks?: bool
   const filteredSessions = useMemo(() => {
     const dateRange = getDateRangeFromPreset(datePreset);
 
-    if (!dateRange) return sessions; // all-time
+    let filtered = sessions;
 
-    const fromDate = new Date(dateRange.from);
-    const toDate = new Date(dateRange.to);
+    if (dateRange) {
+      const fromDate = new Date(dateRange.from);
+      const toDate = new Date(dateRange.to);
 
-    return sessions.filter(session => {
-      const sessionDate = new Date(session.created_at);
-      return sessionDate >= fromDate && sessionDate <= toDate;
+      filtered = sessions.filter(session => {
+        const sessionDate = new Date(session.created_at);
+        return sessionDate >= fromDate && sessionDate <= toDate;
+      });
+    }
+
+    // Sort by pinned first, then by created_at
+    return filtered.sort((a, b) => {
+      // Pinned sessions come first
+      if (a.pinned !== b.pinned) {
+        return a.pinned ? -1 : 1;
+      }
+      // Then sort by date (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [sessions, datePreset]);
 

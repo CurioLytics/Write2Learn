@@ -8,6 +8,8 @@ import { ScenarioFilter } from '@/components/roleplay/scenario-filter';
 import { SessionHistory } from '@/components/roleplay/session-history';
 import { useRoleplayScenarios } from '@/hooks/roleplay/use-roleplay-scenarios';
 import { SectionNavigation } from '@/components/ui/section-navigation';
+import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
+import { HorizontalCardsSkeleton } from '@/components/ui/page-skeleton';
 
 export default function RoleplayPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -39,75 +41,74 @@ export default function RoleplayPage() {
           currentTopic={selectedTopic}
         />
         {/* Scenarios */}
-        {loading ? (
-          <div className="flex overflow-x-auto gap-6 pb-2 max-w-full cursor-grab">
-            {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="h-40 w-64 bg-gray-100 animate-pulse rounded-xl flex-shrink-0" />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 p-4 rounded-lg text-red-600 text-center">
-            <p className="mb-2">Không thể tải danh sách hội thoại.</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Tải lại
-            </Button>
-          </div>
-        ) : scenarios && scenarios.length > 0 ? (
-          <>
-            <div
-              className="flex overflow-x-auto gap-6 pb-2 cursor-grab"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-              onMouseDown={e => {
-                const slider = e.currentTarget;
-                let isDown = true;
-                let startX = e.pageX - slider.offsetLeft;
-                let scrollLeft = slider.scrollLeft;
-                slider.style.cursor = 'grabbing';
-
-                const move = (e) => {
-                  if (!isDown) return;
-                  e.preventDefault();
-                  const x = e.pageX - slider.offsetLeft;
-                  slider.scrollLeft = scrollLeft - (x - startX) * 2;
-                };
-
-                const up = () => {
-                  isDown = false;
-                  slider.style.cursor = 'grab';
-                  document.removeEventListener('mousemove', move);
-                  document.removeEventListener('mouseup', up);
-                };
-
-                document.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', up);
-              }}
-            >
-              {scenarios.map(s => (
-                <div key={s.id} className="flex-shrink-0">
-                  <RoleplayCard
-                    id={s.id}
-                    title={s.name}
-                    description={s.context}
-                    imageUrl={s.image || ''}
-                  />
-                </div>
-              ))}
+        <PageContentWrapper
+          isLoading={loading}
+          skeleton={<HorizontalCardsSkeleton count={6} />}
+        >
+          {error ? (
+            <div className="bg-red-50 p-4 rounded-lg text-red-600 text-center">
+              <p className="mb-2">Không thể tải danh sách hội thoại.</p>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Tải lại
+              </Button>
             </div>
-          </>
-        ) : (
-          <div className="text-center text-gray-600 py-8">
-            {selectedTopic ? (
-              <>
-                <p className="mb-3">Không có hội thoại nào cho "{selectedTopic}".</p>
-                <Button variant="outline" onClick={() => setSelectedTopic(null)}>
-                  Xóa bộ lọc
-                </Button>
-              </>
-            ) : (
-              <p>Hiện chưa có hội thoại nào.</p>
-            )}
-          </div>
-        )}
+          ) : scenarios && scenarios.length > 0 ? (
+            <>
+              <div
+                className="flex overflow-x-auto gap-6 pb-2 cursor-grab"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                onMouseDown={e => {
+                  const slider = e.currentTarget;
+                  let isDown = true;
+                  let startX = e.pageX - slider.offsetLeft;
+                  let scrollLeft = slider.scrollLeft;
+                  slider.style.cursor = 'grabbing';
+
+                  const move = (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - slider.offsetLeft;
+                    slider.scrollLeft = scrollLeft - (x - startX) * 2;
+                  };
+
+                  const up = () => {
+                    isDown = false;
+                    slider.style.cursor = 'grab';
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', up);
+                  };
+
+                  document.addEventListener('mousemove', move);
+                  document.addEventListener('mouseup', up);
+                }}
+              >
+                {scenarios.map(s => (
+                  <div key={s.id} className="flex-shrink-0">
+                    <RoleplayCard
+                      id={s.id}
+                      title={s.name}
+                      description={s.context}
+                      imageUrl={s.image || ''}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-600 py-8">
+              {selectedTopic ? (
+                <>
+                  <p className="mb-3">Không có hội thoại nào cho "{selectedTopic}".</p>
+                  <Button variant="outline" onClick={() => setSelectedTopic(null)}>
+                    Xóa bộ lọc
+                  </Button>
+                </>
+              ) : (
+                <p>Hiện chưa có hội thoại nào.</p>
+              )}
+            </div>
+          )}
+        </PageContentWrapper>
 
       </div>
 

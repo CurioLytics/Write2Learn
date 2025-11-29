@@ -15,6 +15,8 @@ import { useUserProfileStore } from '@/stores/user-profile-store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { SectionNavigation } from '@/components/ui/section-navigation';
+import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
+import { TemplateCardsSkeleton, HorizontalCardsSkeleton } from '@/components/ui/page-skeleton';
 
 interface RoleplayScenario {
     id: string;
@@ -322,7 +324,12 @@ export default function DashboardPage() {
                             </TooltipProvider>
                         </div>
                     </div>
-                    <TemplateCards />
+                    <PageContentWrapper
+                        isLoading={false}
+                        skeleton={<TemplateCardsSkeleton />}
+                    >
+                        <TemplateCards />
+                    </PageContentWrapper>
                     <div className="text-center mt-4 sm:mt-6">
                         <Button
                             onClick={() => router.push('/journal/new')}
@@ -380,63 +387,64 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="relative -mx-3 sm:mx-0">
-                            <div
-                                className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 px-3 sm:px-0 cursor-grab scrollbar-hide snap-x snap-mandatory"
-                                style={{
-                                    WebkitOverflowScrolling: 'touch',
-                                    touchAction: 'pan-x'
-                                }}
-                                onMouseDown={(e) => {
-                                    const slider = e.currentTarget;
-                                    let isDown = true;
-                                    let startX = e.pageX - slider.offsetLeft;
-                                    let scrollLeft = slider.scrollLeft;
-
-                                    slider.style.cursor = 'grabbing';
-
-                                    const handleMouseMove = (e: MouseEvent) => {
-                                        if (!isDown) return;
-                                        e.preventDefault();
-                                        const x = e.pageX - slider.offsetLeft;
-                                        const walk = (x - startX) * 2;
-                                        slider.scrollLeft = scrollLeft - walk;
-                                    };
-
-                                    const handleMouseUp = () => {
-                                        isDown = false;
-                                        slider.style.cursor = 'grab';
-                                        document.removeEventListener('mousemove', handleMouseMove);
-                                        document.removeEventListener('mouseup', handleMouseUp);
-                                    };
-
-                                    document.addEventListener('mousemove', handleMouseMove);
-                                    document.addEventListener('mouseup', handleMouseUp);
-                                }}
-                                onTouchStart={(e) => {
-                                    e.stopPropagation();
-                                }}
+                            <PageContentWrapper
+                                isLoading={loading}
+                                skeleton={<HorizontalCardsSkeleton count={3} />}
                             >
-                                {loading ? (
-                                    Array.from({ length: 3 }).map((_, index) => (
-                                        <div key={index} className="h-40 w-64 bg-gray-200 animate-pulse rounded-xl flex-shrink-0 snap-center" />
-                                    ))
-                                ) : scenarios.length > 0 ? (
-                                    scenarios.map((s) => (
-                                        <div key={s.id} className="flex-shrink-0 snap-center">
-                                            <RoleplayCard
-                                                id={s.id}
-                                                title={s.name}
-                                                description={s.context}
-                                                imageUrl={s.image || ''}
-                                            />
+                                <div
+                                    className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 px-3 sm:px-0 cursor-grab scrollbar-hide snap-x snap-mandatory"
+                                    style={{
+                                        WebkitOverflowScrolling: 'touch',
+                                        touchAction: 'pan-x'
+                                    }}
+                                    onMouseDown={(e) => {
+                                        const slider = e.currentTarget;
+                                        let isDown = true;
+                                        let startX = e.pageX - slider.offsetLeft;
+                                        let scrollLeft = slider.scrollLeft;
+
+                                        slider.style.cursor = 'grabbing';
+
+                                        const handleMouseMove = (e: MouseEvent) => {
+                                            if (!isDown) return;
+                                            e.preventDefault();
+                                            const x = e.pageX - slider.offsetLeft;
+                                            const walk = (x - startX) * 2;
+                                            slider.scrollLeft = scrollLeft - walk;
+                                        };
+
+                                        const handleMouseUp = () => {
+                                            isDown = false;
+                                            slider.style.cursor = 'grab';
+                                            document.removeEventListener('mousemove', handleMouseMove);
+                                            document.removeEventListener('mouseup', handleMouseUp);
+                                        };
+
+                                        document.addEventListener('mousemove', handleMouseMove);
+                                        document.addEventListener('mouseup', handleMouseUp);
+                                    }}
+                                    onTouchStart={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    {scenarios.length > 0 ? (
+                                        scenarios.map((s) => (
+                                            <div key={s.id} className="flex-shrink-0 snap-center">
+                                                <RoleplayCard
+                                                    id={s.id}
+                                                    title={s.name}
+                                                    description={s.context}
+                                                    imageUrl={s.image || ''}
+                                                />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="w-full text-center py-8 text-gray-500">
+                                            <p>Chưa có hội thoại nào được thêm.</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="w-full text-center py-8 text-gray-500">
-                                        <p>Chưa có hội thoại nào được thêm.</p>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            </PageContentWrapper>
                         </div>
                     </div>
 

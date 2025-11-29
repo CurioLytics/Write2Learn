@@ -257,7 +257,7 @@ export default function JournalFeedbackPage() {
                 <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
                 <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
                 <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
-                <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
+                <TabsTrigger value="enhanced">Bản final</TabsTrigger>
               </TabsList>
 
               <TabsContent value="clarity" className="mt-4">

@@ -12,6 +12,8 @@ import { getStarredVocabulary } from '@/utils/star-helpers';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
+import { VocabSetListSkeleton } from '@/components/ui/page-skeleton';
 
 export default function VocabPage() {
   const router = useRouter();
@@ -27,7 +29,7 @@ export default function VocabPage() {
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   // Filter sets based on starred status
-  const filteredSets = showStarredOnly 
+  const filteredSets = showStarredOnly
     ? flashcardSets.filter(set => (set as any).is_starred)
     : flashcardSets;
 
@@ -62,16 +64,16 @@ export default function VocabPage() {
 
   const loadStarredWords = async () => {
     if (!user?.id) return;
-    
+
     // Check sessionStorage cache first
     const cacheKey = `starred-words-${user.id}`;
     const cached = sessionStorage.getItem(cacheKey);
-    
+
     if (cached) {
       try {
         const { data, timestamp } = JSON.parse(cached);
         const isExpired = Date.now() - timestamp > 5 * 60 * 1000; // 5 minutes TTL
-        
+
         if (!isExpired) {
           setStarredWords(data);
           return;
@@ -80,13 +82,13 @@ export default function VocabPage() {
         console.error('Error parsing cached starred words:', e);
       }
     }
-    
+
     // Fetch fresh data if no cache or expired
     setIsLoadingStarredWords(true);
     try {
       const starred = await getStarredVocabulary();
       setStarredWords(starred);
-      
+
       // Cache the data
       sessionStorage.setItem(cacheKey, JSON.stringify({
         data: starred,
@@ -117,11 +119,11 @@ export default function VocabPage() {
 
       const result = await response.json();
       const newStarredStatus = result.data?.isStarred;
-      
+
       // Invalidate cache and refresh starred words
       const cacheKey = `starred-words-${user.id}`;
       sessionStorage.removeItem(cacheKey);
-      
+
       if (activeTab === 'starred-words') {
         await loadStarredWords();
       }
@@ -149,7 +151,7 @@ export default function VocabPage() {
           <TooltipProvider delayDuration={0}>
             <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
               <TooltipTrigger asChild>
-                <button 
+                <button
                   className="touch-manipulation flex-shrink-0"
                   onClick={(e) => {
                     e.preventDefault();
@@ -174,21 +176,19 @@ export default function VocabPage() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('sets')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'sets'
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'sets'
                   ? 'border-[oklch(0.55_0.22_250)] text-[oklch(0.55_0.22_250)]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+                }`}
             >
               Bộ từ vựng
             </button>
             <button
               onClick={() => setActiveTab('starred-words')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'starred-words'
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'starred-words'
                   ? 'border-[oklch(0.55_0.22_250)] text-[oklch(0.55_0.22_250)]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+                }`}
             >
               ⭐ Từ đã đánh dấu
             </button>
@@ -202,34 +202,44 @@ export default function VocabPage() {
               <div className="text-sm text-gray-600">{filteredSets.length} bộ</div>
               <button
                 onClick={() => setShowStarredOnly(!showStarredOnly)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  showStarredOnly
+                className={`px-4 py-2 rounded-lg transition-colors ${showStarredOnly
                     ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
                     : 'bg-gray-100 text-gray-600 border border-gray-300'
-                }`}
+                  }`}
                 title={showStarredOnly ? 'Chỉ xem từ đã đánh dấu' : 'Xem tất cả bộ'}
               >
                 {showStarredOnly ? '⭐' : '☆'}
               </button>
             </div>
 
-            <VocabularySetList
-              vocabularySets={filteredSets as any}
+            <PageContentWrapper
               isLoading={isLoadingFlashcards}
-              error={flashcardError}
-              onSelectSet={handleSelectSet}
-              onStarToggle={(setId: string, newStarredStatus: boolean) => {
-                console.log('[VocabPage] Star toggled:', { setId, newStarredStatus });
-                setFlashcardSets(prev => prev.map(set => 
-                  set.set_id === setId 
-                    ? { ...set, is_starred: newStarredStatus } as any
-                    : set
-                ));
-              }}
-              onDelete={(setId: string) => {
-                setFlashcardSets(prev => prev.filter(set => set.set_id !== setId));
-              }}
-            />
+              skeleton={<VocabSetListSkeleton />}
+            >
+              {flashcardError ? (
+                <div className="text-center py-8 text-red-600">
+                  {flashcardError}
+                </div>
+              ) : (
+                <VocabularySetList
+                  vocabularySets={filteredSets as any}
+                  isLoading={false}
+                  error={null}
+                  onSelectSet={handleSelectSet}
+                  onStarToggle={(setId: string, newStarredStatus: boolean) => {
+                    console.log('[VocabPage] Star toggled:', { setId, newStarredStatus });
+                    setFlashcardSets(prev => prev.map(set =>
+                      set.set_id === setId
+                        ? { ...set, is_starred: newStarredStatus } as any
+                        : set
+                    ));
+                  }}
+                  onDelete={(setId: string) => {
+                    setFlashcardSets(prev => prev.filter(set => set.set_id !== setId));
+                  }}
+                />
+              )}
+            </PageContentWrapper>
 
             <div className="mt-8 flex justify-center">
               <Button
