@@ -178,7 +178,6 @@ export default function JournalPage() {
 
           {/* Journal List */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Bài viết gần đây</h2>
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

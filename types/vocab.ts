@@ -20,6 +20,7 @@ export interface VocabCollection {
   type: 'role-play' | 'journal' | 'topic' | 'chat' | 'theme';
   wordsCount: number;
   masteredCount: number;
+  dueCount?: number; // Number of words due for review
   userId: string;
   createdAt: Date;
 }

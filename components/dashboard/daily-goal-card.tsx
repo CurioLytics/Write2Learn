@@ -8,6 +8,7 @@ import { cn } from '@/utils/ui';
 import { useUserProfileStore } from '@/stores/user-profile-store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface DailyGoalCardProps {
   data: DailyGoalStatus | null;
@@ -17,29 +18,32 @@ interface DailyGoalCardProps {
 export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   const profile = useUserProfileStore(state => state.profile);
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  
+
   // Use cached profile goals or fallback to API data targets
   const goals = [
-    { 
-      key: 'vocab_created' as const, 
-      label: 'Add Vocabulary', 
-      icon: '📚', 
+    {
+      key: 'vocab_created' as const,
+      label: 'Add Vocabulary',
+      icon: '📚',
       color: 'blue',
-      target: profile?.daily_vocab_goal || data?.vocab_created.target || 10
+      target: profile?.daily_vocab_goal || data?.vocab_created.target || 10,
+      link: '/vocab'
     },
-    { 
-      key: 'journal_created' as const, 
-      label: 'Write Journal', 
-      icon: '✍️', 
+    {
+      key: 'journal_created' as const,
+      label: 'Write Journal',
+      icon: '✍️',
       color: 'purple',
-      target: profile?.daily_journal_goal || data?.journal_created.target || 3
+      target: profile?.daily_journal_goal || data?.journal_created.target || 3,
+      link: '/journal/new'
     },
-    { 
-      key: 'roleplay_completed' as const, 
-      label: 'Complete Roleplay', 
-      icon: '🎭', 
+    {
+      key: 'roleplay_completed' as const,
+      label: 'Complete Roleplay',
+      icon: '🎭',
       color: 'pink',
-      target: profile?.daily_roleplay_goal || data?.roleplay_completed.target || 2
+      target: profile?.daily_roleplay_goal || data?.roleplay_completed.target || 2,
+      link: '/roleplay'
     },
   ];
 
@@ -55,9 +59,9 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
 
   const totalCompleted = data
     ? goals.filter(goal => {
-        const goalData = data[goal.key];
-        return goalData.completed >= goal.target;
-      }).length
+      const goalData = data[goal.key];
+      return goalData.completed >= goal.target;
+    }).length
     : 0;
 
   const totalGoals = goals.length;
@@ -77,46 +81,48 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
           const target = goal.target;
           const isCompleted = completed >= target;
           const progress = Math.min((completed / target) * 100, 100);
-          
+
           return (
-            <div key={goal.key} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {/* Checkbox icon instead of emoji */}
-                  {isCompleted ? (
-                    <div className="w-5 h-5 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  ) : (
-                    <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center">
-                      <Square className="w-3 h-3 text-gray-300" />
-                    </div>
-                  )}
-                  <span className="text-sm font-medium">{goal.label}</span>
+            <Link key={goal.key} href={goal.link}>
+              <div className="space-y-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* Checkbox icon instead of emoji */}
+                    {isCompleted ? (
+                      <div className="w-5 h-5 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center">
+                        <Square className="w-3 h-3 text-gray-300" />
+                      </div>
+                    )}
+                    <span className="text-sm font-medium">{goal.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                    )}>
+                      {completed}/{target}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    "text-sm font-semibold",
-                    isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
-                  )}>
-                    {completed}/{target}
-                  </span>
+
+                {/* Progress bar */}
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-500 rounded-full",
+                      isCompleted
+                        ? "bg-green-500"
+                        : "bg-gradient-to-r from-blue-500 to-purple-500"
+                    )}
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
               </div>
-              
-              {/* Progress bar */}
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full transition-all duration-500 rounded-full",
-                    isCompleted
-                      ? "bg-green-500"
-                      : "bg-gradient-to-r from-blue-500 to-purple-500"
-                  )}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
+            </Link>
           );
         })}
       </div>

@@ -10,16 +10,16 @@ interface VocabCardProps {
 
 export const VocabCard: React.FC<VocabCardProps> = ({ collection, onAddClick }) => {
   // Calculate mastery percentage for the progress display
-  const masteryPercentage = collection.wordsCount > 0 
-    ? Math.round((collection.masteredCount / collection.wordsCount) * 100) 
+  const masteryPercentage = collection.wordsCount > 0
+    ? Math.round((collection.masteredCount / collection.wordsCount) * 100)
     : 0;
-  
+
   // Format the date to display
-  const formattedDate = new Intl.DateTimeFormat('en-US', { 
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    day: 'numeric' 
+    day: 'numeric'
   }).format(collection.createdAt);
-  
+
   // Get icon based on collection type
   const getTypeIcon = () => {
     switch (collection.type) {
@@ -65,15 +65,15 @@ export const VocabCard: React.FC<VocabCardProps> = ({ collection, onAddClick }) 
         );
     }
   };
-  
+
   return (
-    <div 
+    <div
       className="bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => console.log(`View collection ${collection.id}`)}
     >
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-medium text-gray-900">{collection.title}</h3>
-        <button 
+        <button
           onClick={(e) => {
             e.stopPropagation();
             onAddClick && onAddClick();
@@ -87,7 +87,7 @@ export const VocabCard: React.FC<VocabCardProps> = ({ collection, onAddClick }) 
           </svg>
         </button>
       </div>
-      
+
       {/* Collection type badge */}
       <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
         <span className="flex items-center gap-1">
@@ -97,17 +97,24 @@ export const VocabCard: React.FC<VocabCardProps> = ({ collection, onAddClick }) 
         <span className="mx-1">•</span>
         <span>{formattedDate}</span>
       </div>
-      
+
       <p className="text-sm text-gray-500 mb-4">{collection.description}</p>
-      
+
       {/* Progress bar */}
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-        <div 
-          className="bg-teal-500 h-1.5 rounded-full" 
+        <div
+          className="bg-teal-500 h-1.5 rounded-full"
           style={{ width: `${masteryPercentage}%` }}
         ></div>
       </div>
-      
+
+      {/* Due count display */}
+      {collection.dueCount !== undefined && collection.dueCount > 0 && (
+        <div className="text-xs text-amber-600 font-medium mb-2">
+          {collection.dueCount} / {collection.wordsCount} due for review
+        </div>
+      )}
+
       {/* Stats display */}
       <div className="mt-auto flex justify-between items-center">
         <div className="flex items-center gap-1 text-sm">
@@ -116,7 +123,7 @@ export const VocabCard: React.FC<VocabCardProps> = ({ collection, onAddClick }) 
           <span className="text-gray-500">{collection.wordsCount}</span>
           <span className="text-gray-400 text-xs ml-1">words</span>
         </div>
-        
+
         {/* Display the percentage with appropriate color */}
         <div className={`text-sm font-medium ${getPercentageColorClass(masteryPercentage)}`}>
           {masteryPercentage}%
