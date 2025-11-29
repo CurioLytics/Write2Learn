@@ -63,24 +63,15 @@ export function JournalEditorLayout({
     }
   };
 
-  // Show breathing loader when getting feedback
-  if (isGettingFeedback) {
-    return (
-      <div className="bg-white px-6 py-8 min-h-screen flex items-center justify-center">
-        <BreathingLoader 
-          message="Đang phân tích nhật ký của bạn..."
-          className="max-w-md"
-        />
-      </div>
-    );
-  }
+  // Don't show loading screen - let editor stay visible with disabled buttons
+  // The feedback page will show the loading screen after navigation
 
   return (
     <div className="bg-white px-6 py-8">
       <main className="max-w-3xl w-full mx-auto flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <Link 
-            href="/journal" 
+          <Link
+            href="/journal"
             className="text-blue-600 text-sm hover:underline"
             onClick={handleBackClick}
           >

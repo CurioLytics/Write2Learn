@@ -168,7 +168,8 @@ export function useJournalEditor(options: UseJournalEditorOptions): UseJournalEd
 
                 // Mark as saved
                 unsavedChanges.markAsSaved(form.title, form.content);
-                router.push('/journal');
+                // Use replace to prevent going back to editor after save
+                router.replace('/journal');
             } else {
                 // Offline mode
                 const offlineEntry = {
@@ -181,7 +182,8 @@ export function useJournalEditor(options: UseJournalEditorOptions): UseJournalEd
                 const saved = JSON.parse(localStorage.getItem('offlineJournalEntries') || '[]');
                 saved.push(offlineEntry);
                 localStorage.setItem('offlineJournalEntries', JSON.stringify(saved));
-                router.push('/auth?message=journal_saved');
+                // Use replace to prevent going back after offline save
+                router.replace('/auth?message=journal_saved');
             }
         } catch (err) {
             setError('Không thể lưu nhật ký');
@@ -204,77 +206,40 @@ export function useJournalEditor(options: UseJournalEditorOptions): UseJournalEd
         setError(null);
 
         try {
-            console.log('📤 Requesting feedback for:', { title: form.title, contentLength: form.content.length });
+            console.log('📤 Preparing to get feedback for:', { title: form.title, contentLength: form.content.length });
 
-            // For edit mode, persist latest edits before generating feedback
+            // Step 1: Create/update draft journal first (fast operation)
+            let draftJournalId = journalIdState;
+
             if (mode === 'edit' && journalIdState) {
-                try {
-                    await journalService.updateJournal(journalIdState, {
-                        title: form.title || null,
-                        content: form.content,
-                        journal_date: form.journalDate,
-                        is_draft: true,
-                    });
-                } catch (e) {
-                    console.error('Failed to update journal before feedback:', e);
-                }
-            }
-
-            const result = await journalFeedbackService.getFeedback(form.content, form.title);
-            console.log('📥 Feedback result:', result);
-
-            if (result.success && result.data) {
-                // Step 1: Create/update draft journal in database
-                let draftJournalId = journalIdState;
-
-                if (!draftJournalId) {
-                    // Create new draft journal
-                    const draftResult = await journalService.createDraftJournal(user.id, {
-                        title: form.title || null,
-                        content: form.content,
-                        journal_date: form.journalDate,
-                        summary: result.data.summary,
-                    });
-                    draftJournalId = draftResult.id;
-                    setJournalIdState(draftResult.id);
-                } else {
-                    // Update existing journal as draft with summary
-                    await journalService.updateJournal(draftJournalId, {
-                        title: form.title || null,
-                        content: form.content,
-                        journal_date: form.journalDate,
-                        summary: result.data.summary,
-                        is_draft: true,
-                    });
-                }
-
-                // Step 2: Save feedback to feedbacks table (without summary)
-                const feedbackId = await feedbackLogsService.saveFeedback({
-                    userId: user.id,
-                    sourceId: draftJournalId,
-                    sourceType: 'journal',
-                    feedbackData: {
-                        clarity: result.data.output?.clarity,
-                        vocabulary: result.data.output?.vocabulary,
-                        ideas: result.data.output?.ideas,
-                        enhanced_version: result.data.enhanced_version || result.data.improvedVersion,
-                    },
-                    grammarDetails: result.data.grammar_details || [],
+                // Update existing journal
+                await journalService.updateJournal(journalIdState, {
+                    title: form.title || null,
+                    content: form.content,
+                    journal_date: form.journalDate,
+                    is_draft: true,
                 });
-
-                console.log('✅ Saved draft and feedback to DB:', { draftJournalId, feedbackId });
-
-                // Step 3: Navigate to feedback page with IDs
-                router.push(`/journal/feedback?journalId=${draftJournalId}&feedbackId=${feedbackId}`);
-            } else {
-                console.error('❌ Feedback failed:', result.error);
-                setError(`Lỗi phản hồi: ${result.error?.message || 'Lỗi không xác định'}`);
+            } else if (!draftJournalId) {
+                // Create new draft journal
+                const draftResult = await journalService.createDraftJournal(user.id, {
+                    title: form.title || null,
+                    content: form.content,
+                    journal_date: form.journalDate,
+                    summary: null, // Will be added after feedback
+                });
+                draftJournalId = draftResult.id;
+                setJournalIdState(draftResult.id);
             }
+
+            console.log('✅ Draft saved, navigating to feedback page:', draftJournalId);
+
+            // Step 2: Navigate immediately to feedback page with processing flag
+            // The feedback page will make the API call and show loading
+            router.replace(`/journal/feedback?journalId=${draftJournalId}&processing=true`);
         } catch (err) {
             console.error('❌ Exception in handleGetFeedback:', err);
             const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định';
             setError(`Lỗi: ${errorMessage}`);
-        } finally {
             setIsGettingFeedback(false);
         }
     };
@@ -285,7 +250,8 @@ export function useJournalEditor(options: UseJournalEditorOptions): UseJournalEd
         try {
             await journalService.deleteJournal(journalIdState);
             unsavedChanges.markAsSaved('', '');
-            router.push('/journal');
+            // Use replace to prevent going back to deleted journal
+            router.replace('/journal');
         } catch (err) {
             setError('Không thể xóa nhật ký');
         }

@@ -18,7 +18,7 @@ import { flashcardGenerationService } from '@/services/flashcard-generation-serv
 import { GrammarDetail } from '@/types/journal-feedback';
 
 // Custom hooks
-function useJournalFeedbackDB() {
+function useJournalFeedbackDB(userId?: string) {
   const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState<any | null>(null);
   const [journalId, setJournalId] = useState<string | null>(null);
@@ -32,20 +32,84 @@ function useJournalFeedbackDB() {
       try {
         const jId = searchParams?.get('journalId');
         const fId = searchParams?.get('feedbackId');
+        const isProcessing = searchParams?.get('processing') === 'true';
+
         setJournalId(jId);
         setFeedbackId(fId);
 
         let fb: any | null = null;
-        if (fId) {
+
+        // If processing flag is set, make the API call
+        if (isProcessing && jId) {
+          console.log('🔄 Processing feedback for journal:', jId);
+
+          // Fetch journal content
+          const journal = await journalService.getJournalById(jId);
+
+          // Import the feedback service
+          const { journalFeedbackService } = await import('@/services/journal-feedback-service');
+          const { feedbackLogsService } = await import('@/services/supabase/feedback-logs-service');
+
+          // Make API call
+          const result = await journalFeedbackService.getFeedback(journal.content, journal.title || '');
+
+          if (result.success && result.data) {
+            // Update journal with summary
+            await journalService.updateJournal(jId, {
+              summary: result.data.summary,
+              is_draft: true,
+            });
+
+            // Get authenticated user ID from parameter
+            const userIdForFeedback = userId;
+
+            if (!userIdForFeedback) {
+              throw new Error('User ID not available - please log in');
+            }
+
+            // Save feedback to database
+            const newFeedbackId = await feedbackLogsService.saveFeedback({
+              userId: userIdForFeedback,
+              sourceId: jId,
+              sourceType: 'journal',
+              feedbackData: {
+                title: journal.title,
+                clarity: result.data.output?.clarity,
+                vocabulary: result.data.output?.vocabulary,
+                ideas: result.data.output?.ideas,
+                enhanced_version: result.data.enhanced_version || result.data.improvedVersion,
+                fixed_typo: result.data.fixed_typo || journal.content,
+              },
+              grammarDetails: result.data.grammar_details || [],
+            });
+
+            // Set feedback data
+            fb = {
+              title: journal.title,
+              summary: result.data.summary,
+              output: result.data.output,
+              enhanced_version: result.data.enhanced_version || result.data.improvedVersion,
+              fixed_typo: result.data.fixed_typo || journal.content,
+              grammar_details: result.data.grammar_details,
+            };
+
+            setFeedbackId(newFeedbackId);
+            console.log('✅ Feedback processed and saved:', newFeedbackId);
+          } else {
+            throw new Error(result.error?.message || 'Failed to get feedback');
+          }
+        } else if (fId) {
+          // Load existing feedback by ID
           fb = await feedbackLogsService.getById(fId);
         } else if (jId) {
+          // Load latest feedback for journal
           const latest = await feedbackLogsService.getLatestBySource(jId, 'journal');
           fb = latest.feedback;
           if (latest.feedbackId) setFeedbackId(latest.feedbackId);
         }
 
-        // Fetch journal data to get summary
-        if (jId && fb) {
+        // Fetch journal data to get summary if not already loaded
+        if (jId && fb && !fb.summary) {
           const journal = await journalService.getJournalById(jId);
           fb.summary = journal.summary || '';
         }
@@ -57,7 +121,8 @@ function useJournalFeedbackDB() {
           setFeedback(fb);
         }
       } catch (err) {
-        if (!cancelled) setError('Failed to load feedback data.');
+        console.error('Error loading feedback:', err);
+        if (!cancelled) setError((err as Error).message || 'Failed to load feedback data.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -89,15 +154,23 @@ export default function JournalFeedbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const { feedback, journalId, feedbackId, error, loading: loadingFB } = useJournalFeedbackDB();
+  const { feedback, journalId, feedbackId, error, loading: loadingFB } = useJournalFeedbackDB(user?.id);
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [editableTitle, setEditableTitle] = useState<string>('');
 
   useEffect(() => {
-    if (!loading && !user) router.push('/auth');
-    if (feedback) setEditableTitle(feedback.title || '');
+    // Only redirect if auth is done loading and there's no user
+    if (!loading && !user) {
+      router.push('/auth');
+      return;
+    }
+
+    // Set title when feedback loads
+    if (feedback) {
+      setEditableTitle(feedback.title || '');
+    }
   }, [loading, user, router, feedback]);
 
   // No sessionStorage dependency in DB-backed flow
@@ -145,9 +218,11 @@ export default function JournalFeedbackPage() {
         } catch (e) {
           console.error('Error generating flashcards:', e);
         }
-        router.push('/flashcards/generate');
+        // Use replace to prevent going back to feedback after save
+        router.replace('/flashcards/generate');
       } else {
-        router.push('/journal');
+        // Use replace to prevent going back to feedback after save
+        router.replace('/journal');
       }
     } catch (err) {
       setErrMsg((err as Error).message || 'Failed to save journal');
@@ -182,22 +257,25 @@ export default function JournalFeedbackPage() {
     router.push('/journal/new');
   };
 
-  if (loading || loadingFB || processing) {
+  // Show loading only when feedback is loading or processing
+  // Use same full-screen layout as editor for smooth transition
+  if (loadingFB || processing) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-10">
-        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
-          <CardContent>
-            <BreathingLoader
-              message={processing ?
-                (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') :
-                'Đang chuẩn bị phản hồi...'
-              }
-              className="py-8"
-            />
-          </CardContent>
-        </Card>
+      <div className="bg-white px-6 py-8 min-h-screen flex items-center justify-center">
+        <BreathingLoader
+          message={processing ?
+            (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') :
+            'Đang phân tích nhật ký của bạn...'
+          }
+          className="max-w-md"
+        />
       </div>
     );
+  }
+
+  // Auth check - redirect if not authenticated (but don't show loading)
+  if (!loading && !user) {
+    return null; // Will redirect via useEffect
   }
 
   if (error || !feedback) {
