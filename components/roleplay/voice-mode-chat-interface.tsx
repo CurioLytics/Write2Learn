@@ -238,7 +238,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         userPreferences
       );
 
-      router.push(`/roleplay/summary/${sessionId}`);
+      router.replace(`/roleplay/summary/${sessionId}`);
     } catch (error: any) {
       setError(error?.message || 'Error saving session. Please try again.');
       // Reset the flag if there's an error so user can try again

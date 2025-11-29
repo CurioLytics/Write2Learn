@@ -3,26 +3,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger 
+  AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { MessageBubble } from './message-bubble';
 import { VoiceInputButton } from './voice-input-button';
+import { FeedbackLoadingScreen } from './feedback-loading-screen';
 import { roleplayConversationService } from '@/services/roleplay/roleplay-conversation-service';
 import { roleplaySessionService } from '@/services/roleplay/roleplay-session-service';
 import { useAuth } from '@/hooks/auth/use-auth';
@@ -49,7 +50,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<RoleplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Use cached preferences from auth context with defaults
   const userPreferences = {
     name: cachedPreferences?.name || 'User',
@@ -95,7 +96,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         const confirmLeave = window.confirm(
           'Bạn đã có tin nhắn trong cuộc trò chuyện này. Nếu thoát bây giờ, cuộc trò chuyện sẽ không được lưu lại. Bạn có chắc muốn thoát?'
         );
-        
+
         if (!confirmLeave) {
           window.history.pushState(null, '', window.location.href);
         }
@@ -105,7 +106,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
-    
+
     // Push state to enable popstate detection
     window.history.pushState(null, '', window.location.href);
 
@@ -156,7 +157,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         timestamp: Date.now(),
       };
       addMessage(botMsg);
-      
+
       // Auto-play bot response
       setTimeout(() => {
         speak(reply, botMsg.id);
@@ -176,7 +177,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   const handleFinish = async () => {
     // Stop all ongoing actions first
     stop();
-    
+
     setFinishing(true);
     setError(null);
 
@@ -192,7 +193,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
         userPreferences
       );
 
-      router.push(`/roleplay/summary/${sessionId}`);
+      router.replace(`/roleplay/summary/${sessionId}`);
     } catch (error: any) {
       setError(error?.message || 'Error saving session. Please try again.');
     } finally {
@@ -210,8 +211,9 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
   };
 
   return (
+    <>
+      <FeedbackLoadingScreen isVisible={finishing} colorScheme="blue" />
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm overflow-hidden">
-        
         {/* Header */}
         <div className="p-3 border-b flex justify-between items-center">
           <Dialog>
@@ -284,40 +286,46 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
               {finishing ? 'Saving...' : 'Finish'}
             </Button>
           </div>
-        </div>
+        </div >
 
         {/* Chat */}
-        <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-          {messages.map((m) => (
-            <MessageBubble
-              key={m.id}
-              message={m}
-              roleName={m.sender === 'bot' ? scenario.ai_role : 'You'}
-              onSpeakToggle={handleSpeakToggle}
-              isPlaying={isPlaying(m.id)}
-            />
-          ))}
+        < div className="flex-1 p-4 overflow-y-auto bg-gray-50" >
+          {
+            messages.map((m) => (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                roleName={m.sender === 'bot' ? scenario.ai_role : 'You'}
+                onSpeakToggle={handleSpeakToggle}
+                isPlaying={isPlaying(m.id)}
+              />
+            ))
+          }
 
-          {isLoading && (
-            <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
-              <div className="w-6 h-6 rounded-full bg-[var(--primary-blue-lighter)] flex items-center justify-center text-[var(--primary)] text-xs font-medium">
-                {scenario.ai_role[0].toUpperCase()}
+          {
+            isLoading && (
+              <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
+                <div className="w-6 h-6 rounded-full bg-[var(--primary-blue-lighter)] flex items-center justify-center text-[var(--primary)] text-xs font-medium">
+                  {scenario.ai_role[0].toUpperCase()}
+                </div>
+                <div className={styles.typingIndicator}>
+                  <span></span><span></span><span></span>
+                </div>
               </div>
-              <div className={styles.typingIndicator}>
-                <span></span><span></span><span></span>
-              </div>
-            </div>
-          )}
+            )
+          }
 
           <div ref={endRef} />
-        </div>
+        </div >
 
         {/* Error */}
-        {error && (
-          <div className="border-t bg-red-50 text-red-700 text-sm p-3 border-red-200">
-            <strong>Error:</strong> {error}
-          </div>
-        )}
+        {
+          error && (
+            <div className="border-t bg-red-50 text-red-700 text-sm p-3 border-red-200">
+              <strong>Error:</strong> {error}
+            </div>
+          )
+        }
 
         {/* Input */}
         <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2 relative">
@@ -331,7 +339,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
           />
 
           {/* Voice Input Button */}
-          <VoiceInputButton 
+          <VoiceInputButton
             onTranscript={handleVoiceTranscript}
             disabled={isLoading || finishing}
           />
@@ -345,5 +353,6 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
           </Button>
         </form>
       </div>
+    </>
   );
 }

@@ -1,10 +1,9 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RoleplaySessionData } from '@/types/roleplay';
-import { Bot, User } from 'lucide-react';
+import { Bot } from 'lucide-react';
+import { MessageBubble } from './message-bubble';
 
 interface SessionDetailDialogProps {
   session: RoleplaySessionData | null;
@@ -39,40 +38,12 @@ export function SessionDetailDialog({ session, onClose }: SessionDetailDialogPro
               </div>
             ) : (
               session?.messages.map((message) => (
-                <div
+                <MessageBubble
                   key={message.id}
-                  className={`flex gap-3 ${
-                    message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.sender === 'user' ? 'bg-black' : 'bg-gray-200'
-                    }`}
-                  >
-                    {message.sender === 'user' ? (
-                      <User className="w-4 h-4 text-white" />
-                    ) : (
-                      <Bot className="w-4 h-4 text-gray-700" />
-                    )}
-                  </div>
-
-                  <div
-                    className={`flex flex-col ${
-                      message.sender === 'user' ? 'items-end' : 'items-start'
-                    } max-w-[70%]`}
-                  >
-                    <div
-                      className={`rounded-2xl px-4 py-3 shadow-sm ${
-                        message.sender === 'user'
-                          ? 'bg-black text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <p>{message.content}</p>
-                    </div>
-                  </div>
-                </div>
+                  message={message}
+                  roleName={message.sender === 'bot' ? session?.scenario?.ai_role || 'AI' : 'You'}
+                  compact={true}
+                />
               ))
             )}
           </div>

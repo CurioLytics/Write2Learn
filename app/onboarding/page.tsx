@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/onboarding/progress-bar';
 import { OptionButton } from '@/components/onboarding/option-button';
-import { 
-  ONBOARDING_STEPS, 
+import {
+  ONBOARDING_STEPS,
   TOTAL_STEPS,
   COUNTABLE_STEPS,
   type OnboardingData,
-  type OnboardingStep 
+  type OnboardingStep
 } from '@/types/onboarding';
 import { useAuth } from '@/hooks/auth/use-auth';
 
@@ -19,7 +19,7 @@ const STORAGE_KEY = 'onboarding_progress';
 export default function OnboardingPage() {
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     name: '',
@@ -36,22 +36,22 @@ export default function OnboardingPage() {
   const [isLoadingSetup, setIsLoadingSetup] = useState(false);
 
   const currentStep = ONBOARDING_STEPS[currentStepIndex];
-  
+
   // Calculate the countable step number (excluding section-intro and welcome steps)
   const getCountableStepNumber = (stepIndex: number) => {
     return ONBOARDING_STEPS.slice(0, stepIndex + 1)
       .filter(step => step.type !== 'section-intro' && step.type !== 'welcome').length;
   };
-  
+
   const countableStepNumber = getCountableStepNumber(currentStepIndex);
-  
-  const hasSelection = currentStep.dataKey ? 
+
+  const hasSelection = currentStep.dataKey ?
     (currentStep.type === 'text-input' ?
-      !!(data[currentStep.dataKey] as string | number) && 
+      !!(data[currentStep.dataKey] as string | number) &&
       (typeof data[currentStep.dataKey] === 'number' ? data[currentStep.dataKey] > 0 : (data[currentStep.dataKey] as string).trim() !== '') :
-      Array.isArray(data[currentStep.dataKey]) ? 
-        (data[currentStep.dataKey] as any[]).length > 0 : 
-        !!data[currentStep.dataKey]) : 
+      Array.isArray(data[currentStep.dataKey]) ?
+        (data[currentStep.dataKey] as any[]).length > 0 :
+        !!data[currentStep.dataKey]) :
     false;
 
   // Load progress from localStorage
@@ -82,10 +82,10 @@ export default function OnboardingPage() {
     } else {
       // Last step - show loading state then save
       setIsLoadingSetup(true);
-      
+
       // Simulate setup time (you can adjust or remove this)
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       await handleComplete();
     }
   };
@@ -200,7 +200,7 @@ export default function OnboardingPage() {
                 <div className="flex gap-4 items-start p-4 bg-purple-50 rounded-xl">
                   <span className="text-3xl">🎭</span>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Luyện giao tiếp thực tế</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Luyện giao tiếp qua các tình huống giả định</h3>
                     <p className="text-sm text-gray-600">Roleplay với AI trong các tình huống đời thường</p>
                   </div>
                 </div>
@@ -229,7 +229,7 @@ export default function OnboardingPage() {
 
       case 'text-input':
         const isNumberInput = ['daily_review_goal', 'daily_vocab_goal', 'daily_journal_goal', 'daily_roleplay_goal'].includes(currentStep.dataKey || '');
-        
+
         return (
           <div className="py-8">
             <div className="mb-8 text-center">
@@ -354,7 +354,7 @@ export default function OnboardingPage() {
                       Bỏ qua
                     </Button>
                   )}
-                  
+
                   {hasSelection && (
                     <Button
                       onClick={handleNext}

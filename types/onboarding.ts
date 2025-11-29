@@ -12,7 +12,7 @@ export interface OnboardingData {
   daily_roleplay_goal: number;
 }
 
-export type OnboardingStep = 
+export type OnboardingStep =
   | 'welcome'
   | 'name'
   | 'english-reasons'
@@ -85,18 +85,18 @@ export const ENGLISH_LEVELS_NEW = [
 
 // English tone and style options
 export const ENGLISH_TONES = [
-  { 
-    value: 'conversational', 
+  {
+    value: 'conversational',
     label: 'Tiếng Anh đời thường',
     description: 'Dùng cho cuộc sống hằng ngày — giọng thân thiện, phong cách không chính thức'
   },
-  { 
-    value: 'professional', 
+  {
+    value: 'professional',
     label: 'Tiếng Anh chuyên nghiệp',
     description: 'Dùng cho công việc — giọng lịch sự, phong cách chuyên nghiệp'
   },
-  { 
-    value: 'academic', 
+  {
+    value: 'academic',
     label: 'Tiếng Anh học thuật',
     description: 'Dùng cho viết học thuật — giọng rõ ràng, chính xác, cấu trúc tốt'
   },
@@ -175,7 +175,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   {
     id: 'roleplay-goal',
     title: 'Luyện giao tiếp',
-    description: 'Bạn muốn luyện bao nhiêu buổi mỗi ngày?',
+    description: 'Thử đặt mục tiêu số lượng tình huống đóng vai bạn muốn luyện hàng ngày nào..',
     type: 'text-input',
     dataKey: 'daily_roleplay_goal',
   },
@@ -184,7 +184,7 @@ export const ONBOARDING_STEPS: StepConfig[] = [
 export const TOTAL_STEPS = ONBOARDING_STEPS.length;
 
 // Helper to get only countable steps (excluding section-intro and welcome)
-export const getCountableSteps = () => 
+export const getCountableSteps = () =>
   ONBOARDING_STEPS.filter(step => step.type !== 'section-intro' && step.type !== 'welcome');
 
 export const COUNTABLE_STEPS = getCountableSteps().length; // 8 steps

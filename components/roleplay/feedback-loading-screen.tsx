@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react';
 interface FeedbackLoadingScreenProps {
     isVisible: boolean;
     colorScheme?: 'purple' | 'blue';
+    steps?: string[];
 }
 
-const loadingSteps = [
+const defaultSteps = [
     'check độ rõ ràng',
     'check từ vựng',
     'check ngữ pháp',
@@ -17,7 +18,8 @@ const loadingSteps = [
 
 export function FeedbackLoadingScreen({
     isVisible,
-    colorScheme = 'purple'
+    colorScheme = 'purple',
+    steps = defaultSteps
 }: FeedbackLoadingScreenProps) {
     const [loadingStep, setLoadingStep] = useState(0);
 
@@ -30,13 +32,13 @@ export function FeedbackLoadingScreen({
         // Animate loading steps
         const interval = setInterval(() => {
             setLoadingStep(prev => {
-                if (prev < loadingSteps.length - 1) return prev + 1;
+                if (prev < steps.length - 1) return prev + 1;
                 return 0; // Loop back to start
             });
         }, 3000); // Change every 2 seconds
 
         return () => clearInterval(interval);
-    }, [isVisible]);
+    }, [isVisible, steps]);
 
     if (!isVisible) return null;
 
@@ -64,7 +66,7 @@ export function FeedbackLoadingScreen({
                             key={loadingStep}
                             className={`${selectedColors.text} font-medium inline-block animate-fade-in`}
                         >
-                            {loadingSteps[loadingStep]}
+                            {steps[loadingStep]}
                         </span>
                     </p>
                 </div>

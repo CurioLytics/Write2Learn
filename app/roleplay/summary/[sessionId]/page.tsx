@@ -14,6 +14,7 @@ import { RoleplaySessionData } from '@/types/roleplay';
 import { RoleplayFeedback, GrammarDetail } from '@/types/roleplay';
 import { RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { FeedbackLoadingScreen } from '@/components/roleplay/feedback-loading-screen';
 
 export default function RoleplaySummaryPage() {
   const router = useRouter();
@@ -142,11 +143,21 @@ export default function RoleplaySummaryPage() {
     router.push('/roleplay');
   };
 
-  if (loading || processing) {
+  if (processing) {
+    return (
+      <FeedbackLoadingScreen
+        isVisible={true}
+        colorScheme="blue"
+        steps={['tạo mặt trước', 'tạo mặt sau', 'thêm ví dụ']}
+      />
+    );
+  }
+
+  if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center w-full">
-          {processing ? 'Đang xử lý các đoạn nổi bật...' : 'Đang tải phiên hội thoại...'}
+          Đang tải phiên hội thoại...
         </div>
       </div>
     );

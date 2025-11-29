@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BreathingLoader } from '@/components/ui/breathing-loader';
+
 import { Flashcard } from '@/types/flashcard';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { FeedbackLoadingScreen } from '@/components/roleplay/feedback-loading-screen';
 
 interface VocabularySetOption {
   id: string;
@@ -77,7 +78,7 @@ export default function FlashcardCreationPage() {
 
   const loadVocabularySets = async () => {
     if (!user?.id) return;
-    
+
     try {
       const supabase = createClientComponentClient();
       const { data, error } = await supabase
@@ -144,17 +145,17 @@ export default function FlashcardCreationPage() {
   // --------------------------
   const handleSaveFlashcards = async () => {
     setError(null);
-    
+
     // Filter out empty flashcards
-    const validFlashcards = flashcards.filter(card => 
+    const validFlashcards = flashcards.filter(card =>
       card.word.trim() && card.back?.definition.trim()
     );
-    
+
     if (validFlashcards.length === 0) {
       setError('Không có flashcard hợp lệ. Bạn cần điền đầy đủ Từ và Nghĩa.');
       return;
     }
-    
+
     if (!user?.id) {
       setError('Bạn cần đăng nhập để lưu flashcards.');
       return;
@@ -206,14 +207,18 @@ export default function FlashcardCreationPage() {
     }
   };
 
+
+
   // --------------------------
   // ✅ Render
   // --------------------------
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <BreathingLoader message="Đang chuẩn bị flashcards..." />
-      </div>
+      <FeedbackLoadingScreen
+        isVisible={true}
+        colorScheme="blue"
+        steps={['tạo mặt trước', 'tạo mặt sau', 'thêm ví dụ']}
+      />
     );
   }
 
@@ -283,48 +288,48 @@ export default function FlashcardCreationPage() {
                 )}
 
                 {flashcards.map((card, idx) => (
-              <div key={idx} className="relative border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <button
-                  onClick={() => deleteFlashcard(idx)}
-                  className="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition-colors text-lg"
-                  aria-label={`Xóa flashcard ${idx + 1}`}
-                >
-                  ×
-                </button>
+                  <div key={idx} className="relative border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <button
+                      onClick={() => deleteFlashcard(idx)}
+                      className="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition-colors text-lg"
+                      aria-label={`Xóa flashcard ${idx + 1}`}
+                    >
+                      ×
+                    </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Từ
-                    </label>
-                    <textarea
-                      value={card.word}
-                      onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
-                      rows={2}
-                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                      placeholder="Nhập từ..."
-                    />
-                  </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Từ
+                        </label>
+                        <textarea
+                          value={card.word}
+                          onChange={(e) => updateFlashcard(idx, { word: e.target.value })}
+                          rows={2}
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          placeholder="Nhập từ..."
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Nghĩa
-                    </label>
-                    <textarea
-                      value={card.back.definition}
-                      onChange={(e) =>
-                        updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })
-                      }
-                      rows={2}
-                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                      placeholder="Nhập nghĩa..."
-                    />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Nghĩa
+                        </label>
+                        <textarea
+                          value={card.back.definition}
+                          onChange={(e) =>
+                            updateFlashcard(idx, { back: { ...card.back, definition: e.target.value } })
+                          }
+                          rows={2}
+                          className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                          placeholder="Nhập nghĩa..."
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                </div>
-              ))}
+                ))}
               </div>
-              
+
               {/* Add Word Button at the end */}
               <div className="mt-4">
                 <Button
