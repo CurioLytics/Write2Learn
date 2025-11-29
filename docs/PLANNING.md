@@ -7,7 +7,7 @@ Write2Learn helps users improve their English writing skills through journaling,
 ## Project Structure
 
 ```
-/home/work/wtl2/
+/write2learn/
 ├── app/ - Next.js App Router pages and API routes
 ├── components/ - UI components organized by feature
 │   ├── auth/, journal/, onboarding/, roleplay/, vocab/ - Feature components
