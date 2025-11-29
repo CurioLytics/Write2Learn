@@ -48,6 +48,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const [backupInput, setBackupInput] = useState('');
   const [showTextInput, setShowTextInput] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Use cached preferences from auth context with defaults
@@ -64,7 +65,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
 
   const handleUserMessage = async (text: string) => {
-    if (!text.trim() || isSessionFinished.current) return;
+    if (!text.trim()) return;
 
     const userMsg: RoleplayMessage = {
       id: `user-${Date.now()}`,
@@ -83,7 +84,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         userPreferences
       );
 
-      // Check again if session was finished while waiting for response
+      // Check if session was finished while waiting for response
       if (isSessionFinished.current) return;
 
       const botMsg: RoleplayMessage = {
@@ -189,6 +190,9 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   }, [hasUserMessages]);
 
   const handleMicClick = () => {
+    // Don't allow mic interaction if session is finished
+    if (isSessionFinished.current) return;
+
     if (voiceState === 'listening' || voiceState === 'user-speaking') {
       // Stop recording
       stopListening();
@@ -220,7 +224,19 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
     stopBotSpeaking();
 
     setFinishing(true);
+    setLoadingStep(0);
     setError(null);
+
+    // Loading steps to cycle through
+    const loadingSteps = ['độ rõ ràng', 'từ vựng', 'ngữ pháp', 'ý tưởng', 'phiên bản nâng cấp'];
+
+    // Animate loading steps
+    const interval = setInterval(() => {
+      setLoadingStep(prev => {
+        if (prev < loadingSteps.length - 1) return prev + 1;
+        return 0; // Loop back to start
+      });
+    }, 2000); // Change every 2 seconds
 
     try {
       if (!user?.id || messages.length <= 1) {
@@ -234,13 +250,16 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         userPreferences
       );
 
+      clearInterval(interval);
       router.push(`/roleplay/summary/${sessionId}`);
     } catch (error: any) {
+      clearInterval(interval);
       setError(error?.message || 'Error saving session. Please try again.');
       // Reset the flag if there's an error so user can try again
       isSessionFinished.current = false;
     } finally {
       setFinishing(false);
+      setLoadingStep(0);
     }
   };
 
@@ -253,8 +272,41 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const isBotSpeaking = voiceState === 'bot-speaking';
   const isThinking = voiceState === 'thinking';
 
+  const loadingSteps = ['độ rõ ràng', 'từ vựng', 'ngữ pháp', 'ý tưởng', 'phiên bản nâng cấp'];
+
   return (
     <>
+      {/* Loading Screen */}
+      {finishing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-lg">
+              <span className="text-gray-900">Đang kiểm tra </span>
+              <span key={loadingStep} className="text-purple-600 font-medium inline-block animate-fade-in">
+                {loadingSteps[loadingStep]}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+      `}</style>
+
       <div className="flex flex-col h-[calc(100vh-8rem)] bg-gradient-to-b from-gray-50 to-white rounded-lg shadow-sm overflow-hidden">
 
         {/* Header */}
@@ -442,7 +494,7 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
                 {/* Main button */}
                 <button
                   onClick={handleMicClick}
-                  disabled={isThinking || finishing}
+                  disabled={isThinking || finishing || isSessionFinished.current}
                   aria-label={isMicActive ? 'Stop recording' : isBotSpeaking ? 'Stop bot speaking' : 'Start recording'}
                   className={`relative h-20 w-20 rounded-full shadow-2xl transition-all duration-500 ease-out transform ${isMicActive
                     ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 scale-110 shadow-purple-500/50 animate-breathe'
