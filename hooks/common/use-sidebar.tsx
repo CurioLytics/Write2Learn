@@ -11,7 +11,7 @@ type SidebarContextType = {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 // Local storage key for persisting sidebar state
-const SIDEBAR_STATE_KEY = 'wtl2-sidebar-open';
+const SIDEBAR_STATE_KEY = 'write2learn-sidebar-open';
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage if available, otherwise default to open
