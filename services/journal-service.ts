@@ -291,6 +291,21 @@ class JournalService {
 
       console.log('createJournal - Successfully created journal entry:', result);
 
+      // Track learning event for streak calculation
+      if (!data.is_draft) {
+        fetch('/api/analytics/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'journal_created',
+            metadata: {
+              journal_id: result.id,
+              title: data.title
+            }
+          })
+        }).catch(err => console.error('Error tracking journal event:', err));
+      }
+
       return { id: result.id };
     } catch (error) {
       console.error('Error in createJournal:', error);
@@ -351,6 +366,30 @@ class JournalService {
       }
 
       console.log('publishDraft - Successfully published draft journal');
+
+      // Track learning event when draft is published
+      // Need to get user_id from the journal first, but for now we assume the caller handles this context
+      // Or we can fetch the journal to get the user_id
+      const { data: journal } = await supabase
+        .from('journals')
+        .select('user_id, title')
+        .eq('id', journalId)
+        .single();
+
+      if (journal) {
+        fetch('/api/analytics/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'journal_created',
+            metadata: {
+              journal_id: journalId,
+              title: journal.title
+            }
+          })
+        }).catch(err => console.error('Error tracking journal event:', err));
+      }
+
       return { success: true };
     } catch (error) {
       console.error('Error in publishDraft:', error);

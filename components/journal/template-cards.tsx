@@ -21,31 +21,32 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const loadTemplates = async () => {
+    if (!user?.id) return;
+
+    const { data } = await supabase
+      .from('frameworks')
+      .select('profile_id, name, content, cover_image, description, is_pinned')
+      .eq('is_default', true)
+      .in('name', ['Morning Intentions', 'Evening Wind-Down'])
+      .order('name', { ascending: false })
+      .limit(2);
+
+    const formattedTemplates: JournalTemplate[] = (data || []).map((template: any) => ({
+      id: encodeURIComponent(template.name),
+      profile_id: template.profile_id,
+      name: template.name,
+      content: template.content,
+      cover_image: template.cover_image,
+      description: template.description,
+      is_pinned: template.is_pinned
+    }));
+
+    setTemplates(formattedTemplates);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    async function loadTemplates() {
-      if (!user?.id) return;
-
-      const { data } = await supabase
-        .from('frameworks')
-        .select('profile_id, name, content, cover_image, description')
-        .eq('is_default', true)
-        .in('name', ['Morning Intentions', 'Evening Wind-Down'])
-        .order('name', { ascending: false })
-        .limit(2);
-
-      const formattedTemplates: JournalTemplate[] = (data || []).map((template: any) => ({
-        id: encodeURIComponent(template.name),
-        profile_id: template.profile_id,
-        name: template.name,
-        content: template.content,
-        cover_image: template.cover_image,
-        description: template.description
-      }));
-
-      setTemplates(formattedTemplates);
-      setIsLoading(false);
-    }
-
     loadTemplates();
   }, [user?.id]);
 
@@ -61,21 +62,29 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
     }
   };
 
-  const handleSettingsClick = (e: React.MouseEvent, template: JournalTemplate) => {
+  const handleSettingsClick = async (e: React.MouseEvent, template: JournalTemplate) => {
     e.stopPropagation();
 
-    // Map JournalTemplate to Framework
-    const framework: Framework = {
-      name: template.name,
-      content: template.content || '',
-      description: template.description,
-      category: 'Template', // Or 'System', just needs to be a string
-      source: null,
-      is_pinned: false
-    };
+    // Fetch the latest framework data from database to get is_pinned status
+    const { data } = await supabase
+      .from('frameworks')
+      .select('name, content, description, category, source, is_pinned')
+      .eq('name', template.name)
+      .single();
 
-    setSelectedFramework(framework);
-    setIsDialogOpen(true);
+    if (data) {
+      const framework: Framework = {
+        name: data.name,
+        content: data.content || '',
+        description: data.description,
+        category: data.category || 'Template',
+        source: data.source,
+        is_pinned: data.is_pinned || false
+      };
+
+      setSelectedFramework(framework);
+      setIsDialogOpen(true);
+    }
   };
 
   if (isLoading) {
@@ -156,10 +165,7 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
         onClose={() => setIsDialogOpen(false)}
         mode="edit"
         framework={selectedFramework}
-        onSave={() => {
-          // Refresh logic if needed
-          window.location.reload();
-        }}
+        onSave={loadTemplates}
       />
     </div>
   );

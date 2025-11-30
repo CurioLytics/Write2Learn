@@ -131,7 +131,16 @@ To get a local copy up and running, follow these simple steps.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-1.  **Home**: Central hub for quick access to Journaling templates and Practice sessions (Roleplay & Flashcards).
+For detailed documentation on each feature, please refer to the following guides:
+-   [**Journal Feature**](docs/features/journal.md): Writing entries, using frameworks, and AI feedback.
+-   [**Roleplay Feature**](docs/features/roleplay.md): Practicing conversations and scenarios.
+-   [**Vocabulary Feature**](docs/features/vocabulary.md): Flashcards and Spaced Repetition System.
+-   [**Reporting Feature**](docs/features/reporting.md): Analytics and progress tracking.
+
+### Home
+The **Home** page is your central hub. Here you can:
+-   Quickly access **Journaling templates**.
+-   Start **Practice sessions** (Roleplay & Flashcards).
 2.  **Roleplay**: Practice real-world conversations (e.g., "Ordering Coffee") with AI partners. Review session history to track improvement.
 3.  **Journal**: Write daily entries using templates or free-form. Get instant AI feedback on grammar and vocabulary.
 4.  **Vocab**: Review flashcards using Spaced Repetition (FSRS) to maximize retention.

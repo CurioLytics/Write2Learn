@@ -23,6 +23,7 @@ export interface JournalTemplate {
   other?: string | null;
   is_default?: boolean | null;
   description?: string | null;
+  is_pinned?: boolean | null;
 }
 
 /**

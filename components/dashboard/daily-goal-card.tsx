@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Check, Square } from 'lucide-react';
+import { ChevronRight, BookOpen, PenLine, MessageSquare } from 'lucide-react';
 import { DailyGoalStatus } from '@/services/analytics-service';
 import { cn } from '@/utils/ui';
 import { useUserProfileStore } from '@/stores/user-profile-store';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface DailyGoalCardProps {
@@ -17,31 +15,27 @@ interface DailyGoalCardProps {
 
 export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   const profile = useUserProfileStore(state => state.profile);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
 
   // Use cached profile goals or fallback to API data targets
   const goals = [
     {
       key: 'vocab_created' as const,
       label: 'Add Vocabulary',
-      icon: '📚',
-      color: 'blue',
+      icon: BookOpen,
       target: profile?.daily_vocab_goal || data?.vocab_created.target || 10,
       link: '/vocab'
     },
     {
       key: 'journal_created' as const,
       label: 'Write Journal',
-      icon: '✍️',
-      color: 'purple',
+      icon: PenLine,
       target: profile?.daily_journal_goal || data?.journal_created.target || 3,
       link: '/journal/new'
     },
     {
       key: 'roleplay_completed' as const,
       label: 'Complete Roleplay',
-      icon: '🎭',
-      color: 'pink',
+      icon: MessageSquare,
       target: profile?.daily_roleplay_goal || data?.roleplay_completed.target || 2,
       link: '/roleplay'
     },
@@ -58,68 +52,86 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
   }
 
   const totalCompleted = data
-    ? goals.filter(goal => {
+    ? goals.reduce((sum, goal) => {
       const goalData = data[goal.key];
-      return goalData.completed >= goal.target;
-    }).length
+      return sum + goalData.completed;
+    }, 0)
     : 0;
 
-  const totalGoals = goals.length;
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.target, 0);
+  const progressPercentage = totalTarget > 0 ? Math.round((totalCompleted / totalTarget) * 100) : 0;
 
   return (
-    <Card className="p-6 bg-white shadow rounded-2xl">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold">Today's Goals</h3>
-        <p className="text-sm text-muted-foreground">
-          {totalCompleted} of {totalGoals} completed
-        </p>
+    <Card className="p-6 bg-white shadow rounded-2xl h-full flex flex-col">
+      {/* Header with circular progress */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Daily Plan</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {totalCompleted} / {totalTarget} tasks
+          </p>
+        </div>
+
+        {/* Circular progress indicator */}
+        <div className="relative w-16 h-16">
+          <svg className="w-16 h-16 transform -rotate-90">
+            {/* Background circle */}
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="#E5E7EB"
+              strokeWidth="6"
+              fill="none"
+            />
+            {/* Progress circle */}
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="#EF4444"
+              strokeWidth="6"
+              fill="none"
+              strokeDasharray={`${2 * Math.PI * 28}`}
+              strokeDashoffset={`${2 * Math.PI * 28 * (1 - progressPercentage / 100)}`}
+              strokeLinecap="round"
+              className="transition-all duration-500"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-sm font-bold text-gray-900">{progressPercentage}%</span>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-4">
+      {/* Goal items */}
+      <div className="space-y-1 flex-1">
         {goals.map(goal => {
           const completed = data?.[goal.key]?.completed || 0;
           const target = goal.target;
-          const isCompleted = completed >= target;
-          const progress = Math.min((completed / target) * 100, 100);
+          const Icon = goal.icon;
 
           return (
             <Link key={goal.key} href={goal.link}>
-              <div className="space-y-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {/* Checkbox icon instead of emoji */}
-                    {isCompleted ? (
-                      <div className="w-5 h-5 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center">
-                        <Square className="w-3 h-3 text-gray-300" />
-                      </div>
-                    )}
-                    <span className="text-sm font-medium">{goal.label}</span>
+              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-3 flex-1">
+                  {/* Minimalistic icon */}
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-gray-600" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm font-semibold",
-                      isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
-                    )}>
-                      {completed}/{target}
-                    </span>
-                  </div>
+
+                  {/* Goal name */}
+                  <span className="text-sm font-medium text-gray-700">
+                    {goal.label}
+                  </span>
                 </div>
 
-                {/* Progress bar */}
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500 rounded-full",
-                      isCompleted
-                        ? "bg-green-500"
-                        : "bg-gradient-to-r from-blue-500 to-purple-500"
-                    )}
-                    style={{ width: `${progress}%` }}
-                  />
+                {/* Count and arrow */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500">
+                    {completed} / {target}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 </div>
               </div>
             </Link>
@@ -127,13 +139,10 @@ export function DailyGoalCard({ data, isLoading }: DailyGoalCardProps) {
         })}
       </div>
 
-      {totalCompleted === totalGoals && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
-          <p className="text-sm font-medium text-green-900 dark:text-green-100 text-center">
-            🎉 Amazing! You've completed all goals today!
-          </p>
-        </div>
-      )}
+      {/* Bottom label */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <p className="text-xs text-center text-gray-400">Daily progress</p>
+      </div>
     </Card>
   );
 }

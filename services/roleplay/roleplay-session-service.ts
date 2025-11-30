@@ -47,6 +47,19 @@ class RoleplaySessionService {
       errorLog('completeSession', feedbackError);
     }
 
+    // Track learning event
+    fetch('/api/analytics/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'roleplay_completed',
+        metadata: {
+          session_id: sessionId,
+          roleplay_id: scenario.id
+        }
+      })
+    }).catch(err => console.error('Error tracking roleplay event:', err));
+
     return sessionId;
   }
 

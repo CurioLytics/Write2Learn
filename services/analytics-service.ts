@@ -2,55 +2,17 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  LearningEventType,
+  GrammarFeedbackView,
+  DailyGoalStatus,
+  WeeklyActivityData,
+  GrammarErrorSummary,
+  StreakData,
+  AnalyticsSummary
+} from '@/types/analytics';
 
-type LearningEventType = Database['public']['Tables']['learning_events']['Row']['event_type'];
-type GrammarFeedbackView = Database['public']['Views']['grammar_feedback_view']['Row'];
-
-export interface DailyGoalStatus {
-  date: string;
-  vocab_created: {
-    completed: number;
-    target: number;
-  };
-  journal_created: {
-    completed: number;
-    target: number;
-  };
-  roleplay_completed: {
-    completed: number;
-    target: number;
-  };
-}
-
-export interface WeeklyActivityData {
-  date: string;
-  vocab_created: number;
-  vocab_reviewed: number;
-  journal_created: number;
-  roleplay_completed: number;
-}
-
-export interface GrammarErrorSummary {
-  topic_name: string;
-  topic_id: string | null;
-  topic_level: string | null;
-  error_count: number;
-  recent_errors: string[];
-  all_tags: string[]; // All tags from all errors in this topic
-}
-
-export interface StreakData {
-  current_streak: number;
-  longest_streak: number;
-  last_active_date: string | null;
-}
-
-export interface AnalyticsSummary {
-  dailyGoal: DailyGoalStatus;
-  weeklyActivity: WeeklyActivityData[];
-  grammarErrors: GrammarErrorSummary[];
-  streak: StreakData;
-}
+// Types moved to @/types/analytics.ts
 
 /**
  * Service for Progress page analytics
@@ -71,7 +33,7 @@ export class AnalyticsService {
     try {
       const supabase = this.getSupabaseClient();
       const targetDate = date || new Date();
-      
+
       // Use UTC timezone to avoid timezone issues
       const startOfDay = new Date(Date.UTC(
         targetDate.getUTCFullYear(),
@@ -258,7 +220,7 @@ export class AnalyticsService {
         if (item.error_description && topicData.errors.length < 5) {
           topicData.errors.push(item.error_description);
         }
-        
+
         // Collect all tags
         if (item.tags && Array.isArray(item.tags)) {
           item.tags.forEach((tag: string) => topicData.tags.add(tag));
@@ -285,74 +247,113 @@ export class AnalyticsService {
   /**
    * Calculate streak based on session_active events
    */
+  /**
+   * Track a learning event and update streak
+   */
+  async trackLearningEvent(
+    profileId: string,
+    eventType: LearningEventType,
+    metadata: any = {}
+  ): Promise<void> {
+    try {
+      const supabase = this.getSupabaseClient();
+
+      // 1. Insert learning event
+      const { error: eventError } = await (supabase as any)
+        .from('learning_events')
+        .insert({
+          profile_id: profileId,
+          event_type: eventType,
+          metadata
+        });
+
+      if (eventError) throw eventError;
+
+      // 2. Update streak if applicable
+      if (['vocab_created', 'journal_created', 'roleplay_completed'].includes(eventType)) {
+        await this.updateStreak(profileId);
+      }
+    } catch (error) {
+      console.error('Error tracking learning event:', error);
+    }
+  }
+
+  /**
+   * Internal method to update streak logic
+   */
+  private async updateStreak(profileId: string): Promise<void> {
+    const supabase = this.getSupabaseClient();
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    // Get current streak
+    const { data: currentStreakData } = await (supabase as any)
+      .from('user_streaks')
+      .select('*')
+      .eq('profile_id', profileId)
+      .single();
+
+    let newCurrentStreak = 1;
+    let newLongestStreak = 1;
+    let shouldUpdate = false;
+
+    if (currentStreakData) {
+      const lastActive = currentStreakData.last_active_date;
+
+      if (lastActive === today) {
+        return; // Already counted
+      } else if (lastActive === yesterday) {
+        newCurrentStreak = currentStreakData.current_streak + 1;
+      } else {
+        newCurrentStreak = 1; // Streak broken
+      }
+
+      newLongestStreak = Math.max(currentStreakData.longest_streak, newCurrentStreak);
+      shouldUpdate = true;
+    } else {
+      shouldUpdate = true; // First time
+    }
+
+    if (shouldUpdate) {
+      const { error } = await (supabase as any)
+        .from('user_streaks')
+        .upsert({
+          profile_id: profileId,
+          current_streak: newCurrentStreak,
+          longest_streak: newLongestStreak,
+          last_active_date: today,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) console.error('Error updating streak:', error);
+    }
+  }
+
+  /**
+   * Get streak data from user_streaks table
+   */
   async getStreak(profileId: string): Promise<StreakData> {
     try {
       const supabase = this.getSupabaseClient();
       const { data, error } = await (supabase as any)
-        .from('learning_events')
-        .select('created_at')
+        .from('user_streaks')
+        .select('current_streak, longest_streak, last_active_date')
         .eq('profile_id', profileId)
-        .eq('event_type', 'session_active')
-        .order('created_at', { ascending: false });
+        .single();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error;
 
-      if (!data || data.length === 0) {
+      if (!data) {
         return { current_streak: 0, longest_streak: 0, last_active_date: null };
       }
 
-      // Get unique dates (sorted descending)
-      const uniqueDates: string[] = Array.from(
-        new Set((data as any).map((e: any) => new Date(e.created_at).toISOString().split('T')[0]))
-      ).sort((a: any, b: any) => b.localeCompare(a)) as string[];
-
-      // Calculate current streak
-      let currentStreak = 0;
-      const today = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-      // Start counting only if last activity was today or yesterday
-      if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
-        currentStreak = 1;
-        let expectedDate = new Date(uniqueDates[0]);
-        
-        for (let i = 1; i < uniqueDates.length; i++) {
-          expectedDate.setDate(expectedDate.getDate() - 1);
-          const expectedDateStr = expectedDate.toISOString().split('T')[0];
-          
-          if (uniqueDates[i] === expectedDateStr) {
-            currentStreak++;
-          } else {
-            break;
-          }
-        }
-      }
-
-      // Calculate longest streak
-      let longestStreak = 0;
-      let tempStreak = 1;
-
-      for (let i = 1; i < uniqueDates.length; i++) {
-        const prevDate = new Date(uniqueDates[i - 1]);
-        const currDate = new Date(uniqueDates[i]);
-        const diffDays = Math.floor((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) {
-          tempStreak++;
-        } else {
-          longestStreak = Math.max(longestStreak, tempStreak);
-          tempStreak = 1;
-        }
-      }
-      longestStreak = Math.max(longestStreak, tempStreak, currentStreak);
-
       return {
-        current_streak: currentStreak,
-        longest_streak: longestStreak,
-        last_active_date: (data[0] as any).created_at,
+        current_streak: data.current_streak,
+        longest_streak: data.longest_streak,
+        last_active_date: data.last_active_date,
       };
     } catch (error) {
-      console.error('Error calculating streak:', error);
+      console.error('Error fetching streak:', error);
       return { current_streak: 0, longest_streak: 0, last_active_date: null };
     }
   }
@@ -366,7 +367,7 @@ export class AnalyticsService {
   ): Promise<Map<string, DailyGoalStatus>> {
     try {
       const supabase = this.getSupabaseClient();
-      
+
       // Get start and end of month in UTC
       const startOfMonth = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1, 0, 0, 0, 0));
       const endOfMonth = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 23, 59, 59, 999));
@@ -401,22 +402,22 @@ export class AnalyticsService {
 
       // Group events by date
       const eventsByDate = new Map<string, { [key: string]: number }>();
-      
+
       events.forEach((event: any) => {
         const eventDate = new Date(event.created_at);
         const dateKey = `${eventDate.getUTCFullYear()}-${String(eventDate.getUTCMonth() + 1).padStart(2, '0')}-${String(eventDate.getUTCDate()).padStart(2, '0')}`;
-        
+
         if (!eventsByDate.has(dateKey)) {
           eventsByDate.set(dateKey, {});
         }
-        
+
         const dayCounts = eventsByDate.get(dateKey)!;
         dayCounts[event.event_type] = (dayCounts[event.event_type] || 0) + 1;
       });
 
       // Create goal statuses for each date
       const goalStatuses = new Map<string, DailyGoalStatus>();
-      
+
       eventsByDate.forEach((counts, dateKey) => {
         goalStatuses.set(dateKey, {
           date: dateKey,

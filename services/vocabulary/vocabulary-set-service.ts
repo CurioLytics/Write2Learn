@@ -1,4 +1,5 @@
 import { createSupabaseClient } from '@/services/supabase/auth-helpers';
+import { analyticsService } from '@/services/analytics-service';
 
 export interface CreateVocabularySetRequest {
   title: string;
@@ -33,7 +34,7 @@ export class VocabularySetService {
    * Create a new vocabulary set with optional vocabulary words
    */
   async createVocabularySet(
-    userId: string, 
+    userId: string,
     request: CreateVocabularySetRequest
   ): Promise<VocabularySetResponse> {
     const { title, description, is_default = false, vocabularyWords = [] } = request;
@@ -81,10 +82,10 @@ export class VocabularySetService {
    * Add vocabulary words to a set
    */
   async addVocabularyWords(
-    setId: string, 
+    setId: string,
     vocabularyWords: Array<{ word: string; meaning: string; example?: string; }>
   ): Promise<number> {
-    const validWords = vocabularyWords.filter(word => 
+    const validWords = vocabularyWords.filter(word =>
       word.word?.trim() && word.meaning?.trim()
     );
 
@@ -106,6 +107,24 @@ export class VocabularySetService {
     if (wordsError) {
       console.error('Error adding vocabulary words:', wordsError);
       throw new Error(`Failed to add vocabulary words: ${wordsError.message}`);
+    }
+
+    // Get profile_id for the set to track events
+    const { data: setInfo } = await this.supabase
+      .from('vocabulary_set')
+      .select('profile_id')
+      .eq('id', setId)
+      .single();
+
+    if (setInfo?.profile_id) {
+      // Track learning events for each word
+      // We run this in parallel and don't block the return
+      Promise.all(validWords.map(word =>
+        analyticsService.trackLearningEvent(setInfo.profile_id, 'vocab_created', {
+          set_id: setId,
+          word: word.word
+        })
+      )).catch(err => console.error('Error tracking vocab events:', err));
     }
 
     return validWords.length;

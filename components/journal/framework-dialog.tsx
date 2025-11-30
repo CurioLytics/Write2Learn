@@ -107,8 +107,27 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
     }
   };
 
-  const togglePin = () => {
-    setFormData(prev => ({ ...prev, is_pinned: !prev.is_pinned }));
+  const handleTogglePin = async () => {
+    const newPinnedState = !formData.is_pinned;
+
+    // Update local state immediately for UI feedback
+    setFormData(prev => ({ ...prev, is_pinned: newPinnedState }));
+
+    // If we have an existing framework (not in create mode), save to database immediately
+    if (framework?.name && mode !== 'create') {
+      try {
+        await frameworkService.updateFramework(framework.name, {
+          is_pinned: newPinnedState
+        });
+        // Optionally refresh the parent component
+        onSave?.();
+      } catch (error) {
+        console.error('Failed to update pin status:', error);
+        // Revert the local state if save failed
+        setFormData(prev => ({ ...prev, is_pinned: !newPinnedState }));
+      }
+    }
+    // If in create mode, the pin state will be saved when the framework is created
   };
 
   const handleQuestionChange = (index: number, value: string) => {
@@ -145,7 +164,7 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
 
           {/* Pin Button (Top Right, next to close) */}
           <button
-            onClick={togglePin}
+            onClick={handleTogglePin}
             className="absolute top-4 right-14 w-8 h-8 flex items-center justify-center z-10 rounded-full hover:bg-gray-100 transition-colors"
             title={formData.is_pinned ? "Unpin" : "Pin"}
           >

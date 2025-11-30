@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RefreshCw, Flame, TrendingUp, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/ui';
-import { DailyGoalStatus } from '@/services/analytics-service';
+import { DailyGoalStatus, AnalyticsSummary } from '@/types/analytics';
 import { SectionNavigation } from '@/components/ui/section-navigation';
 
 type DatePreset = '7days' | '30days' | '90days' | 'all';
@@ -157,9 +157,9 @@ export default function ReportPage() {
       </div>
 
       <div id="overview" className="space-y-8">
-        {/* First Row: Today's Goals, Calendar, and Streak Cards */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Today's Goals */}
+        {/* Reorganized Layout: 2 columns */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Column 1: Daily Goals (full height) */}
           <div>
             <DailyGoalCard
               data={data?.dailyGoal || null}
@@ -167,8 +167,57 @@ export default function ReportPage() {
             />
           </div>
 
-          {/* Calendar */}
-          <div>
+          {/* Column 2: Nested grid with Streak cards and Calendar */}
+          <div className="space-y-6">
+            {/* Row 1: Streak Cards - Side by side */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Current Streak */}
+              <Card className={cn(
+                "relative overflow-hidden bg-white shadow rounded-2xl",
+                isStreakActive && "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50"
+              )}>
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={cn(
+                      "p-3 rounded-full",
+                      isStreakActive ? "bg-orange-100" : "bg-gray-100"
+                    )}>
+                      <Flame className={cn(
+                        "w-6 h-6",
+                        isStreakActive ? "text-orange-500" : "text-gray-400"
+                      )} />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 mb-1">STREAK</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {streak?.current_streak || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">ngày</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Longest Streak */}
+              <Card className="bg-white shadow rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="p-3 rounded-full bg-blue-100">
+                      <TrendingUp className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 mb-1">LONGEST</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {streak?.longest_streak || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">ngày</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Row 2: Calendar (full width) */}
             <Card className="bg-white shadow rounded-2xl">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -201,50 +250,6 @@ export default function ReportPage() {
                     goalStatuses={monthlyGoals}
                   />
                 )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Streak Cards - Stacked vertically */}
-          <div className="space-y-6">
-            <Card className={cn(
-              "relative overflow-hidden bg-white shadow rounded-2xl",
-              isStreakActive && "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50"
-            )}>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "p-3 rounded-full",
-                    isStreakActive ? "bg-orange-100" : "bg-gray-100"
-                  )}>
-                    <Flame className={cn(
-                      "w-6 h-6",
-                      isStreakActive ? "text-orange-500" : "text-gray-400"
-                    )} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">STREAK</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {streak?.current_streak || 0} ngày
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white shadow rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-blue-100">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Longest Streak</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {streak?.longest_streak || 0} ngày
-                    </p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>

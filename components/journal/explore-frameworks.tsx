@@ -17,6 +17,23 @@ export function ExploreFrameworks() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
+  const refreshFrameworks = async () => {
+    try {
+      const frameworksData = await frameworkService.getFrameworks();
+      setFrameworks(frameworksData);
+
+      // Update selectedFramework if it's currently open
+      if (selectedFramework) {
+        const updatedFramework = frameworksData.find(f => f.name === selectedFramework.name);
+        if (updatedFramework) {
+          setSelectedFramework(updatedFramework);
+        }
+      }
+    } catch (err) {
+      console.error('Error refreshing frameworks:', err);
+    }
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -145,6 +162,7 @@ export function ExploreFrameworks() {
         framework={selectedFramework}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        onSave={refreshFrameworks}
       />
 
       <FrameworkDialog
