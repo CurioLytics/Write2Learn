@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     // Authenticate user and get preferences
     const user = await authenticateUser();
     const userPreferences = await getUserPreferences(user.id);
-    
+
     const { exercises } = await request.json();
 
     if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
@@ -31,7 +31,12 @@ export async function POST(request: NextRequest) {
 
     console.log('Exercise check payload:', JSON.stringify(payload, null, 2));
 
-    const response = await fetch('https://auto2.elyandas.com/webhook/exercise-check', {
+    const webhookUrl = process.env.GET_EXERCISE_CHECK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      throw new Error('GET_EXERCISE_CHECK_WEBHOOK_URL is not defined');
+    }
+
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest) {
       } catch {
         console.log('Could not parse error response');
       }
-      
+
       return NextResponse.json(
         { error: errorMessage },
         { status: response.status }
@@ -72,10 +77,10 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     // Handle webhook response - expect array with output.correction structure
     let corrections: string[] = [];
-    
+
     if (Array.isArray(webhookResponse)) {
       // Case 1: [{"output": {"correction": [...]}}]
       if (webhookResponse[0]?.output?.correction && Array.isArray(webhookResponse[0].output.correction)) {
@@ -92,13 +97,13 @@ export async function POST(request: NextRequest) {
     } else if (webhookResponse?.corrections && Array.isArray(webhookResponse.corrections)) {
       corrections = webhookResponse.corrections;
     }
-    
+
     console.log(`Successfully extracted ${corrections.length} corrections`);
     return NextResponse.json({ corrections });
 
   } catch (error) {
     console.error('Error calling exercise-check webhook:', error);
-    
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Lỗi không xác định khi kiểm tra bài tập' },
       { status: 500 }

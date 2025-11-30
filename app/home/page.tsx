@@ -265,22 +265,34 @@ export default function DashboardPage() {
     }, []);
 
     // Updated auto-scroll behavior for 2 sections
+    // Updated auto-scroll behavior for 2 sections
     useEffect(() => {
         const handleScroll = () => {
             if (isAutoScrolling) return;
 
             const scrollY = window.scrollY;
-            const windowHeight = window.innerHeight;
-            const sectionThreshold = windowHeight * 0.5;
+            // Threshold for "a bit scroll" - e.g., 50px
+            const threshold = 50;
 
-            if (scrollY < sectionThreshold && currentSection !== 'journal') {
-                setIsAutoScrolling(true);
-                setCurrentSection('journal');
-                setTimeout(() => setIsAutoScrolling(false), 1000);
-            } else if (scrollY >= sectionThreshold && currentSection !== 'practice') {
-                setIsAutoScrolling(true);
-                setCurrentSection('practice');
-                setTimeout(() => setIsAutoScrolling(false), 1000);
+            // Get the top position of the practice section
+            const practiceTop = roleplaySectionRef.current?.offsetTop || window.innerHeight;
+
+            if (currentSection === 'journal') {
+                // If we are in journal section and scroll down a bit
+                if (scrollY > threshold) {
+                    setIsAutoScrolling(true);
+                    setCurrentSection('practice');
+                    scrollTo('practice');
+                    setTimeout(() => setIsAutoScrolling(false), 1000);
+                }
+            } else if (currentSection === 'practice') {
+                // If we are in practice section and scroll up a bit
+                if (scrollY < practiceTop - threshold) {
+                    setIsAutoScrolling(true);
+                    setCurrentSection('journal');
+                    scrollTo('journal');
+                    setTimeout(() => setIsAutoScrolling(false), 1000);
+                }
             }
         };
 
@@ -339,20 +351,10 @@ export default function DashboardPage() {
                             className="relative overflow-hidden bg-white border-2 border-gray-900 text-gray-900 hover:text-white transition-colors duration-500 group text-sm sm:text-base"
                         >
                             <span className="absolute inset-0 bg-gray-900 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></span>
-                            <span className="relative z-10">Free Write Now</span>
+                            <span className="relative z-10">Viết tự do</span>
                         </Button>
                     </div>
                 </div>
-                <button
-                    aria-label="Scroll down to practice section"
-                    onClick={() => scrollTo('practice')}
-                    className="mt-4 sm:mt-6 mx-auto flex items-center justify-center p-2 sm:p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all animate-bounce"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800">
-                        <path d="M12 5v14" />
-                        <path d="m19 12-7 7-7-7" />
-                    </svg>
-                </button>
             </section>
 
             {/* SECTION 2 – LUYỆN TẬP (Roleplay + Vocab) */}
@@ -481,18 +483,6 @@ export default function DashboardPage() {
                         <DueFlashcards />
                     </div>
 
-                    <div className="flex justify-center">
-                        <button
-                            aria-label="Cuộn lên phần viết"
-                            onClick={() => scrollTo('journal')}
-                            className="mt-4 p-3 rounded-full bg-white/70 shadow hover:bg-white transition-all"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-800 rotate-180">
-                                <path d="M12 5v14" />
-                                <path d="m19 12-7 7-7-7" />
-                            </svg>
-                        </button>
-                    </div>
                 </div>
             </section>
         </div>

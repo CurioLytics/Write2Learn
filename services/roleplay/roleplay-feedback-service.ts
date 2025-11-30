@@ -11,7 +11,7 @@ class RoleplayFeedbackService {
    * Calls external webhook to analyze conversation and return structured feedback
    */
   async generateFeedback(
-    scenario: RoleplayScenario, 
+    scenario: RoleplayScenario,
     messages: RoleplayMessage[],
     userPreferences?: { name?: string; english_level?: string; style?: string } | null
   ): Promise<RoleplayFeedback> {
@@ -22,7 +22,7 @@ class RoleplayFeedbackService {
         english_level: userPreferences?.english_level || 'intermediate',
         style: userPreferences?.style || 'conversational',
       };
-      
+
       const payload = {
         body: {
           query: {
@@ -43,7 +43,9 @@ class RoleplayFeedbackService {
         }))
       };
 
-      const response = await fetch('https://auto2.elyandas.com/webhook/roleplay-assesment', {
+      // Call our internal API route instead of the external webhook directly
+      // This avoids exposing the webhook URL and handles the server-side env var access
+      const response = await fetch('/api/roleplay/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -54,7 +56,7 @@ class RoleplayFeedbackService {
       }
 
       const data = await response.json();
-      
+
       // Flexible parsing - handle both old and new webhook formats
       const findFeedback = (obj: any): RoleplayFeedback | null => {
         // NEW FORMAT: { enhanced_version, grammar_details, output: {clarity, vocabulary, ideas} }
@@ -69,13 +71,13 @@ class RoleplayFeedbackService {
             }
           };
         }
-        
+
         // OLD FORMAT: { output: {clarity, vocabulary, ideas, enhanced_version} }
         // Convert to new format
         if (obj?.output && (obj.output.clarity || obj.output.vocabulary || obj.output.ideas)) {
           return {
-            enhanced_version: Array.isArray(obj.output.enhanced_version) 
-              ? obj.output.enhanced_version.join('\n\n') 
+            enhanced_version: Array.isArray(obj.output.enhanced_version)
+              ? obj.output.enhanced_version.join('\n\n')
               : (obj.output.enhanced_version || ''),
             grammar_details: obj.grammar_details || [],
             output: {
@@ -85,13 +87,13 @@ class RoleplayFeedbackService {
             }
           };
         }
-        
+
         // Search in nested fields
         if (obj?.response) {
           const result = findFeedback(obj.response);
           if (result) return result;
         }
-        
+
         // Search in array elements
         if (Array.isArray(obj)) {
           for (const item of obj) {
@@ -99,15 +101,15 @@ class RoleplayFeedbackService {
             if (result) return result;
           }
         }
-        
+
         return null;
       };
-      
+
       const feedback = findFeedback(data);
       if (feedback) {
         return feedback;
       }
-      
+
       throw new Error('Invalid feedback response structure');
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to generate feedback');

@@ -45,16 +45,16 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
     console.log('🎯 [Dialog] grammarTopics prop:', JSON.stringify(grammarTopics, null, 2));
     console.log('🎯 [Dialog] grammarTopics type:', typeof grammarTopics);
     console.log('🎯 [Dialog] grammarTopics keys:', grammarTopics ? Object.keys(grammarTopics) : 'null/undefined');
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log('🚀 [Dialog] Calling exerciseService.generateExercises');
       const result = await exerciseService.generateExercises(errorData, grammarTopics);
-      
+
       console.log('✅ [Dialog] Result received:', result);
-      
+
       if (!result.success) {
         setError('Tạm thời đang có lỗi, bạn học phần khác trước nhé');
         return;
@@ -97,7 +97,7 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
   const handleSubmit = async () => {
     setIsGrading(true);
     setError(null);
-    
+
     try {
       const topics = exercises.map((topic, topicIndex) => {
         const topicAnswers = topic.quizzes.map((_, quizIndex) => {
@@ -113,7 +113,7 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
       });
 
       const result = await exerciseService.gradeExercisesV2({ topics });
-      
+
       if (!result.success) {
         const errorMsg = result.error?.message || 'Lỗi không xác định';
         const errorType = result.error?.type || 'UNKNOWN';
@@ -211,45 +211,45 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
               <>
                 <ScrollArea className="flex-1 px-6">
                   <div className="space-y-6 py-4">
-                {exercises.map((topic, topicIndex) => (
-                  <Card key={topicIndex} className="border-2">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <CardTitle className="text-lg">{topic.topic_name}</CardTitle>
-                        <Badge variant="secondary" className="shrink-0">
-                          {topic.exercise_type}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {topic.quizzes.map((quiz, quizIndex) => {
-                        const answerKey = `${topicIndex}-${quizIndex}`;
-                        const globalIndex = exercises
-                          .slice(0, topicIndex)
-                          .reduce((sum, t) => sum + t.quizzes.length, 0) + quizIndex + 1;
-                        
-                        return (
-                          <div key={quizIndex} className="space-y-2">
-                            <div className="flex gap-3">
-                              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                                {globalIndex}
-                              </span>
-                              <div className="flex-1">
-                                <p className="text-gray-900 mb-2">{quiz}</p>
-                                <Input
-                                  type="text"
-                                  value={userAnswers[answerKey] || ''}
-                                  onChange={(e) => handleAnswerChange(topicIndex, quizIndex, e.target.value)}
-                                  placeholder="Nhập câu trả lời..."
-                                  className="w-full"
-                                />
-                              </div>
-                            </div>
+                    {exercises.map((topic, topicIndex) => (
+                      <Card key={topicIndex} className="border-2">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <CardTitle className="text-lg">{topic.topic_name}</CardTitle>
+                            <Badge variant="secondary" className="shrink-0">
+                              {topic.exercise_type}
+                            </Badge>
                           </div>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {topic.quizzes.map((quiz, quizIndex) => {
+                            const answerKey = `${topicIndex}-${quizIndex}`;
+                            const globalIndex = exercises
+                              .slice(0, topicIndex)
+                              .reduce((sum, t) => sum + t.quizzes.length, 0) + quizIndex + 1;
+
+                            return (
+                              <div key={quizIndex} className="space-y-2">
+                                <div className="flex gap-3">
+                                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                                    {globalIndex}
+                                  </span>
+                                  <div className="flex-1">
+                                    <p className="text-gray-900 mb-2">{quiz}</p>
+                                    <Input
+                                      type="text"
+                                      value={userAnswers[answerKey] || ''}
+                                      onChange={(e) => handleAnswerChange(topicIndex, quizIndex, e.target.value)}
+                                      placeholder="Nhập câu trả lời..."
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </ScrollArea>
@@ -262,7 +262,7 @@ export function PracticeDialog({ isOpen, onClose, errorData, grammarTopics }: Pr
                   >
                     Làm lại
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSubmit}
                     disabled={isGrading}
                   >

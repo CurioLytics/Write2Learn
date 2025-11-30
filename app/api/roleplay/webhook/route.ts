@@ -3,21 +3,29 @@ import { authenticateUser, getUserPreferences } from '@/utils/api-helpers';
 
 // The actual webhook URL - kept on server side to prevent exposure
 // Using environment variable for webhook URL
-const WEBHOOK_URL = process.env.GET_ROLEPLAY_WEBHOOK_URL || "https://auto2.elyandas.com/webhook/roleplay";
+const WEBHOOK_URL = process.env.GET_ROLEPLAY_RESPONSE_WEBHOOK_URL;
 
 /**
  * API proxy for the roleplay webhook to avoid CORS issues
  * Acts as a middleman between the frontend and the external webhook
  */
 export async function POST(request: Request) {
+  if (!WEBHOOK_URL) {
+    console.error('GET_ROLEPLAY_RESPONSE_WEBHOOK_URL is not defined');
+    return NextResponse.json(
+      { error: 'Service configuration error' },
+      { status: 500 }
+    );
+  }
+
   try {
     // Authenticate user and get preferences
     const user = await authenticateUser();
     const userPreferences = await getUserPreferences(user.id);
-    
+
     // Get the JSON body from the request
     const body = await request.json();
-    
+
     // Validate the request body for new body.query structure
     if (!body.body?.query || !Array.isArray(body.messages) || body.messages.length === 0) {
       return NextResponse.json(
@@ -25,9 +33,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     const { query } = body.body;
-    
+
     // Validate required fields in query
     if (!query.title || !query.level || !query.ai_role || !('partner_prompt' in query)) {
       return NextResponse.json(
@@ -35,17 +43,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     // Extract request ID from headers or generate a new one
-    const requestId = request.headers.get('X-Request-ID') || 
-                     `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
+    const requestId = request.headers.get('X-Request-ID') ||
+      `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     console.log(`[${requestId}] Proxying request to webhook:`, requestId);
-    
+
     // Set up timeout for the webhook request
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
-    
+
     // Validate and log the payload structure for debugging
     console.log(`[${requestId}] Received payload structure:`, {
       query: {
@@ -56,10 +64,10 @@ export async function POST(request: Request) {
       },
       message_count: body.messages.length
     });
-    
+
     // Since we're passing structured data that shouldn't be flattened into URL parameters,
     // we'll need to either maintain the POST approach or encode the whole payload
-    
+
     // For GET requests, create a properly structured query with the body.query format
     const formattedQuery = {
       body: {
@@ -75,24 +83,24 @@ export async function POST(request: Request) {
         content: msg.content
       }))
     };
-    
+
     // Encode the entire structured payload as a single parameter
     const params = new URLSearchParams();
     params.append('payload', JSON.stringify(formattedQuery));
-    
+
     // Build the URL with query parameters
     const urlWithParams = `${WEBHOOK_URL}?${params.toString()}`;
-    
+
     // Log the full URL we're about to request (useful for debugging)
     console.log(`[${requestId}] Requesting webhook URL: ${urlWithParams}`);
-    
+
     // Always use POST for the webhook API
     let response;
-    
+
     // Try POST with the proper JSON structure
     try {
       console.log(`[${requestId}] Sending POST request to webhook`);
-      
+
       // Format the payload according to the required structure with body.query format
       const formattedPayload = {
         body: {
@@ -113,9 +121,9 @@ export async function POST(request: Request) {
           content: msg.content
         }))
       };
-      
+
       console.log(`[${requestId}] Formatted payload:`, formattedPayload);
-      
+
       response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -130,43 +138,43 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       console.error(`[${requestId}] POST request failed:`, error);
-      
+
       // If POST fails completely, return a useful error
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to connect to webhook service',
           message: 'The roleplay service is currently unavailable. Please try again later.'
-        }, 
+        },
         { status: 500 }
       );
     }
-    
+
     // Log the response status and headers for debugging
     console.log(`[${requestId}] Webhook response status: ${response.status}`);
     console.log(`[${requestId}] Webhook response headers:`, Object.fromEntries([...response.headers.entries()]));
-    
+
     clearTimeout(timeoutId);
-    
+
     // Get the response text first to log it
     const responseText = await response.text();
     console.log(`[${requestId}] Webhook response received:`, responseText);
-    
+
     // Handle empty responses
     if (!responseText || responseText.trim() === '') {
       console.warn(`[${requestId}] Empty response received from webhook`);
       return NextResponse.json(
-        { 
+        {
           message: "I'm here to help with your conversation. What would you like to discuss?",
-          warning: "Empty response from webhook" 
-        }, 
+          warning: "Empty response from webhook"
+        },
         { status: 200 }
       );
     }
-    
+
     try {
       // Try to parse the response as JSON
       const data = JSON.parse(responseText);
-      
+
       // Check for either 'message' or 'output' property
       if (data.output) {
         // Convert 'output' to 'message' format that our client expects
@@ -181,20 +189,20 @@ export async function POST(request: Request) {
         // No recognized response format but status is OK
         console.error(`[${requestId}] Invalid response format received:`, data);
         return NextResponse.json(
-          { 
+          {
             message: "I'm sorry, I couldn't generate a proper response at this time. Please try again.",
-            error: "Invalid response format" 
-          }, 
+            error: "Invalid response format"
+          },
           { status: 200 }
         );
       }
-      
+
       // Return the response with appropriate status for error cases
       return NextResponse.json(data, { status: response.status });
     } catch (jsonError) {
       // Handle non-JSON responses
       console.error(`[${requestId}] Failed to parse JSON response:`, jsonError);
-      
+
       // If response is not JSON but status is OK, try to extract useful content
       if (response.ok) {
         // Return the raw text as the message if we can't parse JSON
@@ -205,7 +213,7 @@ export async function POST(request: Request) {
       } else {
         // Return error for non-OK responses
         return NextResponse.json(
-          { 
+          {
             error: `Webhook returned status ${response.status}`,
             details: responseText
           },
@@ -215,7 +223,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Webhook proxy error:', error);
-    
+
     // Handle different types of errors
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
@@ -225,7 +233,7 @@ export async function POST(request: Request) {
         );
       }
     }
-    
+
     // Generic error response
     return NextResponse.json(
       { error: 'Failed to process request' },

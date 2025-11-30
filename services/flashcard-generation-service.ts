@@ -28,7 +28,7 @@ interface FlashcardGenerationResult {
 }
 
 class FlashcardGenerationService {
-  private readonly webhookUrl = 'https://auto2.elyandas.com/webhook/save-process-highlight-v1';
+  private readonly webhookUrl = process.env.NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL || '';
   private readonly timeout = 60000; // 60 seconds
 
   /**
@@ -39,6 +39,10 @@ class FlashcardGenerationService {
    */
   async generateFlashcards(payload: FlashcardGenerationPayload): Promise<FlashcardGenerationResult> {
     try {
+      if (!this.webhookUrl) {
+        throw new Error('NEXT_PUBLIC_SAVE_HIGHLIGHTS_WEBHOOK_URL is not defined');
+      }
+
       const response = await fetch(this.webhookUrl, {
         method: 'POST',
         headers: {
@@ -61,7 +65,7 @@ class FlashcardGenerationService {
       // Parse webhook response structure: can be either:
       // { output: [{ word, back }] } OR [{ output: [{ word, back }] }]
       let flashcards: GeneratedFlashcard[] = [];
-      
+
       if (responseData?.output && Array.isArray(responseData.output)) {
         // Direct object with output property
         flashcards = responseData.output;
@@ -74,9 +78,9 @@ class FlashcardGenerationService {
       }
 
       // Validate flashcard format where back is a string
-      const validFlashcards = flashcards.filter((card: any) => 
-        card && 
-        typeof card.word === 'string' && 
+      const validFlashcards = flashcards.filter((card: any) =>
+        card &&
+        typeof card.word === 'string' &&
         typeof card.back === 'string'
       ).map((card: any) => ({
         word: card.word,

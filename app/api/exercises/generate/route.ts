@@ -6,10 +6,10 @@ export async function POST(request: NextRequest) {
     // Authenticate user and get preferences
     const user = await authenticateUser();
     const userPreferences = await getUserPreferences(user.id);
-    
+
     const body = await request.json();
     console.log('📥 [API] Raw request body:', JSON.stringify(body, null, 2));
-    
+
     const { errorData, grammarTopics } = body;
 
     console.log('📥 [API] Extracted grammarTopics:', JSON.stringify(grammarTopics, null, 2));
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     console.log('📤 [API] payload.topics:', payload.topics);
     console.log('📤 [API] payload.topics keys:', Object.keys(payload.topics));
     console.log('📤 [API] payload.topics values:', Object.values(payload.topics));
-    
+
     const payloadString = JSON.stringify(payload);
     console.log('📤 [API] Stringified payload:', payloadString);
     console.log('📤 [API] Payload length:', payloadString.length);
@@ -46,7 +46,12 @@ export async function POST(request: NextRequest) {
     console.log('Exercise generation payload:', JSON.stringify(payload, null, 2));
 
     // Call webhook with JSON payload
-    const response = await fetch('https://auto2.elyandas.com/webhook/gen-exercise', {
+    const webhookUrl = process.env.GET_GEN_EXERCISE_WEBHOOK_URL;
+    if (!webhookUrl) {
+      throw new Error('GET_GEN_EXERCISE_WEBHOOK_URL is not defined');
+    }
+
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +74,7 @@ export async function POST(request: NextRequest) {
       } catch (e) {
         console.log('Could not parse error response');
       }
-      
+
       return NextResponse.json(
         { error: errorMessage },
         { status: response.status }
@@ -89,10 +94,10 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     // Handle new nested structure: { output: [{ topic_name, exercise_type, quizzes: [...] }] }
     let exercises: any[] = [];
-    
+
     // Structure 1: { output: [{ topic_name, exercise_type, quizzes }] }
     if (webhookResponse?.output && Array.isArray(webhookResponse.output)) {
       exercises = webhookResponse.output;
@@ -110,7 +115,7 @@ export async function POST(request: NextRequest) {
       exercises = webhookResponse;
       console.log('Using direct array as exercises:', exercises);
     }
-    
+
     // Validate exercises structure
     if (!exercises || exercises.length === 0) {
       console.log('No exercises found in webhook response:', webhookResponse);
@@ -121,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate each exercise has required fields
-    const validExercises = exercises.filter(ex => 
+    const validExercises = exercises.filter(ex =>
       ex.topic_name && ex.exercise_type && Array.isArray(ex.quizzes) && ex.quizzes.length > 0
     );
 
@@ -138,7 +143,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error calling gen-exercise webhook:', error);
-    
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Lỗi không xác định khi tạo bài tập' },
       { status: 500 }

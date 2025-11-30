@@ -259,23 +259,15 @@ export default function JournalFeedbackPage() {
 
   // Show loading only when feedback is loading or processing
   // Use same full-screen layout as editor for smooth transition
-  if (loadingFB || processing) {
+  if (loadingFB) {
     return (
       <div className="bg-white px-6 py-8 min-h-screen flex items-center justify-center">
         <BreathingLoader
-          message={processing ?
-            (highlights.length > 0 ? 'Đang tạo flashcard từ phần đánh dấu...' : 'Đang xử lý...') :
-            'Đang phân tích nhật ký của bạn...'
-          }
+          message="Đang phân tích nhật ký của bạn..."
           className="max-w-md"
         />
       </div>
     );
-  }
-
-  // Auth check - redirect if not authenticated (but don't show loading)
-  if (!loading && !user) {
-    return null; // Will redirect via useEffect
   }
 
   if (error || !feedback) {

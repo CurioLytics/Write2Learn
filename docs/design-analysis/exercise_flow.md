@@ -10,9 +10,9 @@
    - Nhấn **Đóng** để thoát.
 
 
-Weebhook để gen bài tập: https://auto2.elyandas.com/webhook/gen-exercise
+Weebhook để gen bài tập: GET_GEN_EXERCISE_WEBHOOK_URL
 -> input data: các looxoi sai trong khung thời gian đã chọn (hiện ở UI)
 -> output: list câu hỏi
-Weebhook để chấm bài tập: https://auto2.elyandas.com/webhook/grade-exercise
+Weebhook để chấm bài tập: GET_EXERCISE_CHECK_WEBHOOK_URL
 -> input data: câu hỏi + đáp án người dùng nhập cho từng câu    
 -> output: điểm số và feedback cho từng câu

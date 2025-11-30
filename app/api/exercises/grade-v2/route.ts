@@ -5,7 +5,7 @@ import { GradingV2Payload } from '@/types/exercise';
 export async function POST(request: NextRequest) {
   try {
     await authenticateUser();
-    
+
     const body = await request.json() as GradingV2Payload;
     const { topics } = body;
 
@@ -19,18 +19,18 @@ export async function POST(request: NextRequest) {
     // Validate each topic has required fields
     for (let i = 0; i < topics.length; i++) {
       const topic = topics[i];
-      
+
       if (!topic.topic_name || !Array.isArray(topic.quizzes) || !Array.isArray(topic.user_answers)) {
         return NextResponse.json(
           { error: `Topic "${topic.topic_name || i}": topic_name, quizzes, and user_answers must all be arrays` },
           { status: 400 }
         );
       }
-      
+
       if (topic.quizzes.length !== topic.user_answers.length) {
         return NextResponse.json(
-          { 
-            error: `Topic "${topic.topic_name}": quizzes (${topic.quizzes.length}) and user_answers (${topic.user_answers.length}) must have the same length` 
+          {
+            error: `Topic "${topic.topic_name}": quizzes (${topic.quizzes.length}) and user_answers (${topic.user_answers.length}) must have the same length`
           },
           { status: 400 }
         );
@@ -41,7 +41,12 @@ export async function POST(request: NextRequest) {
 
     console.log('Grading payload:', JSON.stringify(payload, null, 2));
 
-    const response = await fetch('https://auto2.elyandas.com/webhook/exercise-check', {
+    const webhookUrl = process.env.GET_EXERCISE_CHECK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      throw new Error('GET_EXERCISE_CHECK_WEBHOOK_URL is not defined');
+    }
+
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error calling grade-exercise-v2 webhook:', error);
-    
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Lỗi không xác định khi chấm bài' },
       { status: 500 }

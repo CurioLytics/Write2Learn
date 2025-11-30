@@ -46,7 +46,7 @@ This document describes all webhook integrations used by the application, includ
 
 **Purpose:** Handles AI roleplay conversations with scenario context.
 
-- **External Endpoint:** `GET_ROLEPLAY_WEBHOOK_URL` (default: `https://auto2.elyandas.com/webhook/roleplay`)
+- **External Endpoint:** `GET_ROLEPLAY_RESPONSE_WEBHOOK_URL`
 - **Local Route:** `app/api/roleplay/webhook/route.ts`
 - **HTTP Method:** POST
 - **Timeout:** 30s
@@ -115,7 +115,7 @@ string  // Plain text feedback
 
 **Purpose:** Generates practice exercises from grammar errors.
 
-- **External Endpoint:** `https://auto2.elyandas.com/webhook/gen-exercise`
+- **External Endpoint:** `GET_GEN_EXERCISE_WEBHOOK_URL`
 - **Local Route:** `app/api/exercises/generate/route.ts`
 - **HTTP Method:** POST
 - **Content-Type:** text/plain
@@ -147,7 +147,7 @@ Example: "Grammar error detected Subject-verb agreement error ..."
 
 **Purpose:** Validates student answers for grammar exercises.
 
-- **External Endpoint:** `https://auto2.elyandas.com/webhook/exercise-check`
+- **External Endpoint:** `GET_EXERCISE_CHECK_WEBHOOK_URL`
 - **Local Route:** `app/api/exercises/check/route.ts`
 - **HTTP Method:** POST
 - **Content-Type:** text/plain
@@ -173,37 +173,9 @@ string[]  // Array of corrections
 
 ---
 
-## 6. Exercise Grading Webhook
 
-**Purpose:** Provides detailed feedback on student exercise answers.
 
-- **External Endpoint:** `https://auto2.elyandas.com/webhook/grade-exercise`
-- **Local Route:** `app/api/exercises/grade/route.ts`
-- **HTTP Method:** POST
-- **Content-Type:** text/plain
-
-### Request Data Structure
-```
-Plain text format:
-"Question: <question1>
-User Answer: <answer1>
-
-Question: <question2>
-User Answer: <answer2>"
-```
-
-### Expected Response
-```typescript
-// JSON response returned as-is
-// Text response normalized to:
-{
-  feedback: string;
-}
-```
-
----
-
-## 7. Flashcard Generation Webhook
+## 6. Flashcard Generation Webhook
 
 **Purpose:** Generates flashcards from highlighted text in journal content.
 
@@ -245,7 +217,7 @@ Array<Flashcard>                    // → { flashcards: array }
 
 ---
 
-## 8. Profile Update Webhook
+## 7. Profile Update Webhook
 
 **Purpose:** Syncs user profile data for flashcard generation (fire-and-forget).
 
