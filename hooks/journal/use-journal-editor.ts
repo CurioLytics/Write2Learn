@@ -90,7 +90,9 @@ export function useJournalEditor(options: UseJournalEditorOptions): UseJournalEd
         if (mode === 'create') {
             if (customContent) {
                 const decodedContent = decodeURIComponent(customContent);
-                form.setContent(decodedContent);
+                // Replace single newlines with 3 newlines for better spacing between questions
+                const formattedContent = decodedContent.replace(/\n/g, '\n\n\n');
+                form.setContent(formattedContent);
                 if (templateName) {
                     form.setTitle(templateName);
                 }

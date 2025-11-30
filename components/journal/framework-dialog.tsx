@@ -75,12 +75,28 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
           is_pinned: formData.is_pinned
         });
       } else if (mode === 'edit' && framework?.name) {
-        await frameworkService.updateFramework(framework.name, {
-          name: formData.name,
-          content: content,
-          description: formData.description,
-          is_pinned: formData.is_pinned
-        });
+        try {
+          await frameworkService.updateFramework(framework.name, {
+            name: formData.name,
+            content: content,
+            description: formData.description,
+            is_pinned: formData.is_pinned
+          });
+        } catch (error: any) {
+          // If update fails because record doesn't exist or isn't owned by user (PGRST116),
+          // fallback to creating a new framework (Save As)
+          if (error?.code === 'PGRST116' || error?.message?.includes('0 rows')) {
+            await frameworkService.createFramework({
+              name: formData.name,
+              content: content,
+              description: formData.description,
+              category: 'Custom',
+              is_pinned: formData.is_pinned
+            });
+          } else {
+            throw error;
+          }
+        }
       }
       onSave?.();
       onClose();
