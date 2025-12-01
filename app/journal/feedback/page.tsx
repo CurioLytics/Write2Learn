@@ -73,7 +73,6 @@ function useJournalFeedbackDB(userId?: string) {
               sourceId: jId,
               sourceType: 'journal',
               feedbackData: {
-                title: journal.title,
                 clarity: result.data.output?.clarity,
                 vocabulary: result.data.output?.vocabulary,
                 ideas: result.data.output?.ideas,

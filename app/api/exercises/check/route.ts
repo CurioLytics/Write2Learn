@@ -86,6 +86,12 @@ export async function POST(request: NextRequest) {
       if (webhookResponse[0]?.output?.correction && Array.isArray(webhookResponse[0].output.correction)) {
         corrections = webhookResponse[0].output.correction;
       }
+      // Case 2: New format [{"output": {"results": [{"answers": [...]}]}}]
+      else if (webhookResponse[0]?.output?.results && Array.isArray(webhookResponse[0].output.results)) {
+        const results = webhookResponse[0].output.results;
+        // Flatten all answers from all results
+        corrections = results.flatMap((result: any) => result.answers || []);
+      }
     }
     // Handle direct object response (fallback)
     else if (webhookResponse?.output?.correction && Array.isArray(webhookResponse.output.correction)) {

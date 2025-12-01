@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AnalyticsSummary } from '@/services/analytics-service';
+import { AnalyticsSummary } from '@/types/analytics';
 
 interface UseAnalyticsOptions {
   startDate: Date;
@@ -19,10 +19,10 @@ interface UseAnalyticsReturn {
 /**
  * Hook for fetching analytics data for the Progress page
  */
-export function useAnalytics({ 
-  startDate, 
-  endDate, 
-  autoFetch = true 
+export function useAnalytics({
+  startDate,
+  endDate,
+  autoFetch = true
 }: UseAnalyticsOptions): UseAnalyticsReturn {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,19 +40,19 @@ export function useAnalytics({
 
       console.log('[useAnalytics] Fetching:', params.toString());
       const response = await fetch(`/api/analytics/events?${params}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch analytics: ${response.statusText}`);
       }
 
       const result = await response.json();
       console.log('[useAnalytics] Response success:', result.success, 'has data:', !!result.data);
-      
+
       if (result.success && result.data) {
         setData(result.data);
       } else {
-        const errorMessage = typeof result.error === 'string' 
-          ? result.error 
+        const errorMessage = typeof result.error === 'string'
+          ? result.error
           : 'Failed to load analytics data';
         throw new Error(errorMessage);
       }

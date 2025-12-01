@@ -35,7 +35,7 @@
       </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
+      <a href="#getting-started">Getting Started</a></li>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
@@ -85,6 +85,17 @@ This project is built with a modern, performance-focused tech stack:
 *   **Zustand** - For lightweight state management.
 *   **Tiptap** - For a rich text editing experience.
 *   **ts-fsrs** - For the Free Spaced Repetition Scheduler algorithm.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- WEBHOOK ARCHITECTURE -->
+## Webhook Architecture
+
+Write2Learn integrates with 6 external AI webhooks for features like journal feedback, roleplay conversations, exercise generation, and flashcard creation. 
+
+📖 **For detailed webhook documentation**, see [WEBHOOKS.md](docs/WEBHOOKS.md)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

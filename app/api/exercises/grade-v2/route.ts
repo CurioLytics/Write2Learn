@@ -79,8 +79,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract output if it exists (handle both { output: {...} } and direct {...} formats)
-    const gradingData = webhookResponse?.output || webhookResponse;
+    // Handle array response from n8n
+    const responseData = Array.isArray(webhookResponse) ? webhookResponse[0] : webhookResponse;
+    const outputData = responseData?.output || responseData;
+
+    // Check if we have the new structure with 'results'
+    if (outputData?.results && Array.isArray(outputData.results)) {
+      const transformedData: Record<string, any[]> = {};
+
+      outputData.results.forEach((topicResult: any) => {
+        const topicName = topicResult.topic_name;
+        const answers = topicResult.answers || [];
+
+        transformedData[topicName] = answers.map((ans: any) => {
+          if (typeof ans === 'string' && ans.startsWith('Wrong: ')) {
+            return {
+              correct: false,
+              correct_answer: ans.replace('Wrong: ', '').trim()
+            };
+          } else {
+            return {
+              correct: true,
+              correct_answer: typeof ans === 'string' ? ans : ''
+            };
+          }
+        });
+      });
+
+      console.log('Successfully transformed grading data');
+      return NextResponse.json(transformedData);
+    }
+
+    // Fallback/Legacy handling
+    const gradingData = outputData;
 
     if (typeof gradingData !== 'object' || gradingData === null) {
       return NextResponse.json(
@@ -89,11 +120,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Successfully graded exercises');
+    console.log('Successfully graded exercises (legacy format)');
     return NextResponse.json(gradingData);
 
   } catch (error) {
-    console.error('Error calling grade-exercise-v2 webhook:', error);
+    console.error('Error calling https://auto2.elyandas.com/webhook/exercise-check webhook:', error);
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Lỗi không xác định khi chấm bài' },
