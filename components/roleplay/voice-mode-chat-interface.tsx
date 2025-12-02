@@ -133,25 +133,27 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
   const addMessage = (msg: RoleplayMessage) =>
     setMessages((prev) => [...prev, msg]);
 
-  // Intro message - auto-play on mount
-  useEffect(() => {
-    const introMsg: RoleplayMessage = {
-      id: 'intro',
-      content: scenario.starter_message,
-      sender: 'bot',
-      timestamp: Date.now(),
-    };
-    setMessages([introMsg]);
+  // Countdown state
+  const [countdown, setCountdown] = useState<number | null>(3);
 
-    // Auto-play intro after small delay
-    if (!hasStarted.current) {
-      hasStarted.current = true;
-      setTimeout(() => {
-        playBotMessage(scenario.starter_message, 'intro');
-      }, 500);
+  // Countdown logic
+  useEffect(() => {
+    if (countdown === null) return;
+
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Countdown finished
+      setCountdown(null);
+      // Start listening automatically only if not already speaking/listening
+      if (voiceState === 'idle') {
+        startListening();
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenario.starter_message]); // Only depend on the message content, not the function
+  }, [countdown, startListening, voiceState]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -238,13 +240,14 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
         userPreferences
       );
 
+      // Keep loading screen visible during navigation
       router.replace(`/roleplay/summary/${sessionId}`);
+      // Don't set finishing to false - let the navigation happen with loading screen visible
     } catch (error: any) {
       setError(error?.message || 'Error saving session. Please try again.');
       // Reset the flag if there's an error so user can try again
       isSessionFinished.current = false;
-    } finally {
-      setFinishing(false);
+      setFinishing(false); // Only hide loading on error
     }
   };
 
@@ -259,6 +262,15 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
 
   return (
     <>
+      {/* Countdown Overlay */}
+      {countdown !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="text-9xl font-bold text-white animate-bounce">
+            {countdown > 0 ? countdown : 'GO!'}
+          </div>
+        </div>
+      )}
+
       {/* Loading Screen */}
       <FeedbackLoadingScreen isVisible={finishing} colorScheme="purple" />
 
@@ -279,10 +291,19 @@ export function VoiceModeChatInterface({ scenario }: VoiceModeChatInterfaceProps
               <DialogHeader>
                 <DialogTitle>Roleplay Task</DialogTitle>
               </DialogHeader>
-              <div className="mt-4">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {scenario.task || 'No task available'}
-                </p>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Nhiệm vụ:</h3>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {scenario.task || 'No task available'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Câu mở đầu gợi ý:</h3>
+                  <p className="text-sm text-gray-600 italic bg-blue-50 p-3 rounded-md">
+                    "{scenario.starter_message}"
+                  </p>
+                </div>
               </div>
             </DialogContent>
           </Dialog>

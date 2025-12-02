@@ -65,17 +65,7 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
 
   const hasUserMessages = messages.filter(msg => msg.sender === 'user').length > 0;
 
-  // Intro message
-  useEffect(() => {
-    setMessages([
-      {
-        id: 'intro',
-        content: scenario.starter_message,
-        sender: 'bot',
-        timestamp: Date.now(),
-      },
-    ]);
-  }, [scenario]);
+
 
   // Scroll to bottom
   useEffect(() => {
@@ -194,10 +184,10 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
       );
 
       router.replace(`/roleplay/summary/${sessionId}`);
+      // Keep loading screen visible during navigation
     } catch (error: any) {
       setError(error?.message || 'Error saving session. Please try again.');
-    } finally {
-      setFinishing(false);
+      setFinishing(false); // Only hide loading on error
     }
   };
 
@@ -239,10 +229,19 @@ export function ChatInterface({ scenario }: ChatInterfaceProps) {
               <DialogHeader>
                 <DialogTitle>Roleplay Task</DialogTitle>
               </DialogHeader>
-              <div className="mt-4">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {scenario.task || 'No task available'}
-                </p>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Nhiệm vụ:</h3>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {scenario.task || 'No task available'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Câu mở đầu gợi ý:</h3>
+                  <p className="text-sm text-gray-600 italic bg-blue-50 p-3 rounded-md">
+                    "{scenario.starter_message}"
+                  </p>
+                </div>
               </div>
             </DialogContent>
           </Dialog>

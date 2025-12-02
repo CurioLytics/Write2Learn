@@ -36,10 +36,21 @@ export async function POST(request: Request) {
 
     const { query } = body.body;
 
-    // Validate required fields in query
-    if (!query.title || !query.level || !query.ai_role || !('partner_prompt' in query)) {
+    // Check if this is a subsequent request (has key) or first request (has all fields)
+    const isSubsequentRequest = query.key && !query.title;
+
+    // Validate required fields for first request only
+    if (!isSubsequentRequest && (!query.title || !query.level || !query.ai_role || !('partner_prompt' in query))) {
       return NextResponse.json(
-        { error: 'Invalid query format. title, level, ai_role, and partner_prompt are required.' },
+        { error: 'Invalid query format. For first request: title, level, ai_role, and partner_prompt are required. For subsequent requests: key is required.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate key is present for subsequent requests
+    if (isSubsequentRequest && !query.key) {
+      return NextResponse.json(
+        { error: 'Invalid query format. key is required for subsequent requests.' },
         { status: 400 }
       );
     }
@@ -102,18 +113,11 @@ export async function POST(request: Request) {
       console.log(`[${requestId}] Sending POST request to webhook`);
 
       // Format the payload according to the required structure with body.query format
-      const formattedPayload = {
+      const formattedPayload: any = {
         body: {
+          convoId: body.body.convoId, // Forward the convoId from client
           query: {
-            user: {
-              name: userPreferences.name,
-              english_level: userPreferences.english_level,
-              style: userPreferences.style,
-            },
-            title: query.title,
-            level: query.level,
-            ai_role: query.ai_role,
-            partner_prompt: query.partner_prompt
+            key: query.key, // Forward the key from client
           }
         },
         messages: body.messages.map((msg: any) => ({
@@ -121,6 +125,20 @@ export async function POST(request: Request) {
           content: msg.content
         }))
       };
+
+      // Only include full context for first request
+      if (!isSubsequentRequest) {
+        formattedPayload.body.query.user = {
+          name: userPreferences.name,
+          english_level: userPreferences.english_level,
+          style: userPreferences.style,
+        };
+        formattedPayload.body.query.title = query.title;
+        formattedPayload.body.query.level = query.level;
+        formattedPayload.body.query.ai_role = query.ai_role;
+        formattedPayload.body.query.partner_prompt = query.partner_prompt;
+        formattedPayload.body.query.session_id = query.session_id;
+      }
 
       console.log(`[${requestId}] Formatted payload:`, formattedPayload);
 

@@ -11,6 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, Mic } from 'lucide-react';
 
@@ -50,28 +56,35 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
     <>
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="mb-6">
-          <button 
-            onClick={handleBackClick} 
+          <button
+            onClick={handleBackClick}
             className="text-[var(--primary)] hover:opacity-80 flex items-center mb-4"
           >
-            ← 
+            ←
           </button>
-          
+
           <h1 className="text-2xl font-bold text-gray-800 mb-2">{scenario.name}</h1>
         </div>
-        
+
         <div className="mb-6">
           <h2 className="text-lg font-medium text-gray-700 mb-2">Bối cảnh</h2>
           <p className="text-gray-600 bg-gray-50 p-4 rounded-md">{scenario.context}</p>
         </div>
-        
+
         <div className="mb-6">
           <h2 className="text-lg font-medium text-gray-700 mb-2">Nhiệm vụ</h2>
           <div className="text-gray-600 bg-[var(--primary-blue-light)] p-4 rounded-md whitespace-pre-wrap leading-relaxed">
             {scenario.task}
           </div>
         </div>
-        
+
+        <div className="mb-6">
+          <h2 className="text-lg font-medium text-gray-700 mb-2">Câu mở đầu gợi ý</h2>
+          <div className="text-gray-600 bg-blue-50 p-4 rounded-md italic">
+            "{scenario.starter_message}"
+          </div>
+        </div>
+
         <div className="flex justify-center">
           <Button
             variant="default"
@@ -92,7 +105,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
               Bạn muốn sử dụng chế độ văn bản hay giọng nói?
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid grid-cols-2 gap-4 py-4">
             {/* Text Mode */}
             <button
@@ -117,7 +130,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
               <span className="absolute top-2 right-2 px-2 py-0.5 bg-[var(--primary-purple)] text-white text-[10px] font-medium rounded-full">
                 BETA
               </span>
-              
+
               <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-[var(--primary-purple-lighter)] flex items-center justify-center transition-colors">
                 <Mic className="w-8 h-8 text-gray-600 group-hover:text-[var(--primary-purple)]" />
               </div>
@@ -149,7 +162,7 @@ export function ScenarioDetail({ scenario }: ScenarioDetailProps) {
               Khuyến cáo: Không dành cho người yếu tim!
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4 space-y-4">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-gray-700 font-medium mb-2">
