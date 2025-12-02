@@ -18,6 +18,7 @@ import { SectionNavigation } from '@/components/ui/section-navigation';
 import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
 import { TemplateCardsSkeleton, HorizontalCardsSkeleton } from '@/components/ui/page-skeleton';
 import { PinnedTemplatesList } from '@/components/journal/pinned-templates-list';
+import { HorizontalScrollList } from '@/components/ui/horizontal-scroll-list';
 
 interface RoleplayScenario {
     id: string;
@@ -181,11 +182,9 @@ function DueFlashcards() {
             />
 
             {/* Review Controls */}
-            {isFlipped && (
-                <div className="flex flex-col items-center">
-                    <ReviewControls onRate={handleRating} />
-                </div>
-            )}
+            <div className={`flex flex-col items-center transition-opacity duration-200 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <ReviewControls onRate={handleRating} />
+            </div>
         </div>
     );
 }
@@ -249,7 +248,7 @@ export default function DashboardPage() {
                 // ❗ Đã điều chỉnh tên cột theo schema bạn cung cấp
                 .select('id, name, context, image')
                 .order('created_at', { ascending: false })
-                .limit(3);
+                .limit(5);
 
             if (error) {
                 console.error('❌ Lỗi khi tải roleplay:', error.message);
@@ -268,11 +267,11 @@ export default function DashboardPage() {
     // Updated auto-scroll behavior for 2 sections
     useEffect(() => {
         const handleScroll = () => {
-            if (isAutoScrolling) return;
+            if (isAutoScrolling || window.innerWidth < 768) return;
 
             const scrollY = window.scrollY;
             // Threshold for "a bit scroll" - e.g., 50px
-            const threshold = 50;
+            const threshold = 1;
 
             // Get the top position of the practice section
             const practiceTop = roleplaySectionRef.current?.offsetTop || window.innerHeight;
@@ -312,7 +311,7 @@ export default function DashboardPage() {
             ]} />
             {/* SECTION 1 – VIẾT */}
             <section ref={journalSectionRef} id="journal" className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-blue-50/40 px-4 py-8">
-                <div className="w-full max-w-2xl mx-auto">
+                <div className="w-full max-w-3xl mx-auto">
                     <div className="text-center mb-4 sm:mb-6">
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{greeting}</h1>
                         <div className="flex items-center justify-center gap-2">
@@ -358,11 +357,11 @@ export default function DashboardPage() {
             </section>
 
             {/* SECTION 2 – LUYỆN TẬP (Roleplay + Vocab) */}
-            <section ref={roleplaySectionRef} id="practice" className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-blue-50/40 to-white py-8">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 xl:px-8 space-y-8">
+            <section ref={roleplaySectionRef} id="practice" className="flex flex-col items-center px-4 w-full bg-gradient-to-b from-blue-50/40 to-white py-8 overflow-x-hidden">
+                <div className="w-full max-w-3xl space-y-8">
 
                     {/* Roleplay Section */}
-                    <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
+                    <div>
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center gap-2">
                                 <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Hôm nay, bạn muốn đóng vai ai?</h2>
@@ -390,70 +389,33 @@ export default function DashboardPage() {
                             </Link>
                         </div>
 
-                        <div className="relative -mx-3 sm:mx-0">
-                            <PageContentWrapper
-                                isLoading={loading}
-                                skeleton={<HorizontalCardsSkeleton count={3} />}
-                            >
-                                <div
-                                    className="flex overflow-x-auto gap-4 sm:gap-6 pb-2 px-3 sm:px-0 cursor-grab scrollbar-hide snap-x snap-mandatory"
-                                    style={{
-                                        WebkitOverflowScrolling: 'touch',
-                                        touchAction: 'pan-x'
-                                    }}
-                                    onMouseDown={(e) => {
-                                        const slider = e.currentTarget;
-                                        let isDown = true;
-                                        let startX = e.pageX - slider.offsetLeft;
-                                        let scrollLeft = slider.scrollLeft;
-
-                                        slider.style.cursor = 'grabbing';
-
-                                        const handleMouseMove = (e: MouseEvent) => {
-                                            if (!isDown) return;
-                                            e.preventDefault();
-                                            const x = e.pageX - slider.offsetLeft;
-                                            const walk = (x - startX) * 2;
-                                            slider.scrollLeft = scrollLeft - walk;
-                                        };
-
-                                        const handleMouseUp = () => {
-                                            isDown = false;
-                                            slider.style.cursor = 'grab';
-                                            document.removeEventListener('mousemove', handleMouseMove);
-                                            document.removeEventListener('mouseup', handleMouseUp);
-                                        };
-
-                                        document.addEventListener('mousemove', handleMouseMove);
-                                        document.addEventListener('mouseup', handleMouseUp);
-                                    }}
-                                    onTouchStart={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    {scenarios.length > 0 ? (
-                                        scenarios.map((s) => (
-                                            <div key={s.id} className="flex-shrink-0 snap-center">
-                                                <RoleplayCard
-                                                    id={s.id}
-                                                    title={s.name}
-                                                    description={s.context}
-                                                    imageUrl={s.image || ''}
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="w-full text-center py-8 text-gray-500">
-                                            <p>Chưa có hội thoại nào được thêm.</p>
+                        <PageContentWrapper
+                            isLoading={loading}
+                            skeleton={<HorizontalCardsSkeleton count={5} />}
+                        >
+                            <HorizontalScrollList>
+                                {scenarios.length > 0 ? (
+                                    scenarios.map((s) => (
+                                        <div key={s.id} className="flex-shrink-0">
+                                            <RoleplayCard
+                                                id={s.id}
+                                                title={s.name}
+                                                description={s.context}
+                                                imageUrl={s.image || ''}
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                            </PageContentWrapper>
-                        </div>
+                                    ))
+                                ) : (
+                                    <div className="w-full text-center py-8 text-gray-500">
+                                        <p>Chưa có hội thoại nào được thêm.</p>
+                                    </div>
+                                )}
+                            </HorizontalScrollList>
+                        </PageContentWrapper>
                     </div>
 
                     {/* Flashcard Section */}
-                    <div className="bg-white shadow-sm rounded-2xl p-3 sm:p-4 lg:p-6">
+                    <div>
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center gap-2">
                                 <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Các từ sắp quên!!</h2>

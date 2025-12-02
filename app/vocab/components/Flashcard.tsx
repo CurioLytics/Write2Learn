@@ -14,9 +14,8 @@ export function FlashcardCard({
     <div
       onClick={onFlip}
       // Increased size from w-72 h-48 to w-80 h-56
-      className={`w-80 h-56 cursor-pointer flex items-center justify-center text-center text-lg font-medium rounded-xl shadow-sm transition-transform ${
-        isFlipped ? "bg-gray-100 rotate-y-180" : "bg-white"
-      }`}
+      className={`w-full max-w-[20rem] h-56 cursor-pointer flex items-center justify-center text-center text-lg font-medium rounded-xl shadow-sm transition-transform ${isFlipped ? "bg-gray-100 rotate-y-180" : "bg-white"
+        }`}
     >
       {/* Added p-4 padding for more margin around the text */}
       <div className={`p-4 ${isFlipped ? "transform rotate-y-180" : ""}`}>

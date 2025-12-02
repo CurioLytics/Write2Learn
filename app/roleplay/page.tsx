@@ -10,6 +10,7 @@ import { useRoleplayScenarios } from '@/hooks/roleplay/use-roleplay-scenarios';
 import { SectionNavigation } from '@/components/ui/section-navigation';
 import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
 import { HorizontalCardsSkeleton } from '@/components/ui/page-skeleton';
+import { HorizontalScrollList } from '@/components/ui/horizontal-scroll-list';
 
 export default function RoleplayPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -54,34 +55,7 @@ export default function RoleplayPage() {
             </div>
           ) : scenarios && scenarios.length > 0 ? (
             <>
-              <div
-                className="flex overflow-x-auto gap-6 pb-2 cursor-grab"
-                style={{ WebkitOverflowScrolling: 'touch' }}
-                onMouseDown={e => {
-                  const slider = e.currentTarget;
-                  let isDown = true;
-                  let startX = e.pageX - slider.offsetLeft;
-                  let scrollLeft = slider.scrollLeft;
-                  slider.style.cursor = 'grabbing';
-
-                  const move = (e) => {
-                    if (!isDown) return;
-                    e.preventDefault();
-                    const x = e.pageX - slider.offsetLeft;
-                    slider.scrollLeft = scrollLeft - (x - startX) * 2;
-                  };
-
-                  const up = () => {
-                    isDown = false;
-                    slider.style.cursor = 'grab';
-                    document.removeEventListener('mousemove', move);
-                    document.removeEventListener('mouseup', up);
-                  };
-
-                  document.addEventListener('mousemove', move);
-                  document.addEventListener('mouseup', up);
-                }}
-              >
+              <HorizontalScrollList>
                 {scenarios.map(s => (
                   <div key={s.id} className="flex-shrink-0">
                     <RoleplayCard
@@ -92,7 +66,7 @@ export default function RoleplayPage() {
                     />
                   </div>
                 ))}
-              </div>
+              </HorizontalScrollList>
             </>
           ) : (
             <div className="text-center text-gray-600 py-8">
