@@ -11,14 +11,18 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "Write2Learn",
-  description: "Write your Thoughts, Learn your Words",
+  title: 'Write2Learn - Improve Your English Writing',
+  description: 'Master English writing through journaling, vocabulary building, and interactive roleplay.',
   icons: {
     icon: '/images/logo.svg',
     shortcut: '/images/logo.svg',
     apple: '/images/logo.svg',
   },
 };
+
+// Force all pages to be dynamic to prevent prerendering errors
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function RootLayout({
   children,
