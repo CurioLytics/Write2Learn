@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { JournalTemplate, JournalTemplateCategory, TEMPLATE_CATEGORIES } from '@/types/journal';
 import { journalTemplateService } from '@/services/journal-template-service';
-import { PinnedTemplates } from './pinned-templates';
+// TODO: Create PinnedTemplates component
+// import { PinnedTemplates } from './pinned-templates';
 import { CategorySection } from './category-section';
 import { LoadingState, ErrorState } from '@/components/ui/common/state-components';
 
@@ -29,11 +30,18 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
         setIsLoading(true);
         // Get all templates grouped by category
         const templatesData = await journalTemplateService.getDefaultTemplates();
-        setTemplates(templatesData);
 
-        // Get pinned/featured templates
-        const pinnedData = await journalTemplateService.getPinnedTemplates();
-        setPinnedTemplates(pinnedData);
+        // Group templates by category
+        const groupedTemplates = {} as Record<JournalTemplateCategory, JournalTemplate[]>;
+        TEMPLATE_CATEGORIES.forEach(category => {
+          groupedTemplates[category] = templatesData.filter(t => t.category === category);
+        });
+
+        setTemplates(groupedTemplates);
+
+        // TODO: Re-enable when getPinnedTemplates is implemented
+        // const pinnedData = await journalTemplateService.getPinnedTemplates();
+        // setPinnedTemplates(pinnedData);
 
         setError(null);
       } catch (err) {
@@ -121,13 +129,13 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
 
           <button
             onClick={() => {
-              // Get today's template if exists, otherwise go with blank page
-              const todayTemplate = pinnedTemplates.find(t => t.tag.includes('daily'));
-              if (todayTemplate) {
-                router.push(`/journal/new?templateId=${todayTemplate.id}`);
-              } else {
-                handleBlankPageSelect();
-              }
+              // TODO: Re-enable when tag property is available
+              // const todayTemplate = pinnedTemplates.find(t => t.tag?.includes('daily'));
+              // if (todayTemplate) {
+              //   router.push(`/journal/new?templateId=${todayTemplate.id}`);
+              // } else {
+              handleBlankPageSelect();
+              // }
             }}
             className="flex-1 py-2 px-4 border border-gray-300 rounded bg-gray-50 hover:bg-gray-100 text-sm"
           >
@@ -136,8 +144,8 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
           </button>
         </div>
 
-        {/* Pinned Templates */}
-        {pinnedTemplates.length > 0 && (
+        {/* Pinned Templates - TODO: Re-enable when PinnedTemplates component exists */}
+        {/* {pinnedTemplates.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Popular Templates</h3>
             <PinnedTemplates
@@ -146,7 +154,7 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
               selectedTemplateId={selectedTemplate?.id}
             />
           </div>
-        )}
+        )} */}
 
         {/* Selected main category (e.g. "Journaling") */}
         <div className="mb-4">

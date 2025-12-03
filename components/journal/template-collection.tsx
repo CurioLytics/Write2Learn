@@ -27,7 +27,14 @@ export function TemplateCollection() {
       try {
         setIsLoading(true);
         const templatesData = await journalTemplateService.getDefaultTemplates();
-        setTemplates(templatesData);
+
+        // Group templates by category
+        const groupedTemplates = {} as Record<JournalTemplateCategory, JournalTemplate[]>;
+        TEMPLATE_CATEGORIES.forEach(category => {
+          groupedTemplates[category] = templatesData.filter(t => t.category === category);
+        });
+
+        setTemplates(groupedTemplates);
         setError(null);
       } catch (err) {
         console.error('Error loading templates:', err);
