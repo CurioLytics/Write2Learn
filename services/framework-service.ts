@@ -45,7 +45,8 @@ class FrameworkService {
 
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, description, category, source')
+        .select('name, content, description, category, source, is_pinned')
+        .order('is_pinned', { ascending: false })
         .order('name');
 
       if (error) throw error;
@@ -139,14 +140,16 @@ class FrameworkService {
 
       if (!user) throw new Error('User not authenticated');
 
+      // Build update object with only defined fields
+      const updatePayload: Record<string, any> = {};
+      if (updates.name !== undefined) updatePayload.name = updates.name;
+      if (updates.content !== undefined) updatePayload.content = updates.content;
+      if (updates.description !== undefined) updatePayload.description = updates.description;
+      if (updates.is_pinned !== undefined) updatePayload.is_pinned = updates.is_pinned;
+
       const { data, error } = await supabase
         .from('frameworks')
-        .update({
-          name: updates.name,
-          content: updates.content,
-          description: updates.description,
-          is_pinned: updates.is_pinned
-        })
+        .update(updatePayload)
         .eq('name', originalName)
         .eq('profile_id', user.id)
         .select()

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Plus } from 'lucide-react';
+import { BookOpen, Plus, Pin } from 'lucide-react';
 import { frameworkService, Framework, FrameworkCategory } from '@/services/framework-service';
 import { FrameworkDialog } from '@/components/journal/framework-dialog';
 
@@ -138,12 +138,19 @@ export function ExploreFrameworks() {
         {filteredFrameworks.map(framework => (
           <Card
             key={framework.name}
-            className="cursor-pointer transition-all duration-200 group bg-white shadow border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl"
+            className="cursor-pointer transition-all duration-200 group bg-white shadow border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl relative"
             onClick={() => {
               setSelectedFramework(framework);
               setIsDialogOpen(true);
             }}
           >
+            {/* Pin Indicator */}
+            {framework.is_pinned && (
+              <div className="absolute top-3 right-3 z-10">
+                <Pin className="w-4 h-4 text-blue-500 fill-blue-500" />
+              </div>
+            )}
+
             <CardHeader className="pb-3">
               <div className="text-lg text-gray-800">{framework.name}</div>
             </CardHeader>
