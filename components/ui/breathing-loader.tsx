@@ -9,7 +9,7 @@ interface BreathingLoaderProps {
   bubbleColor?: string;    // Optional bubble color override
   textColor?: string;      // Optional text color override
 }
-                                         
+
 /**
  * A calming breathing animation loader component
  * Shows alternating "breathe in" and "breathe out" text with a bubble that expands and contracts
@@ -24,16 +24,16 @@ export function BreathingLoader({
 }: BreathingLoaderProps) {
   // Track breathing state (in or out)
   const [isBreathingIn, setIsBreathingIn] = useState(true);
-  
+
   // Use refs to track animation progress
   const animationRef = useRef<number>(0);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const lastTimeRef = useRef<number>(0);
   const progressRef = useRef<number>(0);
-  
+
   // Animation duration (ms) for each phase
   const animationDuration = 5000;
-  
+
   // Set up the smooth continuous animation
   useEffect(() => {
     // Animation function that runs every frame
@@ -41,38 +41,38 @@ export function BreathingLoader({
       if (!lastTimeRef.current) lastTimeRef.current = time;
       const deltaTime = time - lastTimeRef.current;
       lastTimeRef.current = time;
-      
+
       // Update progress (0 to 1 for each cycle)
       progressRef.current += deltaTime / animationDuration;
       if (progressRef.current >= 1) {
         progressRef.current = 0;
         setIsBreathingIn(prev => !prev);
       }
-      
+
       // Apply smooth animation to bubble if ref exists
       if (bubbleRef.current) {
         const bubbleElement = bubbleRef.current;
-        
+
         // Calculate current size based on breathing state and progress
-        let progress = isBreathingIn ? progressRef.current : 1 - progressRef.current;
-        
+        const progress = isBreathingIn ? progressRef.current : 1 - progressRef.current;
+
         // Smooth easing function (sine wave)
         const easedProgress = Math.sin(progress * Math.PI / 2);
-        
+
         // Min size: 24px (1.5rem), Max size: 96px (6rem)
         const size = 24 + (easedProgress * 72);
         bubbleElement.style.width = `${size}px`;
         bubbleElement.style.height = `${size}px`;
         bubbleElement.style.opacity = `${0.5 + (easedProgress * 0.5)}`;
       }
-      
+
       // Continue animation loop
       animationRef.current = requestAnimationFrame(animate);
     };
-    
+
     // Start animation loop
     animationRef.current = requestAnimationFrame(animate);
-    
+
     // Clean up animation on unmount
     return () => {
       if (animationRef.current) {
@@ -80,14 +80,14 @@ export function BreathingLoader({
       }
     };
   }, [isBreathingIn, animationDuration]);
-  
+
   return (
     <div className={cn('flex flex-col items-center justify-center gap-4 py-8', className)}>
       {/* Main message */}
       <p className="text-base text-gray-600 mb-2">{message}</p>
-      
+
       {/* Breathing instruction text above bubble */}
-      <p 
+      <p
         className={cn(
           'font-medium transition-opacity duration-500 mb-2',
           textColor
@@ -96,9 +96,9 @@ export function BreathingLoader({
       >
         {isBreathingIn ? 'hít vào' : 'thở ra'}
       </p>
-      
+
       {/* Breathing bubble with smooth transition */}
-      <div 
+      <div
         className="flex items-center justify-center"
         style={{
           height: '96px', // Fixed container height to accommodate max bubble size
@@ -108,7 +108,7 @@ export function BreathingLoader({
         <div
           ref={bubbleRef}
           className={cn(
-            'rounded-full transition-transform', 
+            'rounded-full transition-transform',
             bubbleColor
           )}
           style={{
@@ -118,7 +118,7 @@ export function BreathingLoader({
           aria-hidden="true"
         />
       </div>
-      
+
       {/* Mindfulness message */}
       <p className="text-sm text-gray-500 mt-4 italic">
         chậm lại một chút nhé!

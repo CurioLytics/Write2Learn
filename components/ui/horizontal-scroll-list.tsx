@@ -20,8 +20,8 @@ export function HorizontalScrollList({ children, className, ...props }: Horizont
             onMouseDown={(e) => {
                 const slider = e.currentTarget;
                 let isDown = true;
-                let startX = e.pageX - slider.offsetLeft;
-                let scrollLeft = slider.scrollLeft;
+                const startX = e.pageX - slider.offsetLeft;
+                const scrollLeft = slider.scrollLeft;
 
                 slider.style.cursor = 'grabbing';
 

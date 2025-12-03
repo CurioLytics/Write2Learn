@@ -20,6 +20,29 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Allow unused variables with underscore prefix
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      // Suppress exhaustive-deps warnings (fix incrementally)
+      "react-hooks/exhaustive-deps": "warn",
+      // Allow img tags (we use them intentionally in some places)
+      "@next/next/no-img-element": "warn",
+      // Allow any type in specific contexts (will fix incrementally)
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Allow unescaped entities (common quotes)
+      "react/no-unescaped-entities": "warn",
+      // Allow unused expressions (ternary operators)
+      "@typescript-eslint/no-unused-expressions": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

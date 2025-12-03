@@ -4,19 +4,20 @@ import { journalTemplateService } from '@/services/journal-template-service';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await authenticateUser();
-    const template = await journalTemplateService.getTemplateByName(user.id, params.id);
-    
+    const { id } = await params;
+    const template = await journalTemplateService.getTemplateByName(user.id, id);
+
     if (!template) {
       return NextResponse.json(
-        { error: 'Template not found' }, 
+        { error: 'Template not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(template);
   } catch (error) {
     return handleApiError(error);

@@ -246,7 +246,16 @@ export default function RoleplaySummaryPage() {
                 </TabsList>
 
                 <TabsContent value="clarity" className="mt-4">
-                  <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  <div
+                    id="clarity-content"
+                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                    style={{
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                  >
                     {sessionData.feedback.output?.clarity || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
@@ -257,7 +266,16 @@ export default function RoleplaySummaryPage() {
                 </TabsContent>
 
                 <TabsContent value="vocabulary" className="mt-4">
-                  <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  <div
+                    id="vocabulary-content"
+                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                    style={{
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                  >
                     {sessionData.feedback.output?.vocabulary || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
@@ -268,7 +286,16 @@ export default function RoleplaySummaryPage() {
                 </TabsContent>
 
                 <TabsContent value="ideas" className="mt-4">
-                  <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  <div
+                    id="ideas-content"
+                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                    style={{
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                  >
                     {sessionData.feedback.output?.ideas || 'Không có nội dung'}
                   </div>
                   <HighlightSelector
@@ -279,7 +306,16 @@ export default function RoleplaySummaryPage() {
                 </TabsContent>
 
                 <TabsContent value="enhanced" className="mt-4">
-                  <div id="enhanced-content" className="space-y-3 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                  <div
+                    id="enhanced-content"
+                    className="space-y-3 p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                    style={{
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                  >
                     {(() => {
                       const enhancedVersion = sessionData.feedback.enhanced_version;
                       if (!enhancedVersion) return 'Không có nội dung';

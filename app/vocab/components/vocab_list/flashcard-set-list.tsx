@@ -27,6 +27,8 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
   onStarToggle,
   onDelete
 }) => {
+  const router = useRouter();
+
   if (isLoading) {
     return (
       <div>
@@ -72,8 +74,7 @@ export const VocabularySetList: React.FC<VocabularySetListProps> = ({
       </div>
     );
   }
-  
-  const router = useRouter();
+
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -104,8 +105,8 @@ export const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
   error,
   onSelectSet
 }) => {
-  return <VocabularySetList 
-    vocabularySets={flashcardSets} 
+  return <VocabularySetList
+    vocabularySets={flashcardSets}
     isLoading={isLoading}
     error={error}
     onSelectSet={onSelectSet}

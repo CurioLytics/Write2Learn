@@ -9,18 +9,18 @@ import { cookies } from 'next/headers';
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { wordId: string } }
+  { params }: { params: Promise<{ wordId: string }> }
 ) {
   try {
     const user = await authenticateUser();
-    const { wordId } = params;
+    const { wordId } = await params;
 
     if (!wordId) {
       return NextResponse.json({ error: 'Word ID is required' }, { status: 400 });
     }
 
     // Use server-side Supabase client with authenticated user
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get current starred status
