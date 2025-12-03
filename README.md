@@ -16,6 +16,11 @@
     <a href="https://github.com/Curiolytics/Write2Learn"><strong>Explore the docs »</strong></a>
     <br />
     <br />
+    <a href="https://wtl2-lime.vercel.app/"><strong>🚀 Try Live Demo</strong></a>
+    <br />
+    <em>Recommended to use on desktop for voice mode roleplay (not yet supported on iPhone)</em>
+    <br />
+    <br />
     <a href="https://github.com/Curiolytics/Write2Learn/issues">Report Bug</a>
     &middot;
     <a href="https://github.com/Curiolytics/Write2Learn/issues">Request Feature</a>
