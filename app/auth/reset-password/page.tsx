@@ -6,6 +6,9 @@ import { updatePassword } from '@/services/auth-service';
 import { LogoImage } from '@/components/auth/logo-image';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+// Force dynamic rendering to prevent build-time errors with window/searchParams
+export const dynamic = 'force-dynamic';
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +24,7 @@ export default function ResetPasswordPage() {
     const checkSession = async () => {
       const supabase = createClientComponentClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         setIsValidToken(true);
       } else {
@@ -29,7 +32,7 @@ export default function ResetPasswordPage() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        
+
         if (accessToken && refreshToken) {
           // Set the session using the tokens
           try {
@@ -53,7 +56,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
       return;
@@ -87,7 +90,7 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <LogoImage />
           </div>
-          
+
           <div className="text-center space-y-4">
             <h2 className="text-xl sm:text-2xl font-bold">Link không hợp lệ</h2>
             <p className="text-red-600 text-sm sm:text-base">
@@ -113,11 +116,11 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <LogoImage />
           </div>
-          
+
           <div className="text-center space-y-4">
             <h2 className="text-xl sm:text-2xl font-bold">Thành công!</h2>
             <p className="text-green-600 text-sm sm:text-base">
-              Mật khẩu của bạn đã được đổi thành công. 
+              Mật khẩu của bạn đã được đổi thành công.
               Bạn có thể đăng nhập với mật khẩu mới.
             </p>
             <Button
@@ -139,7 +142,7 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <LogoImage />
           </div>
-          
+
           <div className="text-center">
             <h2 className="text-xl sm:text-2xl font-bold">Đang xử lý...</h2>
           </div>
@@ -154,7 +157,7 @@ export default function ResetPasswordPage() {
         <div className="text-center">
           <LogoImage />
         </div>
-        
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-bold">Đặt lại mật khẩu</h2>
           <p className="text-gray-600 mt-2 text-sm sm:text-base">
