@@ -20,18 +20,17 @@ export function JournalList({ journals, onSelect, selectedJournalId }: JournalLi
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       {journals.map(journal => (
         <div
           key={journal.id}
           onClick={() => onSelect(journal)}
-          className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer ${
-            selectedJournalId === journal.id
+          className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer ${selectedJournalId === journal.id
               ? 'bg-blue-50 border-blue-300 shadow-sm'
               : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50/30'
-          }`}
+            }`}
           role="button"
           aria-pressed={selectedJournalId === journal.id}
         >
@@ -40,10 +39,10 @@ export function JournalList({ journals, onSelect, selectedJournalId }: JournalLi
               {journal.title || 'Untitled Entry'}
             </h3>
             <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
-              {formatDistanceToNow(new Date(journal.created_at))}
+              {journal.created_at && formatDistanceToNow(new Date(journal.created_at))}
             </span>
           </div>
-          
+
           <p className="text-sm text-gray-600 line-clamp-2">
             {journal.content}
           </p>
