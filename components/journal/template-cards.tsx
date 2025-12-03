@@ -74,12 +74,12 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
 
     if (data) {
       const framework: Framework = {
-        name: data.name,
-        content: data.content || '',
-        description: data.description,
-        category: data.category || 'Template',
-        source: data.source,
-        is_pinned: data.is_pinned || false
+        name: (data as any).name,
+        content: (data as any).content || '',
+        description: (data as any).description,
+        category: (data as any).category || 'Template',
+        source: (data as any).source,
+        is_pinned: (data as any).is_pinned || false
       };
 
       setSelectedFramework(framework);
