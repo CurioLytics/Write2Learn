@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 interface HeroProps {
-  title: string;
+  title: React.ReactNode;
   subtitle: string;
   description: string;
   buttonText: string;
@@ -16,7 +16,7 @@ interface HeroProps {
  */
 export function Hero({ title, subtitle, description, buttonText, buttonLink }: HeroProps) {
   const router = useRouter();
-  
+
   return (
     <section className="flex-1 bg-white px-4 sm:px-6 lg:px-8 py-12 sm:py-24">
       <div className="max-w-7xl mx-auto">
@@ -37,11 +37,11 @@ export function Hero({ title, subtitle, description, buttonText, buttonLink }: H
           >
             <span className="relative z-10 flex items-center gap-2">
               {buttonText}
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" 
-                fill="none" 
-                viewBox="0 0 24 24" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

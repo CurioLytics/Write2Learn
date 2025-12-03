@@ -111,10 +111,10 @@ export default function RoleplaySummaryPage() {
     }, 2000);
 
     try {
-      // Pass preferences even if null - service will use defaults
+      // Pass preferences - service will use defaults if needed
       const feedback = await roleplaySessionService.retryFeedback(
         params.sessionId as string,
-        cachedPreferences
+        userPreferences
       );
 
       // Clear interval IMMEDIATELY when response arrives

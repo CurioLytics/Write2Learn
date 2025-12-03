@@ -48,7 +48,7 @@ export default function OnboardingPage() {
   const hasSelection = currentStep.dataKey ?
     (currentStep.type === 'text-input' ?
       !!(data[currentStep.dataKey] as string | number) &&
-      (typeof data[currentStep.dataKey] === 'number' ? data[currentStep.dataKey] > 0 : (data[currentStep.dataKey] as string).trim() !== '') :
+      (typeof data[currentStep.dataKey] === 'number' ? (data[currentStep.dataKey] as number) > 0 : (data[currentStep.dataKey] as string).trim() !== '') :
       Array.isArray(data[currentStep.dataKey]) ?
         (data[currentStep.dataKey] as any[]).length > 0 :
         !!data[currentStep.dataKey]) :

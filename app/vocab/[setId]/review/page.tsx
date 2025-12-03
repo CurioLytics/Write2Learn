@@ -61,7 +61,7 @@ export default function ReviewPage() {
     }
 
     try {
-      const vocabularyId = currentCard.vocabulary_id || currentCard.id;
+      const vocabularyId = currentCard.id;
       if (!vocabularyId) {
         toast.error('No card selected');
         return;
@@ -71,7 +71,7 @@ export default function ReviewPage() {
 
       // Update local state
       setCards(prev => prev.map(card => {
-        const cardId = card.vocabulary_id || card.id;
+        const cardId = card.id;
         return cardId === vocabularyId
           ? { ...card, is_starred: newStarredStatus }
           : card;
@@ -111,10 +111,10 @@ export default function ReviewPage() {
 
     // Background API call - don't await
     const payload = {
-      vocabulary_id: (currentCard as any).vocabulary_id,
+      vocabulary_id: currentCard.id,
       rating: numericRating
     };
-    
+
     fetch('/api/vocabulary/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -175,7 +175,7 @@ export default function ReviewPage() {
       </div>
     );
 
-return (
+  return (
     <div className="max-w-3xl mx-auto px-4 space-y-8 py-8">
       <div className="bg-white shadow rounded-2xl p-6">
         <div className="flex justify-between items-start mb-6">
@@ -192,11 +192,10 @@ return (
             {currentCard && (
               <button
                 onClick={handleStarToggle}
-                className={`p-3 transition-colors ${
-                  currentCard.is_starred
+                className={`p-3 transition-colors ${currentCard.is_starred
                     ? 'text-yellow-500 hover:text-yellow-600'
                     : 'text-gray-400 hover:text-yellow-500'
-                }`}
+                  }`}
                 aria-label={currentCard.is_starred ? 'Bỏ đánh dấu' : 'Đánh dấu'}
                 title={currentCard.is_starred ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
               >

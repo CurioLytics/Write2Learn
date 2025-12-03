@@ -46,17 +46,17 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
   const handleStarToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (isStarLoading || !user) return;
-    
+
     setIsStarLoading(true);
-    
+
     try {
       const newStarredStatus = await toggleVocabularySetStar(vocabularySet.set_id);
-      
+
       setIsStarred(newStarredStatus);
       onStarToggle?.(vocabularySet.set_id, newStarredStatus);
-      
+
       toast.success(
         newStarredStatus ? 'Added to favorites' : 'Removed from favorites'
       );
@@ -70,7 +70,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!window.confirm(`Bạn có chắc chắn muốn xóa bộ từ vựng "${vocabularySet.title}"?`)) {
       return;
     }
@@ -79,7 +79,7 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
     try {
       await vocabularyService.deleteVocabularySet(vocabularySet.set_id);
       setMenuOpen(false);
-      
+
       if (onDelete) {
         onDelete(vocabularySet.set_id);
       }
@@ -101,9 +101,8 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
   return (
     <div
-      className={`relative bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer ${
-        deleting ? 'opacity-50 pointer-events-none' : ''
-      }`}
+      className={`relative bg-white rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow cursor-pointer ${deleting ? 'opacity-50 pointer-events-none' : ''
+        }`}
       onClick={onClick}
       role="button"
       aria-label={`Open ${vocabularySet.title}`}
@@ -114,27 +113,26 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
           <button
             onClick={handleStarToggle}
             disabled={isStarLoading}
-            className={`p-1 rounded-full transition-colors ${
-              isStarred
-                ? 'text-yellow-500 hover:text-yellow-600' 
+            className={`p-1 rounded-full transition-colors ${isStarred
+                ? 'text-yellow-500 hover:text-yellow-600'
                 : 'text-gray-400 hover:text-yellow-500'
-            } ${isStarLoading ? 'opacity-50' : ''}`}
+              } ${isStarLoading ? 'opacity-50' : ''}`}
             aria-label={isStarred ? 'Unstar' : 'Star'}
           >
-            <Star 
-              size={16} 
+            <Star
+              size={16}
               className={isStarred ? 'fill-current' : ''}
             />
           </button>
         </div>
       </div>
 
-      {vocabularySet.description && (
-        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{vocabularySet.description}</p>
+      {(vocabularySet as any).description && (
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{(vocabularySet as any).description}</p>
       )}
 
       {/* Three-dot menu - Only show for non-default sets */}
-      {!vocabularySet.is_default && (
+      {!(vocabularySet as any).is_default && (
         <div className="absolute bottom-3 right-3" ref={menuOpen ? menuRef : null}>
           <button
             onClick={(e) => {
@@ -168,13 +166,12 @@ export const VocabularySetCard: React.FC<VocabularySetCardProps> = ({
 
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
         <div
-          className={`h-1.5 rounded-full ${
-            duePercentage > 50
+          className={`h-1.5 rounded-full ${duePercentage > 50
               ? 'bg-red-500'
               : duePercentage > 0
-              ? 'bg-amber-500'
-              : 'bg-emerald-500'
-          }`}
+                ? 'bg-amber-500'
+                : 'bg-emerald-500'
+            }`}
           style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>

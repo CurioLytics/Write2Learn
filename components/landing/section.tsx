@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { cn } from '@/utils/ui';
 
 interface SectionProps {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   bgColor?: string;
   className?: string;
