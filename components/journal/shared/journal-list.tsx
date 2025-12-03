@@ -21,9 +21,9 @@ interface JournalListProps {
  * Shared JournalList component that displays a list of journal entries
  * with consistent styling and selection state
  */
-export function JournalList({ 
-  journals, 
-  onSelect, 
+export function JournalList({
+  journals,
+  onSelect,
   selectedJournalId,
   className = '',
   emptyState = {
@@ -32,7 +32,7 @@ export function JournalList({
     description: 'Start your writing journey with a new journal entry.'
   }
 }: JournalListProps) {
-  
+
   if (journals.length === 0) {
     return (
       <div className={cn(
@@ -45,7 +45,7 @@ export function JournalList({
       </div>
     );
   }
-  
+
   return (
     <div className={cn("space-y-4", className)}>
       {journals.map(journal => (
@@ -88,30 +88,13 @@ function JournalListItem({ journal, onSelect, isSelected }: JournalListItemProps
           {formatDistanceToNow(new Date(journal.created_at))} ago
         </span>
       </div>
-      
+
       <p className="text-sm text-gray-600 line-clamp-2">
         {journal.content?.substring(0, 150)}
         {journal.content && journal.content.length > 150 ? '...' : ''}
       </p>
-      
-      {journal.tag && journal.tag.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-3">
-          {journal.tag.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full 
-                        bg-gray-100 text-gray-600"
-            >
-              {tag}
-            </span>
-          ))}
-          {journal.tag.length > 3 && (
-            <span className="text-xs text-gray-400">
-              +{journal.tag.length - 3} more
-            </span>
-          )}
-        </div>
-      )}
+
+      {/* TODO: Tags are in separate journal_tag table, need to join/fetch separately */}
     </div>
   );
 }
