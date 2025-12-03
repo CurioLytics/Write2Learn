@@ -91,6 +91,7 @@ function useJournalFeedbackDB(userId?: string) {
               enhanced_version: result.data.enhanced_version || result.data.improvedVersion,
               fixed_typo: result.data.fixed_typo || journal.content,
               grammar_details: result.data.grammar_details,
+              originalContent: journal.content,
             };
 
             setFeedbackId(newFeedbackId);
@@ -108,10 +109,11 @@ function useJournalFeedbackDB(userId?: string) {
           if (latest.feedbackId) setFeedbackId(latest.feedbackId);
         }
 
-        // Fetch journal data to get summary if not already loaded
-        if (jId && fb && !fb.summary) {
+        // Fetch journal data to get original content and summary
+        if (jId && fb) {
           const journal = await journalService.getJournalById(jId);
-          fb.summary = journal.summary || '';
+          fb.originalContent = journal.content;
+          if (!fb.summary) fb.summary = journal.summary || '';
         }
 
         if (!cancelled) {
@@ -188,7 +190,7 @@ export default function JournalFeedbackPage() {
     setErrMsg(null);
 
     try {
-      const originalContent = feedback.fixed_typo || feedback.originalVersion || '';
+      const originalContent = feedback.originalContent || feedback.fixed_typo || feedback.originalVersion || '';
       const enhancedContent = feedback.enhanced_version || feedback.improvedVersion || '';
       let resultId: string;
 
@@ -196,8 +198,9 @@ export default function JournalFeedbackPage() {
         // Publish draft and update content
         await journalService.publishDraft(journalId, {
           title: editableTitle,
-          content: enhancedContent || originalContent,
+          content: originalContent, // Save original version to content column
           enhanced_version: enhancedContent,
+          summary: feedback.summary,
         });
         resultId = journalId;
       } else {
@@ -207,6 +210,7 @@ export default function JournalFeedbackPage() {
           originalContent,
           enhancedContent,
           journalDate: new Date().toISOString(),
+          summary: feedback.summary,
           highlights,
         });
         resultId = result.id;

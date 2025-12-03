@@ -183,27 +183,8 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
       }, 100);
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
-      if (!container.contains(e.target as Node)) return;
+    const handleSelectionChange = () => {
       showSaveButton();
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (!container.contains(e.target as Node)) return;
-      // Don't interfere with native text selection
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!container.contains(e.target as Node)) return;
-
-      // Give browser time to finalize selection
-      setTimeout(() => {
-        showSaveButton();
-      }, 100); // Balanced delay for selection completion
-    };
-
-    const handleTouchMove = () => {
-      // Don't clear anything - allow native selection to work
     };
 
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
@@ -220,10 +201,10 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
       setSelectedText('');
     };
 
-    container.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener('mouseup', handleSelectionChange);
+    document.addEventListener('touchend', handleSelectionChange);
+    document.addEventListener('keyup', handleSelectionChange);
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('touchstart', handleOutsideClick as EventListener, { passive: true });
 
@@ -231,10 +212,10 @@ export const HighlightSelector: React.FC<HighlightSelectorProps> = ({
       if (selectionTimeout.current) {
         clearTimeout(selectionTimeout.current);
       }
-      container.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
-      container.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      document.removeEventListener('mouseup', handleSelectionChange);
+      document.removeEventListener('touchend', handleSelectionChange);
+      document.removeEventListener('keyup', handleSelectionChange);
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick as EventListener);
     };

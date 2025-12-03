@@ -539,6 +539,7 @@ class JournalService {
     originalContent: string;
     enhancedContent: string;
     journalDate: string;
+    summary?: string;
     highlights?: string[];
   }): Promise<{ id: string }> {
     try {
@@ -549,6 +550,7 @@ class JournalService {
         content: data.originalContent,  // Save original content
         enhanced_version: data.enhancedContent,  // Save enhanced version
         journal_date: data.journalDate,
+        summary: data.summary, // Save summary
       });
 
       return result;
