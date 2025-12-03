@@ -13,6 +13,7 @@ export interface Framework {
   category: string;
   source?: string | null;
   is_pinned?: boolean;
+  profile_id?: string | null;
 }
 
 class FrameworkService {
@@ -45,8 +46,7 @@ class FrameworkService {
 
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, description, category, source, is_pinned')
-        .order('is_pinned', { ascending: false })
+        .select('name, content, description, category, source, is_pinned, profile_id')
         .order('name');
 
       if (error) throw error;
@@ -79,16 +79,21 @@ class FrameworkService {
   }
 
   /**
-   * Get pinned frameworks
+   * Get pinned frameworks for the current user (Custom category only)
    */
   async getPinnedFrameworks(): Promise<Framework[]> {
     try {
       const supabase = createSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) return [];
 
       const { data, error } = await supabase
         .from('frameworks')
-        .select('name, content, description, category, source, is_pinned')
+        .select('name, content, description, category, source, is_pinned, profile_id')
         .eq('is_pinned', true)
+        .eq('category', 'Custom')
+        .eq('profile_id', user.id)
         .order('name');
 
       if (error) throw error;
@@ -131,7 +136,7 @@ class FrameworkService {
   }
 
   /**
-   * Update an existing framework
+   * Update an existing framework by name and profile_id
    */
   async updateFramework(originalName: string, updates: Partial<Framework>): Promise<Framework> {
     try {
@@ -140,19 +145,19 @@ class FrameworkService {
 
       if (!user) throw new Error('User not authenticated');
 
-      // Build update object with only defined fields
-      const updatePayload: Record<string, any> = {};
-      if (updates.name !== undefined) updatePayload.name = updates.name;
-      if (updates.content !== undefined) updatePayload.content = updates.content;
-      if (updates.description !== undefined) updatePayload.description = updates.description;
-      if (updates.is_pinned !== undefined) updatePayload.is_pinned = updates.is_pinned;
+      // Build update object, only including defined fields
+      const updateData: any = {};
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.content !== undefined) updateData.content = updates.content;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.is_pinned !== undefined) updateData.is_pinned = updates.is_pinned;
 
       const { data, error } = await supabase
         .from('frameworks')
-        .update(updatePayload)
+        .update(updateData)
         .eq('name', originalName)
         .eq('profile_id', user.id)
-        .select()
+        .select('name, content, description, category, source, is_pinned, profile_id')
         .single();
 
       if (error) throw error;

@@ -26,27 +26,27 @@ export default function ChatSessionPage() {
   const router = useRouter();
   const id = params?.id as string;
   const mode = searchParams?.get('mode') || 'text'; // Default to text mode
-  
+
   const [scenario, setScenario] = useState<RoleplayScenario | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-  
+
   useEffect(() => {
     async function loadScenario() {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         const data = await roleplayScenarioService.getScenarioById(id);
-        
+
         // Kiểm tra xem có starter_message hay không
         if (!data.starter_message) {
           setError('Tình huống này chưa có tin nhắn mở đầu.');
           return;
         }
-        
+
         setScenario(data);
         setError(null);
       } catch (err) {
@@ -57,10 +57,10 @@ export default function ChatSessionPage() {
         setLoading(false);
       }
     }
-    
+
     loadScenario();
   }, [id]);
-  
+
   // Prevent navigation with confirmation
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -90,7 +90,7 @@ export default function ChatSessionPage() {
     setShowLeaveDialog(false);
     setPendingNavigation(null);
   };
-  
+
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
@@ -112,7 +112,7 @@ export default function ChatSessionPage() {
         <div className="bg-white rounded-2xl shadow p-6 text-center w-full">
           <h2 className="text-xl font-medium text-gray-800 mb-4">Lỗi</h2>
           <p className="text-gray-600 mb-6">{error || 'Không tìm thấy tình huống'}</p>
-          <Button 
+          <Button
             onClick={handleBack}
           >
             Quay lại chi tiết tình huống

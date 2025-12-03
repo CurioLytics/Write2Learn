@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Plus, Pin } from 'lucide-react';
+import { BookOpen, Plus } from 'lucide-react';
 import { frameworkService, Framework, FrameworkCategory } from '@/services/framework-service';
 import { FrameworkDialog } from '@/components/journal/framework-dialog';
 
 export function ExploreFrameworks() {
   const [frameworks, setFrameworks] = useState<Framework[]>([]);
   const [categories, setCategories] = useState<FrameworkCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // null = show all
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
@@ -24,7 +24,9 @@ export function ExploreFrameworks() {
 
       // Update selectedFramework if it's currently open
       if (selectedFramework) {
-        const updatedFramework = frameworksData.find(f => f.name === selectedFramework.name);
+        const updatedFramework = frameworksData.find(
+          f => f.name === selectedFramework.name && f.profile_id === selectedFramework.profile_id
+        );
         if (updatedFramework) {
           setSelectedFramework(updatedFramework);
         }
@@ -56,9 +58,19 @@ export function ExploreFrameworks() {
     fetchData();
   }, []);
 
-  const filteredFrameworks = selectedCategory === 'all'
+  const filteredFrameworks = selectedCategory === null
     ? frameworks
     : frameworks.filter(f => f.category === selectedCategory);
+
+  // Sort categories to show Custom first
+  const sortedCategories = [...categories].sort((a, b) => {
+    if (a.name === 'Custom') return -1;
+    if (b.name === 'Custom') return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Only show create card when no category selected (all) or Custom category selected
+  const showCreateCard = selectedCategory === null || selectedCategory === 'Custom';
 
   if (loading) {
     return (
@@ -92,22 +104,12 @@ export function ExploreFrameworks() {
     <div className="space-y-4">
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setSelectedCategory('all')}
-          className={`
-            px-3 py-1.5 text-sm rounded-full transition-colors capitalize
-            ${selectedCategory === 'all'
-              ? 'bg-[var(--primary-blue-lighter)] text-[var(--primary)] font-medium'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }
-          `}
-        >
-          All Categories
-        </button>
-        {categories.map(category => (
+        {sortedCategories.map(category => (
           <button
             key={category.name}
-            onClick={() => setSelectedCategory(category.name)}
+            onClick={() => setSelectedCategory(
+              selectedCategory === category.name ? null : category.name
+            )}
             className={`
               px-3 py-1.5 text-sm rounded-full transition-colors capitalize
               ${selectedCategory === category.name
@@ -123,34 +125,29 @@ export function ExploreFrameworks() {
 
       {/* Framework Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Create New Card */}
-        <div
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="cursor-pointer transition-all duration-200 group bg-white shadow border-2 border-dashed border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl flex flex-col items-center justify-center min-h-[150px]"
-        >
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
-            <Plus className="w-6 h-6 text-blue-500" />
+        {/* Create New Card - Only show for Custom category or all categories */}
+        {showCreateCard && (
+          <div
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="cursor-pointer transition-all duration-200 group bg-white shadow border-2 border-dashed border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl flex flex-col items-center justify-center min-h-[150px]"
+          >
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+              <Plus className="w-6 h-6 text-blue-500" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Tạo Framework Mới</h3>
+            <p className="text-xs text-gray-500 mt-1">Tùy chỉnh theo ý bạn</p>
           </div>
-          <h3 className="text-sm font-semibold text-gray-900">Tạo Framework Mới</h3>
-          <p className="text-xs text-gray-500 mt-1">Tùy chỉnh theo ý bạn</p>
-        </div>
+        )}
 
         {filteredFrameworks.map(framework => (
           <Card
             key={framework.name}
-            className="cursor-pointer transition-all duration-200 group bg-white shadow border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl relative"
+            className="cursor-pointer transition-all duration-200 group bg-white shadow border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl"
             onClick={() => {
               setSelectedFramework(framework);
               setIsDialogOpen(true);
             }}
           >
-            {/* Pin Indicator */}
-            {framework.is_pinned && (
-              <div className="absolute top-3 right-3 z-10">
-                <Pin className="w-4 h-4 text-blue-500 fill-blue-500" />
-              </div>
-            )}
-
             <CardHeader className="pb-3">
               <div className="text-lg text-gray-800">{framework.name}</div>
             </CardHeader>
@@ -177,10 +174,7 @@ export function ExploreFrameworks() {
         onClose={() => setIsCreateDialogOpen(false)}
         mode="create"
         framework={null}
-        onSave={() => {
-          // Refresh list logic here if needed
-          window.location.reload();
-        }}
+        onSave={refreshFrameworks}
       />
     </div>
   );

@@ -65,10 +65,10 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
   const handleSettingsClick = async (e: React.MouseEvent, template: JournalTemplate) => {
     e.stopPropagation();
 
-    // Fetch the latest framework data from database to get is_pinned status
+    // Fetch the latest framework data from database to get is_pinned status and profile_id
     const { data } = await supabase
       .from('frameworks')
-      .select('name, content, description, category, source, is_pinned')
+      .select('name, content, description, category, source, is_pinned, profile_id')
       .eq('name', template.name)
       .single();
 
@@ -79,7 +79,8 @@ export function TemplateCards({ onTemplateSelect }: TemplateCardsProps) {
         description: (data as any).description,
         category: (data as any).category || 'Template',
         source: (data as any).source,
-        is_pinned: (data as any).is_pinned || false
+        is_pinned: (data as any).is_pinned || false,
+        profile_id: (data as any).profile_id
       };
 
       setSelectedFramework(framework);

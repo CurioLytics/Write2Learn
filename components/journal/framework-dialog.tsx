@@ -108,6 +108,12 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
   };
 
   const handleTogglePin = async () => {
+    // Only allow pinning for Custom frameworks (user-owned)
+    if (mode !== 'create' && framework?.category !== 'Custom') {
+      console.warn('Cannot pin non-Custom frameworks');
+      return;
+    }
+
     const newPinnedState = !formData.is_pinned;
 
     // Update local state immediately for UI feedback
@@ -119,12 +125,15 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
         await frameworkService.updateFramework(framework.name, {
           is_pinned: newPinnedState
         });
-        // Optionally refresh the parent component
+        // Trigger parent refresh to update the list
         onSave?.();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to update pin status:', error);
         // Revert the local state if save failed
         setFormData(prev => ({ ...prev, is_pinned: !newPinnedState }));
+
+        // Show error to user
+        alert('Không thể cập nhật trạng thái pin. Vui lòng thử lại.');
       }
     }
     // If in create mode, the pin state will be saved when the framework is created
@@ -149,6 +158,8 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
 
   const isCustom = framework?.category === 'Custom';
   const isEditing = mode === 'create' || mode === 'edit';
+  // Only show pin for Custom frameworks (user-owned) or when creating new
+  const canPin = mode === 'create' || (framework?.category === 'Custom' && framework?.profile_id);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -162,18 +173,20 @@ export function FrameworkDialog({ framework, isOpen, onClose, mode: initialMode 
             <X className="w-5 h-5" />
           </button>
 
-          {/* Pin Button (Top Right, next to close) */}
-          <button
-            onClick={handleTogglePin}
-            className="absolute top-4 right-14 w-8 h-8 flex items-center justify-center z-10 rounded-full hover:bg-gray-100 transition-colors"
-            title={formData.is_pinned ? "Unpin" : "Pin"}
-          >
-            {formData.is_pinned ? (
-              <Pin className="w-5 h-5 text-blue-500 fill-blue-500" />
-            ) : (
-              <Pin className="w-5 h-5 text-gray-400" />
-            )}
-          </button>
+          {/* Pin Button (Top Right, next to close) - Only for Custom frameworks */}
+          {canPin && (
+            <button
+              onClick={handleTogglePin}
+              className="absolute top-4 right-14 w-8 h-8 flex items-center justify-center z-10 rounded-full hover:bg-gray-100 transition-colors"
+              title={formData.is_pinned ? "Unpin" : "Pin"}
+            >
+              {formData.is_pinned ? (
+                <Pin className="w-5 h-5 text-blue-500 fill-blue-500" />
+              ) : (
+                <Pin className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+          )}
 
           {/* Left Side - Info & Actions */}
           <div className="w-full md:w-1/2 p-8 border-r bg-gray-50/50 flex flex-col">
