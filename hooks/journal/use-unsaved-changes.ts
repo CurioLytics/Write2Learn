@@ -39,17 +39,34 @@ export function useUnsavedChanges(options: UseUnsavedChangesOptions): UseUnsaved
     }, [currentTitle, currentContent, savedTitle, savedContent]);
 
     // Warn on unsaved changes when trying to leave page
+    // This handles: refresh, close tab, browser back/forward
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasUnsavedChanges()) {
+            // Check unsaved changes directly
+            const hasChanges = (
+                (currentTitle !== savedTitle || currentContent !== savedContent) &&
+                (currentTitle || currentContent)
+            );
+
+            console.log('🔔 beforeunload triggered', {
+                hasChanges,
+                currentTitle,
+                savedTitle,
+                currentContent: currentContent.substring(0, 50),
+                savedContent: savedContent.substring(0, 50)
+            });
+
+            if (hasChanges) {
+                console.log('⚠️ Preventing navigation - unsaved changes detected');
                 e.preventDefault();
                 e.returnValue = '';
+                return '';
             }
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [hasUnsavedChanges]);
+    }, [currentTitle, currentContent, savedTitle, savedContent]);
 
     // Handle navigation with unsaved changes check
     const handleNavigation = useCallback((path: string, router: any) => {

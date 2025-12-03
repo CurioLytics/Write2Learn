@@ -62,10 +62,12 @@ export default function ChatSessionPage() {
   }, [id]);
 
   // Prevent navigation with confirmation
+  // This handles: refresh, close tab, browser back/forward
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
+      return '';
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);

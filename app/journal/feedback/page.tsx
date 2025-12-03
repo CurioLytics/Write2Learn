@@ -16,6 +16,7 @@ import { HighlightList } from '@/components/features/journal/editor/highlight-li
 import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import { flashcardGenerationService } from '@/services/flashcard-generation-service';
 import { GrammarDetail } from '@/types/journal-feedback';
+import { FeedbackLoadingScreen } from '@/components/roleplay/feedback-loading-screen';
 
 // Custom hooks
 function useJournalFeedbackDB(userId?: string) {
@@ -156,6 +157,7 @@ export default function JournalFeedbackPage() {
   const { feedback, journalId, feedbackId, error, loading: loadingFB } = useJournalFeedbackDB(user?.id);
   const { highlights, addHighlight, removeHighlight } = useHighlights();
   const [processing, setProcessing] = useState(false);
+  const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [editableTitle, setEditableTitle] = useState<string>('');
 
@@ -176,6 +178,12 @@ export default function JournalFeedbackPage() {
 
   const handleSave = async (redirectToFlashcards: boolean) => {
     if (!user?.id || !feedback) return;
+
+    // Show loading screen immediately if generating flashcards
+    if (redirectToFlashcards && highlights.length) {
+      setIsGeneratingFlashcards(true);
+    }
+
     setProcessing(true);
     setErrMsg(null);
 
@@ -225,6 +233,7 @@ export default function JournalFeedbackPage() {
       }
     } catch (err) {
       setErrMsg((err as Error).message || 'Failed to save journal');
+      setIsGeneratingFlashcards(false);
     } finally {
       setProcessing(false);
     }
@@ -266,6 +275,16 @@ export default function JournalFeedbackPage() {
           className="max-w-md"
         />
       </div>
+    );
+  }
+
+  if (isGeneratingFlashcards) {
+    return (
+      <FeedbackLoadingScreen
+        isVisible={true}
+        colorScheme="blue"
+        steps={['tạo mặt trước', 'tạo mặt sau', 'thêm ví dụ']}
+      />
     );
   }
 
