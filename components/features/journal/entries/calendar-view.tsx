@@ -12,24 +12,24 @@ interface CalendarViewProps {
 
 export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  
+
   const daysInMonth = useMemo(() => generateCalendar(currentMonth, journals), [currentMonth, journals]);
-  
+
   const goToPreviousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
-  
+
   const goToNextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
   const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(currentMonth);
   const year = currentMonth.getFullYear();
-  
+
   return (
     <div className="rounded-2xl p-4 bg-white shadow">
       <div className="flex justify-between items-center mb-4">
-        <button 
+        <button
           onClick={goToPreviousMonth}
           className="p-2 rounded-full hover:bg-gray-100"
           aria-label="Previous month"
@@ -38,12 +38,12 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        
+
         <h3 className="font-medium">
           {monthName} {year}
         </h3>
-        
-        <button 
+
+        <button
           onClick={goToNextMonth}
           className="p-2 rounded-full hover:bg-gray-100"
           aria-label="Next month"
@@ -53,7 +53,7 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
           </svg>
         </button>
       </div>
-      
+
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="text-xs font-medium text-gray-500">
@@ -61,12 +61,12 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
           </div>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-7 gap-1">
         {daysInMonth.map((day, index) => {
-          const isSelected = selectedDate && day.date && 
-            selectedDate.getDate() === day.date.getDate() && 
-            selectedDate.getMonth() === day.date.getMonth() && 
+          const isSelected = selectedDate && day.date &&
+            selectedDate.getDate() === day.date.getDate() &&
+            selectedDate.getMonth() === day.date.getMonth() &&
             selectedDate.getFullYear() === day.date.getFullYear();
 
           // Slightly darker style for days with journal, no border
@@ -87,7 +87,7 @@ export function CalendarView({ journals, onDateSelect, selectedDate }: CalendarV
                 ${journalDayStyle}
               `}
               aria-label={day.date ? formatDate(day.date) : 'Empty day'}
-              aria-pressed={isSelected}
+              aria-pressed={!!isSelected}
             >
               {day.date?.getDate()}
               {day.hasJournal && <span className="absolute w-1 h-1 bg-neutral-400 rounded-full -bottom-0.5"></span>}
@@ -108,19 +108,19 @@ type CalendarDay = {
 function generateCalendar(date: Date, journals: Journal[]): CalendarDay[] {
   const year = date.getFullYear();
   const month = date.getMonth();
-  
+
   // First day of the month
   const firstDayOfMonth = new Date(year, month, 1);
   // Day of the week for the first day (0-6, where 0 is Sunday)
   const firstDayOfWeek = firstDayOfMonth.getDay();
-  
+
   // Last day of the month
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
-  
+
   // Today for highlighting current day
   const today = new Date();
-  
+
   // Convert journal dates to strings for easier comparison
   const journalDates = new Set(
     journals.map(journal => {
@@ -128,35 +128,35 @@ function generateCalendar(date: Date, journals: Journal[]): CalendarDay[] {
       return `${journalDate.getFullYear()}-${journalDate.getMonth()}-${journalDate.getDate()}`;
     })
   );
-  
+
   const calendar: CalendarDay[] = [];
-  
+
   // Add empty days for days before the first day of the month
   for (let i = 0; i < firstDayOfWeek; i++) {
     calendar.push({ date: null, isToday: false, hasJournal: false });
   }
-  
+
   // Add days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     const currentDate = new Date(year, month, day);
     const dateKey = `${year}-${month}-${day}`;
-    
-    const isToday = 
-      today.getDate() === day && 
-      today.getMonth() === month && 
+
+    const isToday =
+      today.getDate() === day &&
+      today.getMonth() === month &&
       today.getFullYear() === year;
-    
+
     const hasJournal = journalDates.has(dateKey);
-    
+
     calendar.push({ date: currentDate, isToday, hasJournal });
   }
-  
+
   // Optionally, fill the remaining spaces in the grid (if the last row is incomplete)
   // If you want to have 6 rows always, calculate 42 (6 rows * 7 days) - calendar.length
   const remainingDays = (7 - (calendar.length % 7)) % 7;
   for (let i = 0; i < remainingDays; i++) {
     calendar.push({ date: null, isToday: false, hasJournal: false });
   }
-  
+
   return calendar;
 }

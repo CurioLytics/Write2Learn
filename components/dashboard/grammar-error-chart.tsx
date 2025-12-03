@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GrammarErrorSummary } from '@/services/analytics-service';
+import { GrammarErrorSummary } from '@/types/analytics';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PracticeDialog } from '@/app/report/components/PracticeDialog';
 import { ErrorData } from '@/types/exercise';
@@ -37,10 +37,10 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
     // NOTE: Using topic_name instead of topic_id because some records have null topic_id
     // due to webhook returning IDs that don't exist in grammar_topics table
     const topics: Record<string, string[]> = {};
-    
+
     console.log('🔍 [Chart] Raw data received:', data);
     console.log('🔍 [Chart] Data length:', data.length);
-    
+
     data.forEach((error, index) => {
       console.log(`🔍 [Chart] Processing item ${index}:`, {
         topic_id: error.topic_id,
@@ -49,7 +49,7 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
         tags_length: error.all_tags?.length || 0,
         tags_is_array: Array.isArray(error.all_tags)
       });
-      
+
       if (error.topic_name && error.all_tags && error.all_tags.length > 0) {
         topics[error.topic_name] = error.all_tags;
         console.log(`✅ [Chart] Added topic: ${error.topic_name} with ${error.all_tags.length} tags`);
@@ -61,9 +61,9 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
     console.log('📊 [Chart] Final topics object:', JSON.stringify(topics, null, 2));
     console.log('📊 [Chart] Topics keys:', Object.keys(topics));
     console.log('📊 [Chart] Topics count:', Object.keys(topics).length);
-    
+
     // Map grammar error data to ErrorData format for the practice dialog
-    const errorData: ErrorData[] = data.flatMap(error => 
+    const errorData: ErrorData[] = data.flatMap(error =>
       error.recent_errors.map(description => ({
         topicName: error.topic_name,
         grammarId: error.topic_name, // Use topic_name as fallback since topic_id may be null
@@ -72,9 +72,9 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
         description: description
       }))
     );
-    
+
     console.log('📊 [Chart] Error data count:', errorData.length);
-    
+
     // Pass both errorData and topics structure
     setGrammarTopics(topics);
     setSelectedErrorData(errorData);
@@ -105,8 +105,8 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
 
   // Take top 10 errors for chart
   const chartData = data.slice(0, 10).map(item => ({
-    topic: item.topic_name.length > 20 
-      ? item.topic_name.substring(0, 20) + '...' 
+    topic: item.topic_name.length > 20
+      ? item.topic_name.substring(0, 20) + '...'
       : item.topic_name,
     fullTopic: item.topic_name,
     count: item.error_count,
@@ -135,26 +135,26 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
 
       <div className="mb-6">
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart 
-            data={chartData} 
+          <BarChart
+            data={chartData}
             layout="vertical"
             margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
+            <XAxis
               type="number"
               className="text-xs"
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
               allowDecimals={false}
             />
-            <YAxis 
+            <YAxis
               type="category"
               dataKey="topic"
               className="text-xs"
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
               width={90}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
@@ -207,8 +207,8 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
                 );
               }}
             />
-            <Bar 
-              dataKey="count" 
+            <Bar
+              dataKey="count"
               radius={[0, 4, 4, 0]}
             >
               {chartData.map((entry, index) => (
@@ -227,8 +227,8 @@ export function GrammarErrorChart({ data, isLoading }: GrammarErrorChartProps) {
             <AccordionItem key={index} value={`item-${index}`}>
               <AccordionTrigger className="text-sm hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+                  <div
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: ERROR_COLORS[index % ERROR_COLORS.length] }}
                   />
                   <span className="font-medium">{error.topic_name}</span>

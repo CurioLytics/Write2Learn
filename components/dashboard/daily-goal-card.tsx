@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ChevronRight, BookOpen, PenLine, MessageSquare } from 'lucide-react';
-import { DailyGoalStatus } from '@/services/analytics-service';
+import { DailyGoalStatus } from '@/types/analytics';
 import { cn } from '@/utils/ui';
 import { useUserProfileStore } from '@/stores/user-profile-store';
 import Link from 'next/link';

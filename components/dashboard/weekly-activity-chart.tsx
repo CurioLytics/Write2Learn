@@ -3,7 +3,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
-import { WeeklyActivityData } from '@/services/analytics-service';
+import { WeeklyActivityData } from '@/types/analytics';
 
 interface WeeklyActivityChartProps {
   data: WeeklyActivityData[];
@@ -48,9 +48,9 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
   // Format dates for display
   const formattedData = data.map(item => ({
     ...item,
-    dateLabel: new Date(item.date).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    dateLabel: new Date(item.date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     }),
   }));
 
@@ -60,21 +60,21 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
         <h3 className="text-lg font-semibold">Weekly Activity</h3>
         <p className="text-sm text-muted-foreground">Your learning activities over time</p>
       </div>
-      
+
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={formattedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-          <XAxis 
-            dataKey="dateLabel" 
+          <XAxis
+            dataKey="dateLabel"
             className="text-xs"
             tick={{ fill: 'hsl(var(--muted-foreground))' }}
           />
-          <YAxis 
+          <YAxis
             className="text-xs"
             tick={{ fill: 'hsl(var(--muted-foreground))' }}
             allowDecimals={false}
           />
-          <Tooltip 
+          <Tooltip
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
               border: '1px solid hsl(var(--border))',
@@ -82,34 +82,34 @@ export function WeeklyActivityChart({ data, isLoading }: WeeklyActivityChartProp
             }}
             labelStyle={{ color: 'hsl(var(--foreground))' }}
           />
-          <Legend 
+          <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             formatter={(value) => ACTIVITY_LABELS[value as keyof typeof ACTIVITY_LABELS] || value}
           />
-          <Bar 
-            dataKey="vocab_created" 
-            stackId="a" 
+          <Bar
+            dataKey="vocab_created"
+            stackId="a"
             fill={ACTIVITY_COLORS.vocab_created}
             name="vocab_created"
             radius={[0, 0, 0, 0]}
           />
-          <Bar 
-            dataKey="vocab_reviewed" 
-            stackId="a" 
+          <Bar
+            dataKey="vocab_reviewed"
+            stackId="a"
             fill={ACTIVITY_COLORS.vocab_reviewed}
             name="vocab_reviewed"
             radius={[0, 0, 0, 0]}
           />
-          <Bar 
-            dataKey="journal_created" 
-            stackId="a" 
+          <Bar
+            dataKey="journal_created"
+            stackId="a"
             fill={ACTIVITY_COLORS.journal_created}
             name="journal_created"
             radius={[0, 0, 0, 0]}
           />
-          <Bar 
-            dataKey="roleplay_completed" 
-            stackId="a" 
+          <Bar
+            dataKey="roleplay_completed"
+            stackId="a"
             fill={ACTIVITY_COLORS.roleplay_completed}
             name="roleplay_completed"
             radius={[4, 4, 0, 0]}

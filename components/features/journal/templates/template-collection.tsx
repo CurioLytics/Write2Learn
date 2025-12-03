@@ -20,19 +20,19 @@ export function TemplateCollection() {
   const [selectedCategory, setSelectedCategory] = useState<JournalTemplateCategory>(TEMPLATE_CATEGORIES[0]);
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
   // State to store templates grouped by category
-const [templates, setTemplates] = useState<Record<JournalTemplateCategory, JournalTemplate[]>>({} as Record<JournalTemplateCategory, JournalTemplate[]>);
+  const [templates, setTemplates] = useState<Record<JournalTemplateCategory, JournalTemplate[]>>({} as Record<JournalTemplateCategory, JournalTemplate[]>);
 
   useEffect(() => {
     async function loadTemplates() {
       try {
         setIsLoading(true);
-        const templatesData = await journalTemplateService.getTemplatesByCategory();
+        const templatesData = await journalTemplateService.getDefaultTemplates();
         setTemplates(templatesData);
         setError(null);
       } catch (err) {
         console.error('Error loading templates:', err);
         setError('Failed to load journal templates. Please try again.');
-        
+
         // Set empty template categories as fallback
         const fallbackTemplates = {} as Record<JournalTemplateCategory, JournalTemplate[]>;
         TEMPLATE_CATEGORIES.forEach(category => {
@@ -43,7 +43,7 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
         setIsLoading(false);
       }
     }
-    
+
     loadTemplates();
   }, []);
 
@@ -78,7 +78,7 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
 
   if (error) {
     return (
-      <ErrorState 
+      <ErrorState
         message={error}
         onRetry={() => window.location.reload()}
       />
@@ -104,7 +104,7 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           <span className="inline-block mr-2">📝</span> Choose a Template
         </h1>
-        
+
         <button
           onClick={handleBlankPageSelect}
           className="hidden sm:inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
@@ -113,14 +113,14 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
           Blank Page
         </button>
       </div>
-      
+
       {/* Category tabs */}
       <div className="mb-6 border-b border-gray-200">
         <nav className={cn("-mb-px flex space-x-6 overflow-x-auto", styles.categoryTabs)} aria-label="Template Categories">
           {TEMPLATE_CATEGORIES.map((category) => {
             const count = templates[category]?.length || 0;
             const isActive = selectedCategory === category;
-            
+
             return (
               <button
                 key={category}
@@ -137,8 +137,8 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
                 {count > 0 && (
                   <span className={cn(
                     "ml-2 py-0.5 px-2 rounded-full text-xs",
-                    isActive 
-                      ? "bg-primary/10 text-primary" 
+                    isActive
+                      ? "bg-primary/10 text-primary"
                       : "bg-gray-100 text-gray-600"
                   )}>
                     {count}
@@ -149,7 +149,7 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
           })}
         </nav>
       </div>
-      
+
       {/* Visible only on mobile */}
       <div className="sm:hidden mb-6">
         <button
@@ -160,27 +160,27 @@ const [templates, setTemplates] = useState<Record<JournalTemplateCategory, Journ
           Start with Blank Page
         </button>
       </div>
-      
+
       {/* Templates for selected category */}
       <div
         key={selectedCategory}
         className="transition-opacity duration-300"
       >
-        <CategorySection 
+        <CategorySection
           category={selectedCategory}
           templates={templates[selectedCategory] || []}
           selectedTemplate={selectedTemplate}
           onTemplateSelect={handleTemplateSelect}
         />
       </div>
-      
+
       {/* Action footer */}
       <div className="sticky bottom-0 bg-white border-t border-gray-100 mt-8 py-4 px-4 flex justify-between items-center">
         <div className="text-sm text-gray-500">
           {selectedTemplate ? `Selected: ${selectedTemplate.name}` : 'Select a template to continue'}
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={handleBlankPageSelect}
             className="text-sm text-gray-600 hover:text-gray-900"
           >

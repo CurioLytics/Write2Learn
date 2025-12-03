@@ -28,18 +28,18 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
       try {
         setIsLoading(true);
         // Get all templates grouped by category
-        const templatesData = await journalTemplateService.getTemplatesByCategory();
+        const templatesData = await journalTemplateService.getDefaultTemplates();
         setTemplates(templatesData);
-        
+
         // Get pinned/featured templates
         const pinnedData = await journalTemplateService.getPinnedTemplates();
         setPinnedTemplates(pinnedData);
-        
+
         setError(null);
       } catch (err) {
         console.error('Error loading templates:', err);
         setError('Failed to load journal templates. Please try again.');
-        
+
         // Set empty templates as fallback
         const fallbackTemplates = {} as Record<JournalTemplateCategory, JournalTemplate[]>;
         TEMPLATE_CATEGORIES.forEach(category => {
@@ -51,7 +51,7 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
         setIsLoading(false);
       }
     }
-    
+
     loadTemplates();
   }, []);
 
@@ -81,7 +81,7 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
 
   if (error) {
     return (
-      <ErrorState 
+      <ErrorState
         message={error}
         onRetry={() => window.location.reload()}
       />
@@ -94,7 +94,7 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-medium text-gray-800">Start Writing</h2>
           {onClose && (
-            <button 
+            <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
               aria-label="Close"
@@ -111,15 +111,15 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
       <div className="p-4">
         {/* Quick start buttons */}
         <div className="flex gap-3 mb-6">
-          <button 
+          <button
             onClick={handleBlankPageSelect}
             className="flex-1 py-2 px-4 border border-gray-300 rounded bg-gray-50 hover:bg-gray-100 text-sm"
           >
             <span className="block text-lg mb-1">📝</span>
             Blank Page
           </button>
-          
-          <button 
+
+          <button
             onClick={() => {
               // Get today's template if exists, otherwise go with blank page
               const todayTemplate = pinnedTemplates.find(t => t.tag.includes('daily'));
@@ -140,8 +140,8 @@ export function TemplateSelection({ onClose, showAllTemplatesLink = true }: Temp
         {pinnedTemplates.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Popular Templates</h3>
-            <PinnedTemplates 
-              templates={pinnedTemplates} 
+            <PinnedTemplates
+              templates={pinnedTemplates}
               onSelect={handleTemplateSelect}
               selectedTemplateId={selectedTemplate?.id}
             />
