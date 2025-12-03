@@ -279,7 +279,6 @@ export default function FlashcardCreationPage() {
             {/* Vocabulary Words Section */}
             <div>
               <div className="flex items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-800">Từ vựng</h3>
               </div>
 
               <div className="space-y-4">
@@ -300,7 +299,7 @@ export default function FlashcardCreationPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">
-                          Từ
+                          Mạt trước
                         </label>
                         <textarea
                           value={card.word}
@@ -313,7 +312,7 @@ export default function FlashcardCreationPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">
-                          Nghĩa
+                          Mặt sau
                         </label>
                         <textarea
                           value={card.back.definition}

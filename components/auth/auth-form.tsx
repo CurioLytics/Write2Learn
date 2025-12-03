@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ export function AuthForm() {
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signupComplete, setSignupComplete] = useState(false);
@@ -25,13 +27,13 @@ export function AuthForm() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      
+
       // Check for mode parameter (signup/signin)
       const modeParam = urlParams.get('mode');
       if (modeParam === 'signup' || modeParam === 'signin') {
         setMode(modeParam as AuthMode);
       }
-      
+
       // Check for onboarding completion
       const onboardingComplete = urlParams.get('onboardingComplete');
       if (onboardingComplete === 'true') {
@@ -122,15 +124,28 @@ export function AuthForm() {
               </button>
             )}
           </div>
-          <input
-            id="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-3 sm:py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-base"
-            style={{ minHeight: '44px' }} // Mobile-friendly touch target
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-3 sm:py-2 pr-10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-base"
+              style={{ minHeight: '44px' }} // Mobile-friendly touch target
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -184,6 +199,6 @@ export function AuthForm() {
           </p>
         )}
       </div>
-      </div>
-    );
-  }
+    </div>
+  );
+}
