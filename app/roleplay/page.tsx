@@ -54,20 +54,17 @@ export default function RoleplayPage() {
               </Button>
             </div>
           ) : scenarios && scenarios.length > 0 ? (
-            <>
-              <HorizontalScrollList>
-                {scenarios.map(s => (
-                  <div key={s.id} className="flex-shrink-0">
-                    <RoleplayCard
-                      id={s.id}
-                      title={s.name}
-                      description={s.context}
-                      imageUrl={s.image || ''}
-                    />
-                  </div>
-                ))}
-              </HorizontalScrollList>
-            </>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {scenarios.map(s => (
+                <RoleplayCard
+                  key={s.id}
+                  id={s.id}
+                  title={s.name}
+                  description={s.context}
+                  imageUrl={s.image || ''}
+                />
+              ))}
+            </div>
           ) : (
             <div className="text-center text-gray-600 py-8">
               {selectedTopic ? (

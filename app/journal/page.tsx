@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, X } from 'lucide-react';
+import { PlusCircle, Search, X, Info } from 'lucide-react';
 import { JournalList, CalendarView } from '@/components/features/journal/entries';
 import { JournalStatsDisplay } from '@/components/features/journal/stats';
 import { ExploreFrameworks } from '@/components/journal/explore-frameworks';
@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/auth/use-auth';
 import { SectionNavigation } from '@/components/ui/section-navigation';
 import { PageContentWrapper } from '@/components/ui/page-content-wrapper';
 import { JournalListSkeleton, PageHeaderSkeleton } from '@/components/ui/page-skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function JournalPage() {
   const router = useRouter();
@@ -269,7 +270,19 @@ export default function JournalPage() {
 
       {/* Framework Section */}
       <div id="frameworks" className="w-full max-w-3xl mt-10 bg-white shadow rounded-2xl p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">Khám phá Framework</h2>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Khám phá Framework</h2>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="focus:outline-none">
+                <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="max-w-xs text-sm text-gray-700 bg-white p-3 shadow-md border border-gray-200 rounded-lg">
+              <p>Framework là các mẫu nhật ký có hướng dẫn giúp cấu trúc suy nghĩ xoay quanh một mục tiêu cụ thể</p>
+            </PopoverContent>
+          </Popover>
+        </div>
         <p className="text-center text-gray-600 mb-6">Khám phá các framework để trải nghiệm nhiều khía cạnh trong nhật k</p>
         <ExploreFrameworks />
       </div>
