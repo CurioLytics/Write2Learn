@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, X } from 'lucide-react';
 import { JournalList, CalendarView } from '@/components/features/journal/entries';
 import { JournalStatsDisplay } from '@/components/features/journal/stats';
 import { ExploreFrameworks } from '@/components/journal/explore-frameworks';
 import { TagFilterDropdown } from '@/components/journal/tag-filter-dropdown';
+import { DateRangeFilter } from '@/components/journal/date-range-filter';
 import { WeekCalendarView } from '@/components/journal/week-calendar-view';
 import { Journal, JournalStats } from '@/types/journal';
 import { journalService } from '@/services/journal-service';
@@ -28,17 +29,37 @@ export default function JournalPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
-  // Filter journals based on search query only
+  // Filter journals based on search query, tag, and date range
   const filteredJournals = useMemo(() => {
     return journals.filter(journal => {
       const matchesSearch = !searchQuery ||
         journal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         journal.content.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesSearch;
+      // Date range filter
+      const matchesDateRange = (() => {
+        if (!startDate && !endDate) return true;
+        const journalDate = new Date(journal.journal_date);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+
+        if (start && end) {
+          return journalDate >= start && journalDate <= end;
+        } else if (start) {
+          return journalDate >= start;
+        } else if (end) {
+          return journalDate <= end;
+        }
+        return true;
+      })();
+
+      return matchesSearch && matchesDateRange;
     });
-  }, [journals, searchQuery]);
+  }, [journals, searchQuery, startDate, endDate]);
 
   const handleTagFilterChange = async (tag: string | null) => {
     setSelectedTag(tag);
@@ -58,6 +79,18 @@ export default function JournalPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDateRangeChange = (start: string | null, end: string | null) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleSearchToggle = () => {
+    if (isSearchExpanded && searchQuery) {
+      setSearchQuery('');
+    }
+    setIsSearchExpanded(!isSearchExpanded);
   };
 
   useEffect(() => {
@@ -152,21 +185,41 @@ export default function JournalPage() {
             </Button>
           </div>
 
-          {/* Search Bar and Tag Filter Row */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Tìm kiếm..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <TagFilterDropdown
-              onFilterChange={handleTagFilterChange}
-              currentTag={selectedTag}
-            />
+          {/* Search and Filter Row */}
+          <div className="flex items-center justify-end gap-3">
+            {isSearchExpanded ? (
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSearchToggle}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handleSearchToggle}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-w-[150px] justify-between"
+                >
+                  <span className="text-sm font-medium text-gray-700">Tìm kiếm</span>
+                  <Search className="h-4 w-4 text-gray-500" />
+                </button>
+                <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
+                <TagFilterDropdown
+                  onFilterChange={handleTagFilterChange}
+                  currentTag={selectedTag}
+                />
+              </>
+            )}
           </div>
 
           {/* Calendar */}
