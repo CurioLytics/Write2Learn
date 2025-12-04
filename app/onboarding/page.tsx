@@ -167,8 +167,8 @@ export default function OnboardingPage() {
             </p>
             <Button
               onClick={handleNext}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-2xl text-base font-normal"
+              variant="outline"
+              className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors"
             >
               Let's go
             </Button>
@@ -182,34 +182,22 @@ export default function OnboardingPage() {
               {typeof currentStep.title === 'function' ? currentStep.title(data) : currentStep.title}
             </h1>
             {currentStep.id === 'features-intro' ? (
-              <div className="max-w-2xl space-y-6 mb-8 text-left">
-                <div className="flex gap-4 items-start p-4 bg-blue-50 rounded-xl">
-                  <span className="text-3xl">📝</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Viết nhật ký với phản hồi chi tiết</h3>
-                    <p className="text-sm text-gray-600">Nhận feedback về ngữ pháp, từ vựng và cách diễn đạt từ AI</p>
-                  </div>
+              <div className="max-w-2xl space-y-3 mb-8 text-left">
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <h3 className="font-medium text-gray-900 mb-1">Viết nhật ký với phản hồi chi tiết</h3>
+                  <p className="text-sm text-gray-600">Nhận feedback về ngữ pháp, từ vựng và cách diễn đạt từ AI</p>
                 </div>
-                <div className="flex gap-4 items-start p-4 bg-green-50 rounded-xl">
-                  <span className="text-3xl">📚</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Học từ vựng thông minh</h3>
-                    <p className="text-sm text-gray-600">Hệ thống spaced repetition giúp bạn nhớ lâu hơn</p>
-                  </div>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <h3 className="font-medium text-gray-900 mb-1">Học từ vựng thông minh</h3>
+                  <p className="text-sm text-gray-600">Hệ thống spaced repetition giúp bạn nhớ lâu hơn</p>
                 </div>
-                <div className="flex gap-4 items-start p-4 bg-purple-50 rounded-xl">
-                  <span className="text-3xl">🎭</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Luyện giao tiếp qua các tình huống giả định</h3>
-                    <p className="text-sm text-gray-600">Roleplay với AI trong các tình huống đời thường</p>
-                  </div>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <h3 className="font-medium text-gray-900 mb-1">Luyện giao tiếp qua các tình huống giả định</h3>
+                  <p className="text-sm text-gray-600">Roleplay với AI trong các tình huống đời thường</p>
                 </div>
-                <div className="flex gap-4 items-start p-4 bg-orange-50 rounded-xl">
-                  <span className="text-3xl">📊</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Theo dõi tiến trình</h3>
-                    <p className="text-sm text-gray-600">Phân tích lỗi và xem xu hướng cải thiện của bạn</p>
-                  </div>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <h3 className="font-medium text-gray-900 mb-1">Theo dõi tiến trình</h3>
+                  <p className="text-sm text-gray-600">Phân tích lỗi và xem xu hướng cải thiện của bạn</p>
                 </div>
               </div>
             ) : (
@@ -219,8 +207,8 @@ export default function OnboardingPage() {
             )}
             <Button
               onClick={handleNext}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
+              variant="outline"
+              className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors"
             >
               Tiếp tục
             </Button>
@@ -254,7 +242,7 @@ export default function OnboardingPage() {
                   }
                 }}
                 placeholder={currentStep.placeholder || (isNumberInput ? 'e.g., 10' : '')}
-                className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+                className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -359,7 +347,8 @@ export default function OnboardingPage() {
                     <Button
                       onClick={handleNext}
                       disabled={isSubmitting}
-                      className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal"
+                      variant="outline"
+                      className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors disabled:opacity-50"
                     >
                       {isSubmitting ? 'Đang lưu...' : currentStepIndex === TOTAL_STEPS - 1 ? 'Hoàn tất' : 'Tiếp tục'}
                     </Button>
@@ -376,7 +365,8 @@ export default function OnboardingPage() {
                 <Button
                   onClick={handleNext}
                   disabled={!hasSelection}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 rounded-2xl font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="outline"
+                  className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Tiếp tục
                 </Button>

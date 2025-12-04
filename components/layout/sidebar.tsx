@@ -84,7 +84,7 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
           >
             <div className="relative w-10 h-10">
               <Image
-                src="/images/logo.svg"
+                src="/images/logo.png"
                 alt="Write2Learn"
                 fill
                 className="object-contain"
@@ -137,16 +137,16 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                     className="stroke-gray-500 hover:stroke-primary transition-colors duration-200"
                   />
                 </button>
-                
+
                 {/* Profile dropdown */}
                 {isProfileOpen && (
                   <div className="absolute left-14 bottom-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
                     <div className="px-3 py-2 border-b border-gray-100">
                       <UserProfileDisplay />
                     </div>
-                    
+
                     <div className="py-1">
-                      <Link 
+                      <Link
                         href="/profile"
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                         onClick={() => setIsProfileOpen(false)}
@@ -154,8 +154,8 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                         <Settings size={16} />
                         Cá nhân hóa
                       </Link>
-                      
-                      <Link 
+
+                      <Link
                         href="/account"
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                         onClick={() => setIsProfileOpen(false)}
@@ -163,8 +163,8 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                         <User size={16} />
                         Tài khoản
                       </Link>
-                      
-                      <Link 
+
+                      <Link
                         href="/feedback"
                         className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                         onClick={() => setIsProfileOpen(false)}
@@ -172,7 +172,7 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                         <MessageSquare size={16} />
                         Feedback
                       </Link>
-                      
+
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button
                           onClick={async () => {
@@ -189,7 +189,7 @@ export function Sidebar({ isDesktopSidebar = false }: SidebarProps) {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Tooltip label */}
                 <span className={styles.tooltip}>Profile</span>
               </div>

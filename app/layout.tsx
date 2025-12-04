@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   title: 'Write2Learn - Improve Your English Writing',
   description: 'Master English writing through journaling, vocabulary building, and interactive roleplay.',
   icons: {
-    icon: '/images/logo.svg',
-    shortcut: '/images/logo.svg',
-    apple: '/images/logo.svg',
+    icon: '/images/logo.png',
+    shortcut: '/images/logo.png',
+    apple: '/images/logo.png',
   },
 };
 

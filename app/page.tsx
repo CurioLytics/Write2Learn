@@ -10,7 +10,7 @@ import { Footer } from '@/components/landing/footer';
 
 export default function LandingPage() {
   const { isMobile } = useResponsive();
-  
+
   // Pain points addressed
   const painPoints = [
     {
@@ -34,7 +34,7 @@ export default function LandingPage() {
       solution: "Dashboard theo dõi và gợi ý bài luyện tập"
     }
   ];
-  
+
   // Core features with user benefits
   const features = [
     {
@@ -56,7 +56,7 @@ export default function LandingPage() {
       benefit: "Nhớ lâu + Dùng từ tự nhiên"
     },
   ];
-  
+
   // How it works - simplified user flow
   const steps = [
     {
@@ -84,7 +84,7 @@ export default function LandingPage() {
       iconSrc: "/icons/cap.svg",
     },
   ];
-  
+
   // Footer links
   const footerLinks = [
     { text: "Đăng nhập", href: "/auth" },
@@ -92,19 +92,19 @@ export default function LandingPage() {
     { text: "Quyền riêng tư", href: "#" },
     { text: "Điều khoản", href: "#" },
   ];
-  
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Header */}
-      <Header 
-        logoSrc="/images/logo.svg"
+      <Header
+        logoSrc="/images/logo.png"
         logoText="W2L"
         buttonText="Bắt đầu hành trình của bạn"
         buttonLink="/auth?mode=signup"
       />
 
       {/* Hero Section */}
-      <Hero 
+      <Hero
         title={
           <>
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Write your Thoughts,</span>
@@ -119,13 +119,13 @@ export default function LandingPage() {
       />
 
       {/* Pain Points Section */}
-      <Section 
+      <Section
         title={<>Bạn có đang gặp những khó khăn này?</>}
         bgColor="bg-gray-50"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {painPoints.map((item, index) => (
-            <div 
+            <div
               key={index}
               className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all"
             >
@@ -142,14 +142,14 @@ export default function LandingPage() {
       </Section>
 
       {/* Features Section */}
-      <Section 
+      <Section
         title={<>Ba cách học hiệu quả trong một ứng dụng</>}
         bgColor="bg-white"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="flex flex-col">
-              <FeatureCard 
+              <FeatureCard
                 title={feature.title}
                 description={feature.description}
                 iconSrc={feature.iconSrc}
@@ -166,13 +166,13 @@ export default function LandingPage() {
       </Section>
 
       {/* How It Works Section */}
-      <Section 
+      <Section
         title={<>Hành trình học của bạn với <span className="text-black">W</span><span className="bg-gradient-to-b from-black from-50% to-blue-600 to-50% bg-clip-text text-transparent">2</span><span className="text-blue-600">L</span></>}
         bgColor="bg-blue-50"
       >
         <div className="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-8">
           {steps.map((step, index) => (
-            <StepItem 
+            <StepItem
               key={index}
               number={step.number}
               title={step.title}
@@ -184,23 +184,23 @@ export default function LandingPage() {
       </Section>
 
       {/* CTA Section */}
-      <Section 
+      <Section
         title={<>Sẵn sàng bắt đầu?</>}
         bgColor="bg-gradient-to-br from-blue-600 to-purple-600"
       >
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-xl text-white mb-8">
-            Tham gia ngay hôm nay và trải nghiệm cách học tiếng Anh khác biệt — 
+            Tham gia ngay hôm nay và trải nghiệm cách học tiếng Anh khác biệt —
             được cá nhân hóa hoàn toàn cho bạn.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a 
+            <a
               href="/auth?mode=signup"
               className="bg-white text-blue-600 font-semibold px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl"
             >
               Bắt đầu miễn phí
             </a>
-            <a 
+            <a
               href="/auth"
               className="text-white font-medium px-8 py-4 rounded-2xl border-2 border-white hover:bg-white/10 transition-all"
             >
@@ -214,8 +214,8 @@ export default function LandingPage() {
       </Section>
 
       {/* Footer */}
-      <Footer 
-        logoSrc="/images/logo.svg"
+      <Footer
+        logoSrc="/images/logo.png"
         logoText="Viết để Học"
         links={footerLinks}
       />

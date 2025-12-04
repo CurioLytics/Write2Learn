@@ -5,7 +5,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Curiolytics/Write2Learn">
-    <img src="public/images/logo.svg" alt="Logo" width="80" height="80">
+    <img src="public/images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Write2Learn (W2L)</h3>
