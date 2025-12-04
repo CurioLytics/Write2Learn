@@ -15,18 +15,18 @@ export const HighlightList: React.FC<HighlightListProps> = ({
     <div className="space-y-3">
       {!highlights || highlights.length === 0 ? (
         <div className="text-gray-500 text-center py-4">
-          Tô và chọn đoạn văn bản trong cuộc hội thoại để lưu lại những điểm quan trọng nhé
+          Tô và chọn các từ/ cụm từ mà bạn muốn lưu lại nhé!
         </div>
       ) : (
         highlights.map((highlight, index) => (
-          <div 
+          <div
             key={index}
             className="flex items-start p-3 bg-yellow-50 border border-yellow-200 rounded-md"
           >
             <div className="flex-1 text-sm">
               <p className="text-gray-800">"{highlight}"</p>
             </div>
-            <button 
+            <button
               onClick={() => onRemove(index)}
               className="ml-2 text-gray-400 hover:text-gray-600"
             >

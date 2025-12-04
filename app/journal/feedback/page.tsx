@@ -17,6 +17,7 @@ import { feedbackLogsService } from '@/services/supabase/feedback-logs-service';
 import { flashcardGenerationService } from '@/services/flashcard-generation-service';
 import { GrammarDetail } from '@/types/journal-feedback';
 import { FeedbackLoadingScreen } from '@/components/roleplay/feedback-loading-screen';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 // Custom hooks
 function useJournalFeedbackDB(userId?: string) {
@@ -304,125 +305,135 @@ export default function JournalFeedbackPage() {
     );
   }
 
+  const sections = [
+    { id: 'feedback', label: 'Nhận xét' },
+    { id: 'grammar', label: 'Chi tiết ngữ pháp' },
+    { id: 'highlights', label: 'Từ đánh dấu' },
+  ];
+
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-10">
-      <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
-        <CardContent className="space-y-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Xem học được gì nào ^^</h1>
-
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tiêu đề</label>
-            <Input
-              value={editableTitle}
-              onChange={(e) => setEditableTitle(e.target.value)}
-              placeholder="Nhập tiêu đề nhật ký..."
-              className="text-lg"
-            />
-          </div>
-
-          {/* Summary */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Tóm tắt</h3>
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="whitespace-pre-wrap text-blue-600">{feedback.summary || 'Không có tóm tắt'}</div>
+    <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+      <SectionNavigation sections={sections} />
+      <div className="w-full max-w-4xl mx-auto px-4 py-10">
+        <Card className="bg-white rounded-lg shadow-sm p-6 border-0">
+          <CardContent className="space-y-8">
+            {/* Title - Editable */}
+            <div>
+              <input
+                type="text"
+                value={editableTitle}
+                onChange={(e) => setEditableTitle(e.target.value)}
+                placeholder="Nhập tiêu đề nhật ký..."
+                className="text-3xl font-bold text-blue-600 mb-2 w-full bg-transparent border-none outline-none focus:ring-0 p-0"
+              />
             </div>
-          </div>
 
-          {/* Fixed Typo Accordion */}
-          <Accordion type="single" collapsible>
-            <AccordionItem value="fixed-typo">
-              <AccordionTrigger>Phiên bản đã sửa lỗi chính tả</AccordionTrigger>
-              <AccordionContent>
-                <div className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg">
-                  {feedback.fixed_typo || feedback.originalVersion || 'Không có nội dung'}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+            {/* Summary */}
+            <div id="summary" className="scroll-mt-20">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Tóm tắt</h3>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="whitespace-pre-wrap text-gray-800">{feedback.summary || 'Không có tóm tắt'}</div>
+              </div>
+            </div>
 
-          {/* Feedback Tabs */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Phản hồi</h3>
-            <Tabs defaultValue="clarity" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
-                <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
-                <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
-                <TabsTrigger value="enhanced">Bản final</TabsTrigger>
-              </TabsList>
+            {/* Fixed Typo Accordion */}
+            <div id="fixed-typo" className="scroll-mt-20">
+              <Accordion type="single" collapsible>
+                <AccordionItem value="fixed-typo">
+                  <AccordionTrigger>Phiên bản đã sửa lỗi chính tả</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg">
+                      {feedback.fixed_typo || feedback.originalVersion || 'Không có nội dung'}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
 
-              <TabsContent value="clarity" className="mt-4">
-                <div id="clarity-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.clarity || 'Không có nội dung'}
-                </div>
-                <HighlightSelector
-                  containerId="clarity-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
-              </TabsContent>
+            {/* Feedback Tabs */}
+            <div id="feedback" className="scroll-mt-20">
+              <Tabs defaultValue="clarity" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
+                  <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
+                  <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
+                  <TabsTrigger value="enhanced">Bản final</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="vocabulary" className="mt-4">
-                <div id="vocabulary-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.vocabulary || 'Không có nội dung'}
-                </div>
-                <HighlightSelector
-                  containerId="vocabulary-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
-              </TabsContent>
+                <TabsContent value="clarity" className="mt-4">
+                  <div id="clarity-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {feedback.output?.clarity || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="clarity-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
 
-              <TabsContent value="ideas" className="mt-4">
-                <div id="ideas-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
-                  {feedback.output?.ideas || 'Không có nội dung'}
-                </div>
-                <HighlightSelector
-                  containerId="ideas-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
-              </TabsContent>
+                <TabsContent value="vocabulary" className="mt-4">
+                  <div id="vocabulary-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {feedback.output?.vocabulary || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="vocabulary-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
 
-              <TabsContent value="enhanced" className="mt-4">
-                <div id="enhanced-content" className="whitespace-pre-wrap text-blue-600 leading-relaxed p-4 bg-blue-50 rounded-lg min-h-[200px]">
-                  {feedback.enhanced_version || feedback.improvedVersion || 'Không có nội dung'}
-                </div>
-                <HighlightSelector
-                  containerId="enhanced-content"
-                  onHighlightSaved={addHighlight}
-                  highlights={highlights}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+                <TabsContent value="ideas" className="mt-4">
+                  <div id="ideas-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {feedback.output?.ideas || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="ideas-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
 
-          {/* Grammar Details */}
-          {feedback.grammar_details?.length > 0 && (
-            <GrammarDetailsSection details={feedback.grammar_details} />
-          )}
+                <TabsContent value="enhanced" className="mt-4">
+                  <div id="enhanced-content" className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                    {feedback.enhanced_version || feedback.improvedVersion || 'Không có nội dung'}
+                  </div>
+                  <HighlightSelector
+                    containerId="enhanced-content"
+                    onHighlightSaved={addHighlight}
+                    highlights={highlights}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
 
-          {/* Highlights */}
-          <div>
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Đã đánh dấu</h3>
-            <HighlightList highlights={highlights} onRemove={removeHighlight} />
-          </div>
+            {/* Grammar Details */}
+            <div id="grammar" className="scroll-mt-20">
+              {feedback.grammar_details?.length > 0 && (
+                <GrammarDetailsSection details={feedback.grammar_details} />
+              )}
+            </div>
 
-          {errMsg && <p className="text-red-500">{errMsg}</p>}
+            {/* Highlights */}
+            <div id="highlights" className="scroll-mt-20">
+              <h3 className="text-base font-semibold text-gray-800 mb-3">Đã đánh dấu</h3>
+              <HighlightList highlights={highlights} onRemove={removeHighlight} />
+            </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-4 pt-4">
-            <Button variant="outline" onClick={handleEdit}>
-              Sửa
-            </Button>
-            <Button onClick={() => handleSave(highlights.length > 0)} disabled={processing}>
-              {highlights.length > 0 ? 'Lưu & Tạo Flashcard' : 'Lưu'}
-            </Button>
+            {errMsg && <p className="text-red-500">{errMsg}</p>}
 
-          </div>
-        </CardContent>
-      </Card>
+            {/* Actions */}
+            <div className="flex justify-end gap-4 pt-4">
+              <Button variant="outline" onClick={handleEdit}>
+                Sửa
+              </Button>
+              <Button onClick={() => handleSave(highlights.length > 0)} disabled={processing}>
+                {highlights.length > 0 ? 'Lưu & Tạo Flashcard' : 'Lưu'}
+              </Button>
+
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

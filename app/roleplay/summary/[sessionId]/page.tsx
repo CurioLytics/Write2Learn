@@ -15,6 +15,7 @@ import { RoleplayFeedback, GrammarDetail } from '@/types/roleplay';
 import { RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FeedbackLoadingScreen } from '@/components/roleplay/feedback-loading-screen';
+import { SectionNavigation } from '@/components/ui/section-navigation';
 
 export default function RoleplaySummaryPage() {
   const router = useRouter();
@@ -195,203 +196,216 @@ export default function RoleplaySummaryPage() {
     );
   }
 
+  const sections = [
+    { id: 'feedback', label: 'Nhận xét' },
+    { id: 'highlights', label: 'Từ đánh dấu' },
+  ];
+
   return (
     <div className="flex-1 flex flex-col" style={{ transition: '0.3s ease-in-out', width: '100%' }}>
+      <SectionNavigation sections={sections} />
       <div className="w-full max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Xem học được gì nào ^^</h1>
-            <h2 className="text-lg text-gray-700 mb-4">{sessionData.scenario_name}</h2>
+            <h1 className="text-3xl font-bold text-blue-600 mb-4">{sessionData.scenario_name}</h1>
 
             {/* Messages Accordion */}
-            <Accordion type="single" collapsible className="mb-6">
-              <AccordionItem value="messages">
-                <AccordionTrigger>Lịch sử hội thoại</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                    {sessionData.messages?.map((message: any, index: number) => (
-                      <MessageBubble
-                        key={index}
-                        message={message}
-                        roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
-                        compact={true}
-                      />
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <div id="messages" className="scroll-mt-20">
+              <Accordion type="single" collapsible className="mb-6">
+                <AccordionItem value="messages">
+                  <AccordionTrigger>Lịch sử hội thoại</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {sessionData.messages?.map((message: any, index: number) => (
+                        <MessageBubble
+                          key={index}
+                          message={message}
+                          roleName={message.sender === 'bot' ? sessionData.scenario?.ai_role : 'Bạn'}
+                          compact={true}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           </div>
 
           {/* Feedback Tabs */}
-          {sessionData.feedback ? (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <button
+          <div id="feedback" className="scroll-mt-20">
+            {sessionData.feedback ? (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={handleRetryFeedback}
+                    disabled={retrying || !cachedPreferences}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    title="Tạo lại phản hồi"
+                  >
+                    <RefreshCw className={`w-4 h-4 text-gray-600 ${retrying ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                <Tabs defaultValue="clarity" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
+                    <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
+                    <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
+                    <TabsTrigger value="enhanced">Bản final</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="clarity" className="mt-4">
+                    <div
+                      id="clarity-content"
+                      className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                      style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text'
+                      }}
+                    >
+                      {sessionData.feedback.output?.clarity || 'Không có nội dung'}
+                    </div>
+                    <HighlightSelector
+                      containerId="clarity-content"
+                      onHighlightSaved={addHighlight}
+                      highlights={highlights}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="vocabulary" className="mt-4">
+                    <div
+                      id="vocabulary-content"
+                      className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                      style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text'
+                      }}
+                    >
+                      {sessionData.feedback.output?.vocabulary || 'Không có nội dung'}
+                    </div>
+                    <HighlightSelector
+                      containerId="vocabulary-content"
+                      onHighlightSaved={addHighlight}
+                      highlights={highlights}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="ideas" className="mt-4">
+                    <div
+                      id="ideas-content"
+                      className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                      style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text'
+                      }}
+                    >
+                      {sessionData.feedback.output?.ideas || 'Không có nội dung'}
+                    </div>
+                    <HighlightSelector
+                      containerId="ideas-content"
+                      onHighlightSaved={addHighlight}
+                      highlights={highlights}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="enhanced" className="mt-4">
+                    <div
+                      id="enhanced-content"
+                      className="space-y-3 p-4 bg-gray-50 rounded-lg min-h-[200px]"
+                      style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text'
+                      }}
+                    >
+                      {(() => {
+                        const enhancedVersion = sessionData.feedback.enhanced_version;
+                        if (!enhancedVersion) return 'Không có nội dung';
+
+                        // Check if it's an array (either actual array or stringified array)
+                        let messages: string[] = [];
+                        if (Array.isArray(enhancedVersion)) {
+                          messages = enhancedVersion;
+                        } else if (typeof enhancedVersion === 'string') {
+                          try {
+                            const parsed = JSON.parse(enhancedVersion);
+                            messages = Array.isArray(parsed) ? parsed : [enhancedVersion];
+                          } catch {
+                            messages = [enhancedVersion];
+                          }
+                        }
+
+                        return messages.map((msg, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 text-gray-800 leading-relaxed">
+                            {msg}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                    <HighlightSelector
+                      containerId="enhanced-content"
+                      onHighlightSaved={addHighlight}
+                      highlights={highlights}
+                    />
+                  </TabsContent>
+                </Tabs>
+
+                {/* Grammar Details */}
+                <div id="grammar" className="scroll-mt-20">
+                  {sessionData.feedback.grammar_details?.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Grammar Corrections</h3>
+                      <div className="space-y-4">
+                        {sessionData.feedback.grammar_details.map((detail: GrammarDetail, index: number) => (
+                          <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="text-sm font-medium text-blue-600">
+                                  {detail.grammar_topic_id.replace(/_/g, ' ')}
+                                </span>
+                                {detail.tags?.map(tag => (
+                                  <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="text-gray-800 whitespace-pre-wrap">{detail.description}</div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-8 p-8 bg-gray-50 rounded-lg text-center">
+                <p className="text-gray-500 mb-3">Chưa có phản hồi</p>
+                <Button
                   onClick={handleRetryFeedback}
                   disabled={retrying || !cachedPreferences}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
-                  title="Tạo lại phản hồi"
+                  size="sm"
+                  variant="outline"
                 >
-                  <RefreshCw className={`w-4 h-4 text-gray-600 ${retrying ? 'animate-spin' : ''}`} />
-                </button>
+                  Thử lại
+                </Button>
               </div>
-
-              <Tabs defaultValue="clarity" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="clarity">Độ rõ ràng</TabsTrigger>
-                  <TabsTrigger value="vocabulary">Từ vựng</TabsTrigger>
-                  <TabsTrigger value="ideas">Ý tưởng</TabsTrigger>
-                  <TabsTrigger value="enhanced">Phiên bản nâng cấp</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="clarity" className="mt-4">
-                  <div
-                    id="clarity-content"
-                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
-                    style={{
-                      userSelect: 'text',
-                      WebkitUserSelect: 'text',
-                      MozUserSelect: 'text',
-                      msUserSelect: 'text'
-                    }}
-                  >
-                    {sessionData.feedback.output?.clarity || 'Không có nội dung'}
-                  </div>
-                  <HighlightSelector
-                    containerId="clarity-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </TabsContent>
-
-                <TabsContent value="vocabulary" className="mt-4">
-                  <div
-                    id="vocabulary-content"
-                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
-                    style={{
-                      userSelect: 'text',
-                      WebkitUserSelect: 'text',
-                      MozUserSelect: 'text',
-                      msUserSelect: 'text'
-                    }}
-                  >
-                    {sessionData.feedback.output?.vocabulary || 'Không có nội dung'}
-                  </div>
-                  <HighlightSelector
-                    containerId="vocabulary-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </TabsContent>
-
-                <TabsContent value="ideas" className="mt-4">
-                  <div
-                    id="ideas-content"
-                    className="whitespace-pre-wrap text-gray-800 leading-relaxed p-4 bg-gray-50 rounded-lg min-h-[200px]"
-                    style={{
-                      userSelect: 'text',
-                      WebkitUserSelect: 'text',
-                      MozUserSelect: 'text',
-                      msUserSelect: 'text'
-                    }}
-                  >
-                    {sessionData.feedback.output?.ideas || 'Không có nội dung'}
-                  </div>
-                  <HighlightSelector
-                    containerId="ideas-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </TabsContent>
-
-                <TabsContent value="enhanced" className="mt-4">
-                  <div
-                    id="enhanced-content"
-                    className="space-y-3 p-4 bg-gray-50 rounded-lg min-h-[200px]"
-                    style={{
-                      userSelect: 'text',
-                      WebkitUserSelect: 'text',
-                      MozUserSelect: 'text',
-                      msUserSelect: 'text'
-                    }}
-                  >
-                    {(() => {
-                      const enhancedVersion = sessionData.feedback.enhanced_version;
-                      if (!enhancedVersion) return 'Không có nội dung';
-
-                      // Check if it's an array (either actual array or stringified array)
-                      let messages: string[] = [];
-                      if (Array.isArray(enhancedVersion)) {
-                        messages = enhancedVersion;
-                      } else if (typeof enhancedVersion === 'string') {
-                        try {
-                          const parsed = JSON.parse(enhancedVersion);
-                          messages = Array.isArray(parsed) ? parsed : [enhancedVersion];
-                        } catch {
-                          messages = [enhancedVersion];
-                        }
-                      }
-
-                      return messages.map((msg, idx) => (
-                        <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 text-gray-800 leading-relaxed">
-                          {msg}
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                  <HighlightSelector
-                    containerId="enhanced-content"
-                    onHighlightSaved={addHighlight}
-                    highlights={highlights}
-                  />
-                </TabsContent>
-              </Tabs>
-
-              {/* Grammar Details */}
-              {sessionData.feedback.grammar_details?.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Grammar Corrections</h3>
-                  <div className="space-y-4">
-                    {sessionData.feedback.grammar_details.map((detail: GrammarDetail, index: number) => (
-                      <Card key={index} className="hover:shadow-md transition-shadow border-0 bg-white">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="text-sm font-medium text-blue-600">
-                              {detail.grammar_topic_id.replace(/_/g, ' ')}
-                            </span>
-                            {detail.tags?.map(tag => (
-                              <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="text-gray-800 whitespace-pre-wrap">{detail.description}</div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mb-8 p-8 bg-gray-50 rounded-lg text-center">
-              <p className="text-gray-500 mb-3">Chưa có phản hồi</p>
-              <Button
-                onClick={handleRetryFeedback}
-                disabled={retrying || !cachedPreferences}
-                size="sm"
-                variant="outline"
-              >
-                Thử lại
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Highlights */}
-          <div className="w-full mb-8">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Highlighted</h3>
-            <HighlightList highlights={highlights} onRemove={removeHighlight} />
+          <div id="highlights" className="scroll-mt-20">
+            <div className="w-full mb-8">
+              <h3 className="text-base font-semibold text-gray-800 mb-3">Đã đánh dấu</h3>
+              <HighlightList highlights={highlights} onRemove={removeHighlight} />
+            </div>
           </div>
 
           {error && <p className="text-red-500 mb-4">{error}</p>}
