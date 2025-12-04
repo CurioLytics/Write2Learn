@@ -31,7 +31,13 @@ export default function ReviewPage() {
     fetch(`/api/vocabulary/sets/${setId}/review`)
       .then(res => res.json())
       .then((data) => {
-        setCards(data.vocabulary || []);
+        // Map vocabulary_id to id for compatibility with Vocabulary type
+        const mappedVocabulary = (data.vocabulary || []).map((item: any) => ({
+          ...item,
+          id: item.vocabulary_id || item.id,
+          set_id: setId
+        }));
+        setCards(mappedVocabulary);
       })
       .catch((error) => {
         console.error("[❌ API Error] vocabulary review failed:", error);
@@ -193,8 +199,8 @@ export default function ReviewPage() {
               <button
                 onClick={handleStarToggle}
                 className={`p-3 transition-colors ${currentCard.is_starred
-                    ? 'text-yellow-500 hover:text-yellow-600'
-                    : 'text-gray-400 hover:text-yellow-500'
+                  ? 'text-yellow-500 hover:text-yellow-600'
+                  : 'text-gray-400 hover:text-yellow-500'
                   }`}
                 aria-label={currentCard.is_starred ? 'Bỏ đánh dấu' : 'Đánh dấu'}
                 title={currentCard.is_starred ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}

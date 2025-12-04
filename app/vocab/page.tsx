@@ -87,6 +87,7 @@ export default function VocabPage() {
     setIsLoadingStarredWords(true);
     try {
       const starred = await getStarredVocabulary();
+      console.log('Starred words data:', starred); // Debug log
       setStarredWords(starred);
 
       // Cache the data
@@ -269,15 +270,14 @@ export default function VocabPage() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-medium text-gray-900">{word.word}</h3>
-                      {word.id && (
-                        <button
-                          onClick={() => handleStarToggle(word.id!)}
-                          className="text-yellow-500 hover:text-yellow-600 transition-colors"
-                          title="Bỏ đánh dấu"
-                        >
-                          ⭐
-                        </button>
-                      )}
+                      <button
+                        onClick={() => word.id && handleStarToggle(word.id)}
+                        className="text-yellow-500 hover:text-yellow-600 transition-colors"
+                        title="Bỏ đánh dấu"
+                        disabled={!word.id}
+                      >
+                        ⭐
+                      </button>
                     </div>
                     <p className="text-gray-700 text-sm mb-2">{word.meaning}</p>
                     {word.example && (

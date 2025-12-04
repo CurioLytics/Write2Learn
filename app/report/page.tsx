@@ -221,7 +221,7 @@ export default function ReportPage() {
             <Card className="bg-white shadow rounded-2xl">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900">Lịch hoạt động</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">Những ngày hoàn hảo</h3>
                   <TooltipProvider delayDuration={0}>
                     <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
                       <TooltipTrigger asChild>

@@ -59,17 +59,28 @@ export async function getStarredVocabulary(): Promise<any[]> {
     throw new Error('User not authenticated');
   }
 
+  // First get all vocabulary sets for this user
+  const { data: userSets, error: setsError } = await supabase
+    .from('vocabulary_set')
+    .select('id')
+    .eq('profile_id', user.id);
+
+  if (setsError) {
+    throw setsError;
+  }
+
+  const setIds = (userSets || []).map(set => set.id);
+
+  if (setIds.length === 0) {
+    return [];
+  }
+
+  // Then get starred vocabulary from those sets
   const { data, error } = await supabase
     .from('vocabulary')
-    .select(`
-      id,
-      word,
-      meaning,
-      example,
-      vocabulary_set!inner(profile_id)
-    `)
+    .select('id, word, meaning, example, set_id')
     .eq('is_starred', true)
-    .eq('vocabulary_set.profile_id', user.id);
+    .in('set_id', setIds);
 
   if (error) {
     throw error;
